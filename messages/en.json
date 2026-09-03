@@ -489,9 +489,16 @@
       "live": "LIVE · {minute}'",
       "finished": "Full time"
     },
+    "tabs": {
+      "label": "Match details",
+      "overview": "Match info",
+      "predictions": "Picks & points"
+    },
     "predictions": {
       "title": "Your group's live picks",
       "subtitle": "Everyone's locked prediction, with points calculated against the current score.",
+      "finishedTitle": "Your group's picks & points",
+      "finishedSubtitle": "Everyone's locked prediction with the final points awarded for this match.",
       "signedOut": "Sign in to see your groups' predictions.",
       "signIn": "Sign in",
       "noGroups": "You are not in a friends group yet.",
@@ -499,6 +506,7 @@
       "player": "Player",
       "pick": "Pick",
       "livePoints": "Live pts",
+      "finalPoints": "Points",
       "you": "you"
     },
     "lineups": {

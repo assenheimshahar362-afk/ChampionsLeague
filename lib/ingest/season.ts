@@ -683,13 +683,6 @@ export async function ingestSeason(
       round: base.round,
       matchday: base.matchday,
       original_kickoff_at: base.original_kickoff_at,
-      venue: base.venue,
-      venue_api_id: null,
-      venue_city: null,
-      venue_address: null,
-      venue_capacity: null,
-      venue_surface: null,
-      venue_image_url: null,
       attendance: base.attendance,
       referee: base.referee,
       home_team_id: homeId,
@@ -715,6 +708,7 @@ export async function ingestSeason(
     if (existing) {
       const update = {
         ...shared,
+        ...(base.venue ? { venue: base.venue } : {}),
         ...(!env.REBASE_ENABLED && existing.status === "scheduled"
           ? { kickoff_at: base.kickoff_at }
           : {}),
@@ -725,6 +719,7 @@ export async function ingestSeason(
     } else {
       const { error } = await db.from("fixtures").insert({
         ...shared,
+        venue: base.venue,
         kickoff_at: base.kickoff_at,
       });
       if (error) throw new Error(`Inserting fixture ${wire.id} failed: ${error.message}`);

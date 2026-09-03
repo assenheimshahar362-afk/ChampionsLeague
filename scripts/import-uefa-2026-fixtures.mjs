@@ -11,6 +11,7 @@ const UEFA_SEASON_YEAR = 2027;
 const EXPECTED_MATCHES = 144;
 const EXPECTED_MATCHES_PER_MATCHDAY = 18;
 const DRY_RUN = process.argv.includes("--dry");
+const VENUES_ONLY = process.argv.includes("--venues-only");
 const UEFA_FIXTURES_URL =
   `https://match.uefa.com/v5/matches?competitionId=1&seasonYear=${UEFA_SEASON_YEAR}` +
   "&phase=TOURNAMENT&order=ASC&offset=0&limit=200";
@@ -219,7 +220,7 @@ function validateSource(matches) {
     if (!match.id || ids.has(match.id)) throw new Error(`Duplicate or missing UEFA match id: ${name}`);
     ids.add(match.id);
     if (!match.homeTeam?.id || !match.awayTeam?.id) throw new Error(`Missing team id: ${name}`);
-    predictionPointRow(match);
+    if (!VENUES_ONLY) predictionPointRow(match);
     if (!match.kickOffTime?.dateTime) throw new Error(`Missing kickoff: ${name}`);
     if (Number.isNaN(new Date(match.kickOffTime.dateTime).getTime())) {
       throw new Error(`Invalid kickoff: ${name}`);
@@ -273,8 +274,6 @@ function teamInsertRow(team, homeStadiums) {
 
 function fixtureRow(match, homeTeamId, awayTeamId) {
   const kickoff = new Date(match.kickOffTime.dateTime).toISOString();
-  const stadium = match.stadium ?? null;
-  const venueId = Number(stadium?.id);
   return {
     season: APP_SEASON,
     stage: "league_phase",
@@ -282,6 +281,20 @@ function fixtureRow(match, homeTeamId, awayTeamId) {
     matchday: Number(match.matchday.sequenceNumber),
     kickoff_at: kickoff,
     original_kickoff_at: kickoff,
+    ...venueRow(match),
+    attendance: null,
+    referee: null,
+    home_team_id: homeTeamId,
+    away_team_id: awayTeamId,
+    status: "scheduled",
+    ...predictionPointRow(match),
+  };
+}
+
+function venueRow(match) {
+  const stadium = match.stadium ?? null;
+  const venueId = Number(stadium?.id);
+  return {
     venue: stadiumName(stadium),
     venue_api_id: Number.isSafeInteger(venueId) ? venueId : null,
     venue_city: stadiumCity(stadium),
@@ -290,12 +303,6 @@ function fixtureRow(match, homeTeamId, awayTeamId) {
     venue_surface: null,
     venue_image_url:
       stadium?.images?.LARGE_ULTRA_WIDE ?? stadium?.images?.MEDIUM_WIDE ?? null,
-    attendance: null,
-    referee: null,
-    home_team_id: homeTeamId,
-    away_team_id: awayTeamId,
-    status: "scheduled",
-    ...predictionPointRow(match),
   };
 }
 
@@ -314,6 +321,20 @@ const { data: storedTeams, error: teamReadError } = await db
   .select("id, name, short_name, logo_url, venue_name, venue_city, venue_capacity");
 if (teamReadError) throw new Error(`Reading teams failed: ${teamReadError.message}`);
 
+const { data: existingFixtures, error: fixtureReadError } = await db
+  .from("fixtures")
+  .select("id, home_team_id, away_team_id, kickoff_at, matchday")
+  .eq("season", APP_SEASON)
+  .eq("stage", "league_phase");
+if (fixtureReadError) throw new Error(`Reading existing fixtures failed: ${fixtureReadError.message}`);
+
+const activeTeamIds = new Set(
+  (existingFixtures ?? []).flatMap((fixture) => [
+    fixture.home_team_id,
+    fixture.away_team_id,
+  ])
+);
+
 const storedTeamsById = new Map((storedTeams ?? []).map((team) => [team.id, team]));
 const storedTeamsByName = new Map();
 for (const team of storedTeams ?? []) {
@@ -321,7 +342,14 @@ for (const team of storedTeams ?? []) {
   for (const key of keys) {
     const previous = storedTeamsByName.get(key);
     if (previous && previous.id !== team.id) {
-      throw new Error(`Ambiguous stored team name "${key}": ${previous.name}, ${team.name}`);
+      const activeMatches = [previous, team].filter((candidate) =>
+        activeTeamIds.has(candidate.id)
+      );
+      if (activeMatches.length !== 1) {
+        throw new Error(`Ambiguous stored team name "${key}": ${previous.name}, ${team.name}`);
+      }
+      storedTeamsByName.set(key, activeMatches[0]);
+      continue;
     }
     storedTeamsByName.set(key, team);
   }
@@ -338,7 +366,7 @@ for (const team of uefaTeams.values()) {
   uefaTeamByCanonicalName.set(key, team);
   const matchesByName = [...uefaTeamNameKeys(team)]
     .map((nameKey) => storedTeamsByName.get(nameKey))
-    .filter(Boolean);
+    .filter((stored) => stored && activeTeamIds.has(stored.id));
   const distinctMatches = new Map(matchesByName.map((stored) => [stored.id, stored]));
   if (distinctMatches.size > 1) {
     throw new Error(
@@ -349,13 +377,6 @@ for (const team of uefaTeams.values()) {
   if (existing) matchedUefaTeams.push({ uefa: team, stored: existing });
   else missingUefaTeams.push(team);
 }
-
-const { data: existingFixtures, error: fixtureReadError } = await db
-  .from("fixtures")
-  .select("id, home_team_id, away_team_id, kickoff_at, matchday")
-  .eq("season", APP_SEASON)
-  .eq("stage", "league_phase");
-if (fixtureReadError) throw new Error(`Reading existing fixtures failed: ${fixtureReadError.message}`);
 
 const sourceFixtureNames = new Set(
   matches.map((match) =>
@@ -400,6 +421,12 @@ if (DRY_RUN) {
   process.exit(0);
 }
 
+if (VENUES_ONLY && missingUefaTeams.length > 0) {
+  throw new Error(
+    `Venue-only restore requires every UEFA team to exist; missing ${missingUefaTeams.length}: ${missingUefaTeams.map((team) => team.internationalName).sort().join(", ")}`
+  );
+}
+
 for (const { uefa, stored } of matchedUefaTeams) {
   const stadiums = homeStadiums.get(uefa.id) ?? new Map();
   const stadium = stadiums.values().next().value ?? null;
@@ -429,6 +456,7 @@ if (refreshedTeamError) throw new Error(`Re-reading teams failed: ${refreshedTea
 
 const refreshedTeamByCanonicalName = new Map();
 for (const team of refreshedTeams ?? []) {
+  if (VENUES_ONLY && !activeTeamIds.has(team.id)) continue;
   refreshedTeamByCanonicalName.set(normalizeTeamName(team.name), team);
   refreshedTeamByCanonicalName.set(normalizeTeamName(team.short_name), team);
 }
@@ -453,7 +481,9 @@ const sourceRows = matches.map((match) => {
   return {
     uefaMatchId: match.id,
     key: fixtureIdKey(homeTeamId, awayTeamId),
-    row: fixtureRow(match, homeTeamId, awayTeamId),
+    row: VENUES_ONLY
+      ? venueRow(match)
+      : fixtureRow(match, homeTeamId, awayTeamId),
   };
 });
 
@@ -469,6 +499,12 @@ for (const source of sourceRows) {
   const existing = existingByKey.get(source.key);
   if (existing) rowsToUpdate.push({ id: existing.id, ...source.row });
   else rowsToInsert.push(source.row);
+}
+
+if (VENUES_ONLY && rowsToInsert.length > 0) {
+  throw new Error(
+    `Venue-only restore could not match ${rowsToInsert.length} UEFA fixture(s); refusing to insert partial rows`
+  );
 }
 
 if (rowsToInsert.length > 0) {

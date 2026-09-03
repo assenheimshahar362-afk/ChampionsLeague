@@ -10,6 +10,7 @@ export type GroupFixturePrediction = {
   avatarUrl: string | null;
   homeGoals: number | null;
   awayGoals: number | null;
+  settledPoints: number | null;
 };
 
 export type FixtureGroupPredictions = {
@@ -62,7 +63,7 @@ export async function getFixtureGroupPredictions(
   const memberIds = (memberships ?? []).map((row) => row.user_id);
   if (memberIds.length === 0) return { groups, selectedGroup, rows: [] };
 
-  const [profiles, predictions] = await Promise.all([
+  const [profiles, predictions, scores] = await Promise.all([
     db
       .from("profiles")
       .select("id, display_name, avatar_url")
@@ -70,6 +71,11 @@ export async function getFixtureGroupPredictions(
     db
       .from("predictions")
       .select("user_id, home_goals, away_goals")
+      .eq("fixture_id", fixtureId)
+      .in("user_id", memberIds),
+    db
+      .from("prediction_scores")
+      .select("user_id, total_points")
       .eq("fixture_id", fixtureId)
       .in("user_id", memberIds),
   ]);
@@ -80,9 +86,15 @@ export async function getFixtureGroupPredictions(
   if (predictions.error) {
     throw new Error(`Loading group predictions failed: ${predictions.error.message}`);
   }
+  if (scores.error) {
+    throw new Error(`Loading group prediction scores failed: ${scores.error.message}`);
+  }
 
   const predictionByUser = new Map(
     (predictions.data ?? []).map((row) => [row.user_id, row])
+  );
+  const scoreByUser = new Map(
+    (scores.data ?? []).map((row) => [row.user_id, row.total_points])
   );
   const rows = (profiles.data ?? [])
     .map((profile) => {
@@ -93,6 +105,7 @@ export async function getFixtureGroupPredictions(
         avatarUrl: profile.avatar_url,
         homeGoals: prediction?.home_goals ?? null,
         awayGoals: prediction?.away_goals ?? null,
+        settledPoints: scoreByUser.get(profile.id) ?? null,
       };
     })
     .sort(

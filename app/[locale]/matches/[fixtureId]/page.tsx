@@ -6,10 +6,12 @@ import {
   CalendarDays,
   CircleDot,
   Clock,
+  Info,
   MapPin,
   Radio,
   Shield,
   Star,
+  Trophy,
   User,
   Users,
 } from "lucide-react";
@@ -76,7 +78,10 @@ export default async function MatchDetailsPage({
   searchParams,
 }: {
   params: Promise<{ locale: string; fixtureId: string }>;
-  searchParams: Promise<{ group?: string | string[] }>;
+  searchParams: Promise<{
+    group?: string | string[];
+    view?: string | string[];
+  }>;
 }) {
   const { locale, fixtureId } = await params;
   if (isLocale(locale)) setRequestLocale(locale);
@@ -110,13 +115,21 @@ export default async function MatchDetailsPage({
     : providerDetails;
   const displayFixture = withProviderState(fixture, details);
   const live = isInPlay(displayFixture);
+  const finished = displayFixture.status === "finished";
+  const predictionsAvailable = live || finished;
   const pollLiveData = shouldPollLiveData(displayFixture);
-  const requestedGroup = (await searchParams).group;
+  const query = await searchParams;
+  const requestedGroup = query.group;
   const requestedGroupId = Array.isArray(requestedGroup)
     ? requestedGroup[0]
     : requestedGroup;
+  const requestedView = Array.isArray(query.view) ? query.view[0] : query.view;
+  const view =
+    predictionsAvailable && requestedView !== "overview"
+      ? "predictions"
+      : "overview";
   const groupPredictions =
-    live && user
+    view === "predictions" && user
       ? await getFixtureGroupPredictions(user.id, fixture.id, requestedGroupId)
       : null;
   const history = buildFixtureHistory(allFixtures, fixture);
@@ -141,32 +154,45 @@ export default async function MatchDetailsPage({
         details={details}
       />
 
-      {live ? (
-        <LivePredictions
+      {predictionsAvailable ? (
+        <MatchDetailsTabs
+          fixtureId={fixture.id}
+          view={view}
+          groupId={requestedGroupId}
+        />
+      ) : null}
+
+      {predictionsAvailable && view === "predictions" ? (
+        <GroupPredictions
           fixture={displayFixture}
           data={groupPredictions}
           currentUserId={user?.id ?? null}
         />
-      ) : null}
+      ) : (
+        <div
+          className={cn(
+            "grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_20rem]",
+            predictionsAvailable ? "mt-4" : "mt-6"
+          )}
+        >
+          <div className="order-2 space-y-5 lg:order-1">
+            <LineupsSection
+              fixture={fixture}
+              details={details}
+              squads={teamSquads}
+            />
+            <StatisticsSection fixture={fixture} details={details} />
+            <EventsSection fixture={fixture} details={details} />
+            <TopPerformers fixture={fixture} details={details} />
+          </div>
 
-      <div className="mt-6 grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_20rem]">
-        <div className="order-2 space-y-5 lg:order-1">
-          <LineupsSection
-            fixture={fixture}
-            details={details}
-            squads={teamSquads}
-          />
-          <StatisticsSection fixture={fixture} details={details} />
-          <EventsSection fixture={fixture} details={details} />
-          <TopPerformers fixture={fixture} details={details} />
+          <aside className="order-1 space-y-5 lg:order-2">
+            <VenueCard fixture={fixture} />
+            <ForecastCard fixture={fixture} locale={locale} />
+            <HistoryCard fixture={fixture} history={history} locale={locale} />
+          </aside>
         </div>
-
-        <aside className="order-1 space-y-5 lg:order-2">
-          <VenueCard fixture={fixture} />
-          <ForecastCard fixture={fixture} locale={locale} />
-          <HistoryCard fixture={fixture} history={history} locale={locale} />
-        </aside>
-      </div>
+      )}
     </main>
   );
 }
@@ -321,7 +347,54 @@ function HeroTeam({ team }: { team: Team }) {
   );
 }
 
-async function LivePredictions({
+async function MatchDetailsTabs({
+  fixtureId,
+  view,
+  groupId,
+}: {
+  fixtureId: string;
+  view: "overview" | "predictions";
+  groupId?: string;
+}) {
+  const t = await getTranslations("matchDetails.tabs");
+  const items = [
+    ["overview", Info, t("overview")],
+    ["predictions", Users, t("predictions")],
+  ] as const;
+
+  return (
+    <nav
+      aria-label={t("label")}
+      className="bg-card/45 mt-6 grid grid-cols-2 gap-1 rounded-xl border border-white/15 p-1 shadow-[inset_0_1px_0_rgb(255_255_255/0.06)] backdrop-blur-xl"
+    >
+      {items.map(([key, Icon, label]) => (
+        <Button
+          key={key}
+          asChild
+          variant="ghost"
+          className={cn(
+            "h-10 rounded-lg",
+            view === key &&
+              "border-primary/25 bg-primary/12 text-primary shadow-[0_5px_16px_rgb(2_7_28/0.12)]"
+          )}
+        >
+          <Link
+            href={{
+              pathname: `/matches/${fixtureId}`,
+              query: { view: key, ...(groupId ? { group: groupId } : {}) },
+            }}
+            aria-current={view === key ? "page" : undefined}
+          >
+            <Icon className="size-4" aria-hidden="true" />
+            {label}
+          </Link>
+        </Button>
+      ))}
+    </nav>
+  );
+}
+
+async function GroupPredictions({
   fixture,
   data,
   currentUserId,
@@ -331,16 +404,29 @@ async function LivePredictions({
   currentUserId: string | null;
 }) {
   const t = await getTranslations("matchDetails.predictions");
+  const live = isInPlay(fixture);
+  const finished = fixture.status === "finished";
 
   return (
     <section
       id="group-predictions"
-      className="border-live/30 bg-live/[0.055] mt-6 rounded-2xl border p-4 shadow-[0_0_28px_rgb(245_90_120/0.08)] sm:p-5"
+      className={cn(
+        "mt-4 rounded-2xl border p-4 sm:p-5",
+        live
+          ? "border-live/30 bg-live/[0.055] shadow-[0_0_28px_rgb(245_90_120/0.08)]"
+          : "bg-card/55 border-white/15 shadow-[0_18px_50px_rgb(3_7_25/0.2)]"
+      )}
     >
       <SectionTitle
-        icon={<Radio className="text-live size-4" aria-hidden="true" />}
-        title={t("title")}
-        subtitle={t("subtitle")}
+        icon={
+          live ? (
+            <Radio className="text-live size-4" aria-hidden="true" />
+          ) : (
+            <Trophy className="text-warning size-4" aria-hidden="true" />
+          )
+        }
+        title={t(finished ? "finishedTitle" : "title")}
+        subtitle={t(finished ? "finishedSubtitle" : "subtitle")}
       />
 
       {!currentUserId ? (
@@ -371,7 +457,7 @@ async function LivePredictions({
                       <Link
                         href={{
                           pathname: `/matches/${fixture.id}`,
-                          query: { group: group.id },
+                          query: { view: "predictions", group: group.id },
                         }}
                         aria-current={active ? "page" : undefined}
                       >
@@ -399,8 +485,8 @@ async function LivePredictions({
                   <th scope="col" className="px-3 py-2 text-center font-medium">
                     {t("pick")}
                   </th>
-                  <th scope="col" className="px-3 py-2 text-end font-medium">
-                    {t("livePoints")}
+                  <th scope="col" className="px-3 py-2 text-center font-medium">
+                    {t(finished ? "finalPoints" : "livePoints")}
                   </th>
                 </tr>
               </thead>
@@ -408,7 +494,7 @@ async function LivePredictions({
                 {data.rows.map((row) => {
                   const hasPrediction =
                     row.homeGoals !== null && row.awayGoals !== null;
-                  const points = hasPrediction
+                  const projected = hasPrediction
                     ? (projectedPoints(
                         {
                           fixtureId: fixture.id,
@@ -418,6 +504,9 @@ async function LivePredictions({
                         fixture
                       )?.totalPoints ?? 0)
                     : null;
+                  const points = finished
+                    ? (row.settledPoints ?? projected)
+                    : projected;
 
                   return (
                     <tr
@@ -449,11 +538,20 @@ async function LivePredictions({
                       <td dir="ltr" data-numeric className="px-3 py-2.5 text-center font-bold">
                         {hasPrediction ? `${row.homeGoals}:${row.awayGoals}` : "—"}
                       </td>
-                      <td className="px-3 py-2.5 text-end">
+                      <td className="px-3 py-2.5 text-center">
                         {points === null ? (
                           <span className="text-muted-foreground">—</span>
                         ) : (
-                          <span className="border-live/40 text-live inline-flex rounded-full border border-dashed px-2 py-0.5 text-xs font-semibold">
+                          <span
+                            className={cn(
+                              "inline-flex min-w-7 justify-center rounded-full border px-2 py-0.5 text-xs font-semibold",
+                              live
+                                ? "border-live/40 text-live border-dashed"
+                                : points > 0
+                                  ? "border-success/30 bg-success/10 text-success"
+                                  : "border-white/15 bg-white/[0.04] text-muted-foreground"
+                            )}
+                          >
                             {points}
                           </span>
                         )}
