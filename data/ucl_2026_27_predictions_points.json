@@ -1,0 +1,2461 @@
+{
+  "competition": "UEFA Champions League",
+  "season": "2026/27",
+  "stage": "League phase",
+  "fixtureCount": 144,
+  "probabilityModel": {
+    "type": "independent sports-strength estimate",
+    "note": "Not bookmaker odds. Probabilities are model estimates based on approximate relative team strength plus home advantage.",
+    "pointsScale": "2-12; lower-probability outcomes receive more points"
+  },
+  "games": [
+    {
+      "id": 1,
+      "matchday": 1,
+      "date": "2026-09-08",
+      "homeTeam": "AEK Athens",
+      "awayTeam": "LASK",
+      "probabilities": {
+        "home": 52,
+        "draw": 24,
+        "away": 24
+      },
+      "points": {
+        "home": 4,
+        "draw": 8,
+        "away": 8
+      }
+    },
+    {
+      "id": 2,
+      "matchday": 1,
+      "date": "2026-09-08",
+      "homeTeam": "Club Brugge",
+      "awayTeam": "Aston Villa",
+      "probabilities": {
+        "home": 28,
+        "draw": 25,
+        "away": 47
+      },
+      "points": {
+        "home": 7,
+        "draw": 8,
+        "away": 5
+      }
+    },
+    {
+      "id": 3,
+      "matchday": 1,
+      "date": "2026-09-08",
+      "homeTeam": "Borussia Dortmund",
+      "awayTeam": "Villarreal",
+      "probabilities": {
+        "home": 58,
+        "draw": 23,
+        "away": 19
+      },
+      "points": {
+        "home": 4,
+        "draw": 8,
+        "away": 9
+      }
+    },
+    {
+      "id": 4,
+      "matchday": 1,
+      "date": "2026-09-08",
+      "homeTeam": "Porto",
+      "awayTeam": "Manchester City",
+      "probabilities": {
+        "home": 22,
+        "draw": 24,
+        "away": 54
+      },
+      "points": {
+        "home": 8,
+        "draw": 8,
+        "away": 4
+      }
+    },
+    {
+      "id": 5,
+      "matchday": 1,
+      "date": "2026-09-08",
+      "homeTeam": "Lille",
+      "awayTeam": "Real Betis",
+      "probabilities": {
+        "home": 47,
+        "draw": 25,
+        "away": 28
+      },
+      "points": {
+        "home": 5,
+        "draw": 8,
+        "away": 7
+      }
+    },
+    {
+      "id": 6,
+      "matchday": 1,
+      "date": "2026-09-08",
+      "homeTeam": "Real Madrid",
+      "awayTeam": "Inter",
+      "probabilities": {
+        "home": 57,
+        "draw": 23,
+        "away": 20
+      },
+      "points": {
+        "home": 4,
+        "draw": 8,
+        "away": 9
+      }
+    },
+    {
+      "id": 7,
+      "matchday": 1,
+      "date": "2026-09-09",
+      "homeTeam": "Barcelona",
+      "awayTeam": "Feyenoord",
+      "probabilities": {
+        "home": 74,
+        "draw": 19,
+        "away": 7
+      },
+      "points": {
+        "home": 2,
+        "draw": 9,
+        "away": 12
+      }
+    },
+    {
+      "id": 8,
+      "matchday": 1,
+      "date": "2026-09-09",
+      "homeTeam": "Stuttgart",
+      "awayTeam": "Viking",
+      "probabilities": {
+        "home": 68,
+        "draw": 21,
+        "away": 11
+      },
+      "points": {
+        "home": 3,
+        "draw": 9,
+        "away": 11
+      }
+    },
+    {
+      "id": 9,
+      "matchday": 1,
+      "date": "2026-09-09",
+      "homeTeam": "Liverpool",
+      "awayTeam": "Atlético de Madrid",
+      "probabilities": {
+        "home": 54,
+        "draw": 24,
+        "away": 22
+      },
+      "points": {
+        "home": 4,
+        "draw": 8,
+        "away": 8
+      }
+    },
+    {
+      "id": 10,
+      "matchday": 1,
+      "date": "2026-09-09",
+      "homeTeam": "Paris Saint-Germain",
+      "awayTeam": "Slovan Bratislava",
+      "probabilities": {
+        "home": 86,
+        "draw": 13,
+        "away": 1
+      },
+      "points": {
+        "home": 2,
+        "draw": 10,
+        "away": 12
+      }
+    },
+    {
+      "id": 11,
+      "matchday": 1,
+      "date": "2026-09-09",
+      "homeTeam": "Sporting CP",
+      "awayTeam": "Galatasaray",
+      "probabilities": {
+        "home": 57,
+        "draw": 23,
+        "away": 20
+      },
+      "points": {
+        "home": 4,
+        "draw": 8,
+        "away": 9
+      }
+    },
+    {
+      "id": 12,
+      "matchday": 1,
+      "date": "2026-09-09",
+      "homeTeam": "Napoli",
+      "awayTeam": "Arsenal",
+      "probabilities": {
+        "home": 32,
+        "draw": 26,
+        "away": 42
+      },
+      "points": {
+        "home": 7,
+        "draw": 8,
+        "away": 5
+      }
+    },
+    {
+      "id": 13,
+      "matchday": 1,
+      "date": "2026-09-10",
+      "homeTeam": "Fenerbahçe",
+      "awayTeam": "Roma",
+      "probabilities": {
+        "home": 34,
+        "draw": 27,
+        "away": 39
+      },
+      "points": {
+        "home": 6,
+        "draw": 7,
+        "away": 6
+      }
+    },
+    {
+      "id": 14,
+      "matchday": 1,
+      "date": "2026-09-10",
+      "homeTeam": "PSV Eindhoven",
+      "awayTeam": "Shakhtar Donetsk",
+      "probabilities": {
+        "home": 60,
+        "draw": 23,
+        "away": 17
+      },
+      "points": {
+        "home": 3,
+        "draw": 8,
+        "away": 9
+      }
+    },
+    {
+      "id": 15,
+      "matchday": 1,
+      "date": "2026-09-10",
+      "homeTeam": "Como",
+      "awayTeam": "Leipzig",
+      "probabilities": {
+        "home": 30,
+        "draw": 26,
+        "away": 44
+      },
+      "points": {
+        "home": 7,
+        "draw": 8,
+        "away": 5
+      }
+    },
+    {
+      "id": 16,
+      "matchday": 1,
+      "date": "2026-09-10",
+      "homeTeam": "Bayern München",
+      "awayTeam": "Bodø/Glimt",
+      "probabilities": {
+        "home": 79,
+        "draw": 17,
+        "away": 4
+      },
+      "points": {
+        "home": 2,
+        "draw": 9,
+        "away": 12
+      }
+    },
+    {
+      "id": 17,
+      "matchday": 1,
+      "date": "2026-09-10",
+      "homeTeam": "Manchester United",
+      "awayTeam": "Sabah",
+      "probabilities": {
+        "home": 84,
+        "draw": 14,
+        "away": 2
+      },
+      "points": {
+        "home": 2,
+        "draw": 10,
+        "away": 12
+      }
+    },
+    {
+      "id": 18,
+      "matchday": 1,
+      "date": "2026-09-10",
+      "homeTeam": "Slavia Praha",
+      "awayTeam": "Lens",
+      "probabilities": {
+        "home": 39,
+        "draw": 27,
+        "away": 34
+      },
+      "points": {
+        "home": 6,
+        "draw": 7,
+        "away": 6
+      }
+    },
+    {
+      "id": 19,
+      "matchday": 2,
+      "date": "2026-10-13",
+      "homeTeam": "Lens",
+      "awayTeam": "Sporting CP",
+      "probabilities": {
+        "home": 28,
+        "draw": 25,
+        "away": 47
+      },
+      "points": {
+        "home": 7,
+        "draw": 8,
+        "away": 5
+      }
+    },
+    {
+      "id": 20,
+      "matchday": 2,
+      "date": "2026-10-13",
+      "homeTeam": "Sabah",
+      "awayTeam": "Slavia Praha",
+      "probabilities": {
+        "home": 21,
+        "draw": 23,
+        "away": 56
+      },
+      "points": {
+        "home": 9,
+        "draw": 8,
+        "away": 4
+      }
+    },
+    {
+      "id": 21,
+      "matchday": 2,
+      "date": "2026-10-13",
+      "homeTeam": "Arsenal",
+      "awayTeam": "Lille",
+      "probabilities": {
+        "home": 70,
+        "draw": 20,
+        "away": 10
+      },
+      "points": {
+        "home": 2,
+        "draw": 9,
+        "away": 11
+      }
+    },
+    {
+      "id": 22,
+      "matchday": 2,
+      "date": "2026-10-13",
+      "homeTeam": "Atlético de Madrid",
+      "awayTeam": "Manchester United",
+      "probabilities": {
+        "home": 54,
+        "draw": 24,
+        "away": 22
+      },
+      "points": {
+        "home": 4,
+        "draw": 8,
+        "away": 8
+      }
+    },
+    {
+      "id": 23,
+      "matchday": 2,
+      "date": "2026-10-13",
+      "homeTeam": "Inter",
+      "awayTeam": "Club Brugge",
+      "probabilities": {
+        "home": 73,
+        "draw": 19,
+        "away": 8
+      },
+      "points": {
+        "home": 2,
+        "draw": 9,
+        "away": 12
+      }
+    },
+    {
+      "id": 24,
+      "matchday": 2,
+      "date": "2026-10-13",
+      "homeTeam": "Galatasaray",
+      "awayTeam": "Barcelona",
+      "probabilities": {
+        "home": 16,
+        "draw": 23,
+        "away": 61
+      },
+      "points": {
+        "home": 10,
+        "draw": 8,
+        "away": 3
+      }
+    },
+    {
+      "id": 25,
+      "matchday": 2,
+      "date": "2026-10-13",
+      "homeTeam": "Leipzig",
+      "awayTeam": "PSV Eindhoven",
+      "probabilities": {
+        "home": 44,
+        "draw": 26,
+        "away": 30
+      },
+      "points": {
+        "home": 5,
+        "draw": 8,
+        "away": 7
+      }
+    },
+    {
+      "id": 26,
+      "matchday": 2,
+      "date": "2026-10-13",
+      "homeTeam": "Viking",
+      "awayTeam": "Bayern München",
+      "probabilities": {
+        "home": 5,
+        "draw": 18,
+        "away": 77
+      },
+      "points": {
+        "home": 12,
+        "draw": 9,
+        "away": 2
+      }
+    },
+    {
+      "id": 27,
+      "matchday": 2,
+      "date": "2026-10-13",
+      "homeTeam": "Villarreal",
+      "awayTeam": "Napoli",
+      "probabilities": {
+        "home": 37,
+        "draw": 27,
+        "away": 36
+      },
+      "points": {
+        "home": 6,
+        "draw": 7,
+        "away": 6
+      }
+    },
+    {
+      "id": 28,
+      "matchday": 2,
+      "date": "2026-10-14",
+      "homeTeam": "Feyenoord",
+      "awayTeam": "Como",
+      "probabilities": {
+        "home": 58,
+        "draw": 23,
+        "away": 19
+      },
+      "points": {
+        "home": 4,
+        "draw": 8,
+        "away": 9
+      }
+    },
+    {
+      "id": 29,
+      "matchday": 2,
+      "date": "2026-10-14",
+      "homeTeam": "LASK",
+      "awayTeam": "Liverpool",
+      "probabilities": {
+        "home": 6,
+        "draw": 18,
+        "away": 76
+      },
+      "points": {
+        "home": 12,
+        "draw": 9,
+        "away": 2
+      }
+    },
+    {
+      "id": 30,
+      "matchday": 2,
+      "date": "2026-10-14",
+      "homeTeam": "Roma",
+      "awayTeam": "Real Madrid",
+      "probabilities": {
+        "home": 24,
+        "draw": 24,
+        "away": 52
+      },
+      "points": {
+        "home": 8,
+        "draw": 8,
+        "away": 4
+      }
+    },
+    {
+      "id": 31,
+      "matchday": 2,
+      "date": "2026-10-14",
+      "homeTeam": "Aston Villa",
+      "awayTeam": "Fenerbahçe",
+      "probabilities": {
+        "home": 60,
+        "draw": 23,
+        "away": 17
+      },
+      "points": {
+        "home": 3,
+        "draw": 8,
+        "away": 9
+      }
+    },
+    {
+      "id": 32,
+      "matchday": 2,
+      "date": "2026-10-14",
+      "homeTeam": "Shakhtar Donetsk",
+      "awayTeam": "AEK Athens",
+      "probabilities": {
+        "home": 60,
+        "draw": 23,
+        "away": 17
+      },
+      "points": {
+        "home": 3,
+        "draw": 8,
+        "away": 9
+      }
+    },
+    {
+      "id": 33,
+      "matchday": 2,
+      "date": "2026-10-14",
+      "homeTeam": "Bodø/Glimt",
+      "awayTeam": "Borussia Dortmund",
+      "probabilities": {
+        "home": 18,
+        "draw": 23,
+        "away": 59
+      },
+      "points": {
+        "home": 9,
+        "draw": 8,
+        "away": 4
+      }
+    },
+    {
+      "id": 34,
+      "matchday": 2,
+      "date": "2026-10-14",
+      "homeTeam": "Manchester City",
+      "awayTeam": "Paris Saint-Germain",
+      "probabilities": {
+        "home": 49,
+        "draw": 25,
+        "away": 26
+      },
+      "points": {
+        "home": 5,
+        "draw": 8,
+        "away": 8
+      }
+    },
+    {
+      "id": 35,
+      "matchday": 2,
+      "date": "2026-10-14",
+      "homeTeam": "Real Betis",
+      "awayTeam": "Porto",
+      "probabilities": {
+        "home": 39,
+        "draw": 27,
+        "away": 34
+      },
+      "points": {
+        "home": 6,
+        "draw": 7,
+        "away": 6
+      }
+    },
+    {
+      "id": 36,
+      "matchday": 2,
+      "date": "2026-10-14",
+      "homeTeam": "Slovan Bratislava",
+      "awayTeam": "Stuttgart",
+      "probabilities": {
+        "home": 21,
+        "draw": 23,
+        "away": 56
+      },
+      "points": {
+        "home": 9,
+        "draw": 8,
+        "away": 4
+      }
+    },
+    {
+      "id": 37,
+      "matchday": 3,
+      "date": "2026-10-20",
+      "homeTeam": "Fenerbahçe",
+      "awayTeam": "Slavia Praha",
+      "probabilities": {
+        "home": 63,
+        "draw": 22,
+        "away": 15
+      },
+      "points": {
+        "home": 3,
+        "draw": 8,
+        "away": 10
+      }
+    },
+    {
+      "id": 38,
+      "matchday": 3,
+      "date": "2026-10-20",
+      "homeTeam": "Sabah",
+      "awayTeam": "Borussia Dortmund",
+      "probabilities": {
+        "home": 5,
+        "draw": 17,
+        "away": 78
+      },
+      "points": {
+        "home": 12,
+        "draw": 9,
+        "away": 2
+      }
+    },
+    {
+      "id": 39,
+      "matchday": 3,
+      "date": "2026-10-20",
+      "homeTeam": "Roma",
+      "awayTeam": "Slovan Bratislava",
+      "probabilities": {
+        "home": 79,
+        "draw": 17,
+        "away": 4
+      },
+      "points": {
+        "home": 2,
+        "draw": 9,
+        "away": 12
+      }
+    },
+    {
+      "id": 40,
+      "matchday": 3,
+      "date": "2026-10-20",
+      "homeTeam": "Porto",
+      "awayTeam": "PSV Eindhoven",
+      "probabilities": {
+        "home": 49,
+        "draw": 25,
+        "away": 26
+      },
+      "points": {
+        "home": 5,
+        "draw": 8,
+        "away": 8
+      }
+    },
+    {
+      "id": 41,
+      "matchday": 3,
+      "date": "2026-10-20",
+      "homeTeam": "Liverpool",
+      "awayTeam": "Villarreal",
+      "probabilities": {
+        "home": 70,
+        "draw": 20,
+        "away": 10
+      },
+      "points": {
+        "home": 2,
+        "draw": 9,
+        "away": 11
+      }
+    },
+    {
+      "id": 42,
+      "matchday": 3,
+      "date": "2026-10-20",
+      "homeTeam": "Manchester City",
+      "awayTeam": "AEK Athens",
+      "probabilities": {
+        "home": 84,
+        "draw": 14,
+        "away": 2
+      },
+      "points": {
+        "home": 2,
+        "draw": 10,
+        "away": 12
+      }
+    },
+    {
+      "id": 43,
+      "matchday": 3,
+      "date": "2026-10-20",
+      "homeTeam": "Paris Saint-Germain",
+      "awayTeam": "Barcelona",
+      "probabilities": {
+        "home": 47,
+        "draw": 25,
+        "away": 28
+      },
+      "points": {
+        "home": 5,
+        "draw": 8,
+        "away": 7
+      }
+    },
+    {
+      "id": 44,
+      "matchday": 3,
+      "date": "2026-10-20",
+      "homeTeam": "Napoli",
+      "awayTeam": "Bodø/Glimt",
+      "probabilities": {
+        "home": 71,
+        "draw": 20,
+        "away": 9
+      },
+      "points": {
+        "home": 2,
+        "draw": 9,
+        "away": 11
+      }
+    },
+    {
+      "id": 45,
+      "matchday": 3,
+      "date": "2026-10-20",
+      "homeTeam": "Stuttgart",
+      "awayTeam": "Atlético de Madrid",
+      "probabilities": {
+        "home": 21,
+        "draw": 23,
+        "away": 56
+      },
+      "points": {
+        "home": 9,
+        "draw": 8,
+        "away": 4
+      }
+    },
+    {
+      "id": 46,
+      "matchday": 3,
+      "date": "2026-10-21",
+      "homeTeam": "Como",
+      "awayTeam": "Manchester United",
+      "probabilities": {
+        "home": 21,
+        "draw": 23,
+        "away": 56
+      },
+      "points": {
+        "home": 9,
+        "draw": 8,
+        "away": 4
+      }
+    },
+    {
+      "id": 47,
+      "matchday": 3,
+      "date": "2026-10-21",
+      "homeTeam": "Lille",
+      "awayTeam": "Galatasaray",
+      "probabilities": {
+        "home": 49,
+        "draw": 25,
+        "away": 26
+      },
+      "points": {
+        "home": 5,
+        "draw": 8,
+        "away": 8
+      }
+    },
+    {
+      "id": 48,
+      "matchday": 3,
+      "date": "2026-10-21",
+      "homeTeam": "Aston Villa",
+      "awayTeam": "Viking",
+      "probabilities": {
+        "home": 78,
+        "draw": 17,
+        "away": 5
+      },
+      "points": {
+        "home": 2,
+        "draw": 9,
+        "away": 12
+      }
+    },
+    {
+      "id": 49,
+      "matchday": 3,
+      "date": "2026-10-21",
+      "homeTeam": "Club Brugge",
+      "awayTeam": "Lens",
+      "probabilities": {
+        "home": 52,
+        "draw": 24,
+        "away": 24
+      },
+      "points": {
+        "home": 4,
+        "draw": 8,
+        "away": 8
+      }
+    },
+    {
+      "id": 50,
+      "matchday": 3,
+      "date": "2026-10-21",
+      "homeTeam": "Bayern München",
+      "awayTeam": "Arsenal",
+      "probabilities": {
+        "home": 49,
+        "draw": 25,
+        "away": 26
+      },
+      "points": {
+        "home": 5,
+        "draw": 8,
+        "away": 8
+      }
+    },
+    {
+      "id": 51,
+      "matchday": 3,
+      "date": "2026-10-21",
+      "homeTeam": "Inter",
+      "awayTeam": "Shakhtar Donetsk",
+      "probabilities": {
+        "home": 74,
+        "draw": 19,
+        "away": 7
+      },
+      "points": {
+        "home": 2,
+        "draw": 9,
+        "away": 12
+      }
+    },
+    {
+      "id": 52,
+      "matchday": 3,
+      "date": "2026-10-21",
+      "homeTeam": "Real Madrid",
+      "awayTeam": "Leipzig",
+      "probabilities": {
+        "home": 73,
+        "draw": 19,
+        "away": 8
+      },
+      "points": {
+        "home": 2,
+        "draw": 9,
+        "away": 12
+      }
+    },
+    {
+      "id": 53,
+      "matchday": 3,
+      "date": "2026-10-21",
+      "homeTeam": "Real Betis",
+      "awayTeam": "Feyenoord",
+      "probabilities": {
+        "home": 49,
+        "draw": 25,
+        "away": 26
+      },
+      "points": {
+        "home": 5,
+        "draw": 8,
+        "away": 8
+      }
+    },
+    {
+      "id": 54,
+      "matchday": 3,
+      "date": "2026-10-21",
+      "homeTeam": "Sporting CP",
+      "awayTeam": "LASK",
+      "probabilities": {
+        "home": 75,
+        "draw": 18,
+        "away": 7
+      },
+      "points": {
+        "home": 2,
+        "draw": 9,
+        "away": 12
+      }
+    },
+    {
+      "id": 55,
+      "matchday": 4,
+      "date": "2026-11-03",
+      "homeTeam": "Shakhtar Donetsk",
+      "awayTeam": "Sporting CP",
+      "probabilities": {
+        "home": 30,
+        "draw": 26,
+        "away": 44
+      },
+      "points": {
+        "home": 7,
+        "draw": 8,
+        "away": 5
+      }
+    },
+    {
+      "id": 56,
+      "matchday": 4,
+      "date": "2026-11-03",
+      "homeTeam": "Galatasaray",
+      "awayTeam": "Stuttgart",
+      "probabilities": {
+        "home": 52,
+        "draw": 24,
+        "away": 24
+      },
+      "points": {
+        "home": 4,
+        "draw": 8,
+        "away": 8
+      }
+    },
+    {
+      "id": 57,
+      "matchday": 4,
+      "date": "2026-11-03",
+      "homeTeam": "Atlético de Madrid",
+      "awayTeam": "Bayern München",
+      "probabilities": {
+        "home": 39,
+        "draw": 27,
+        "away": 34
+      },
+      "points": {
+        "home": 6,
+        "draw": 7,
+        "away": 6
+      }
+    },
+    {
+      "id": 58,
+      "matchday": 4,
+      "date": "2026-11-03",
+      "homeTeam": "Barcelona",
+      "awayTeam": "Aston Villa",
+      "probabilities": {
+        "home": 64,
+        "draw": 22,
+        "away": 14
+      },
+      "points": {
+        "home": 3,
+        "draw": 8,
+        "away": 10
+      }
+    },
+    {
+      "id": 59,
+      "matchday": 4,
+      "date": "2026-11-03",
+      "homeTeam": "Feyenoord",
+      "awayTeam": "Inter",
+      "probabilities": {
+        "home": 22,
+        "draw": 24,
+        "away": 54
+      },
+      "points": {
+        "home": 8,
+        "draw": 8,
+        "away": 4
+      }
+    },
+    {
+      "id": 60,
+      "matchday": 4,
+      "date": "2026-11-03",
+      "homeTeam": "Bodø/Glimt",
+      "awayTeam": "Lille",
+      "probabilities": {
+        "home": 30,
+        "draw": 26,
+        "away": 44
+      },
+      "points": {
+        "home": 7,
+        "draw": 8,
+        "away": 5
+      }
+    },
+    {
+      "id": 61,
+      "matchday": 4,
+      "date": "2026-11-03",
+      "homeTeam": "LASK",
+      "awayTeam": "Slovan Bratislava",
+      "probabilities": {
+        "home": 54,
+        "draw": 24,
+        "away": 22
+      },
+      "points": {
+        "home": 4,
+        "draw": 8,
+        "away": 8
+      }
+    },
+    {
+      "id": 62,
+      "matchday": 4,
+      "date": "2026-11-03",
+      "homeTeam": "Manchester United",
+      "awayTeam": "Roma",
+      "probabilities": {
+        "home": 52,
+        "draw": 24,
+        "away": 24
+      },
+      "points": {
+        "home": 4,
+        "draw": 8,
+        "away": 8
+      }
+    },
+    {
+      "id": 63,
+      "matchday": 4,
+      "date": "2026-11-03",
+      "homeTeam": "Villarreal",
+      "awayTeam": "Paris Saint-Germain",
+      "probabilities": {
+        "home": 21,
+        "draw": 23,
+        "away": 56
+      },
+      "points": {
+        "home": 9,
+        "draw": 8,
+        "away": 4
+      }
+    },
+    {
+      "id": 64,
+      "matchday": 4,
+      "date": "2026-11-04",
+      "homeTeam": "AEK Athens",
+      "awayTeam": "Real Madrid",
+      "probabilities": {
+        "home": 6,
+        "draw": 18,
+        "away": 76
+      },
+      "points": {
+        "home": 12,
+        "draw": 9,
+        "away": 2
+      }
+    },
+    {
+      "id": 65,
+      "matchday": 4,
+      "date": "2026-11-04",
+      "homeTeam": "Fenerbahçe",
+      "awayTeam": "Liverpool",
+      "probabilities": {
+        "home": 18,
+        "draw": 23,
+        "away": 59
+      },
+      "points": {
+        "home": 9,
+        "draw": 8,
+        "away": 4
+      }
+    },
+    {
+      "id": 66,
+      "matchday": 4,
+      "date": "2026-11-04",
+      "homeTeam": "Borussia Dortmund",
+      "awayTeam": "Real Betis",
+      "probabilities": {
+        "home": 60,
+        "draw": 23,
+        "away": 17
+      },
+      "points": {
+        "home": 3,
+        "draw": 8,
+        "away": 9
+      }
+    },
+    {
+      "id": 67,
+      "matchday": 4,
+      "date": "2026-11-04",
+      "homeTeam": "Porto",
+      "awayTeam": "Napoli",
+      "probabilities": {
+        "home": 42,
+        "draw": 26,
+        "away": 32
+      },
+      "points": {
+        "home": 5,
+        "draw": 8,
+        "away": 7
+      }
+    },
+    {
+      "id": 68,
+      "matchday": 4,
+      "date": "2026-11-04",
+      "homeTeam": "PSV Eindhoven",
+      "awayTeam": "Club Brugge",
+      "probabilities": {
+        "home": 58,
+        "draw": 23,
+        "away": 19
+      },
+      "points": {
+        "home": 4,
+        "draw": 8,
+        "away": 9
+      }
+    },
+    {
+      "id": 69,
+      "matchday": 4,
+      "date": "2026-11-04",
+      "homeTeam": "Leipzig",
+      "awayTeam": "Manchester City",
+      "probabilities": {
+        "home": 18,
+        "draw": 23,
+        "away": 59
+      },
+      "points": {
+        "home": 9,
+        "draw": 8,
+        "away": 4
+      }
+    },
+    {
+      "id": 70,
+      "matchday": 4,
+      "date": "2026-11-04",
+      "homeTeam": "Lens",
+      "awayTeam": "Como",
+      "probabilities": {
+        "home": 49,
+        "draw": 25,
+        "away": 26
+      },
+      "points": {
+        "home": 5,
+        "draw": 8,
+        "away": 8
+      }
+    },
+    {
+      "id": 71,
+      "matchday": 4,
+      "date": "2026-11-04",
+      "homeTeam": "Slavia Praha",
+      "awayTeam": "Arsenal",
+      "probabilities": {
+        "home": 10,
+        "draw": 20,
+        "away": 70
+      },
+      "points": {
+        "home": 11,
+        "draw": 9,
+        "away": 2
+      }
+    },
+    {
+      "id": 72,
+      "matchday": 4,
+      "date": "2026-11-04",
+      "homeTeam": "Viking",
+      "awayTeam": "Sabah",
+      "probabilities": {
+        "home": 63,
+        "draw": 22,
+        "away": 15
+      },
+      "points": {
+        "home": 3,
+        "draw": 8,
+        "away": 10
+      }
+    },
+    {
+      "id": 73,
+      "matchday": 5,
+      "date": "2026-11-24",
+      "homeTeam": "Bodø/Glimt",
+      "awayTeam": "LASK",
+      "probabilities": {
+        "home": 58,
+        "draw": 23,
+        "away": 19
+      },
+      "points": {
+        "home": 4,
+        "draw": 8,
+        "away": 9
+      }
+    },
+    {
+      "id": 74,
+      "matchday": 5,
+      "date": "2026-11-24",
+      "homeTeam": "Galatasaray",
+      "awayTeam": "Aston Villa",
+      "probabilities": {
+        "home": 32,
+        "draw": 26,
+        "away": 42
+      },
+      "points": {
+        "home": 7,
+        "draw": 8,
+        "away": 5
+      }
+    },
+    {
+      "id": 75,
+      "matchday": 5,
+      "date": "2026-11-24",
+      "homeTeam": "Arsenal",
+      "awayTeam": "Borussia Dortmund",
+      "probabilities": {
+        "home": 58,
+        "draw": 23,
+        "away": 19
+      },
+      "points": {
+        "home": 4,
+        "draw": 8,
+        "away": 9
+      }
+    },
+    {
+      "id": 76,
+      "matchday": 5,
+      "date": "2026-11-24",
+      "homeTeam": "Como",
+      "awayTeam": "AEK Athens",
+      "probabilities": {
+        "home": 57,
+        "draw": 23,
+        "away": 20
+      },
+      "points": {
+        "home": 4,
+        "draw": 8,
+        "away": 9
+      }
+    },
+    {
+      "id": 77,
+      "matchday": 5,
+      "date": "2026-11-24",
+      "homeTeam": "Feyenoord",
+      "awayTeam": "Porto",
+      "probabilities": {
+        "home": 37,
+        "draw": 27,
+        "away": 36
+      },
+      "points": {
+        "home": 6,
+        "draw": 7,
+        "away": 6
+      }
+    },
+    {
+      "id": 78,
+      "matchday": 5,
+      "date": "2026-11-24",
+      "homeTeam": "Manchester City",
+      "awayTeam": "Napoli",
+      "probabilities": {
+        "home": 66,
+        "draw": 21,
+        "away": 13
+      },
+      "points": {
+        "home": 3,
+        "draw": 9,
+        "away": 10
+      }
+    },
+    {
+      "id": 79,
+      "matchday": 5,
+      "date": "2026-11-24",
+      "homeTeam": "Leipzig",
+      "awayTeam": "Lens",
+      "probabilities": {
+        "home": 60,
+        "draw": 23,
+        "away": 17
+      },
+      "points": {
+        "home": 3,
+        "draw": 8,
+        "away": 9
+      }
+    },
+    {
+      "id": 80,
+      "matchday": 5,
+      "date": "2026-11-24",
+      "homeTeam": "Real Madrid",
+      "awayTeam": "PSV Eindhoven",
+      "probabilities": {
+        "home": 71,
+        "draw": 20,
+        "away": 9
+      },
+      "points": {
+        "home": 2,
+        "draw": 9,
+        "away": 11
+      }
+    },
+    {
+      "id": 81,
+      "matchday": 5,
+      "date": "2026-11-24",
+      "homeTeam": "Slovan Bratislava",
+      "awayTeam": "Real Betis",
+      "probabilities": {
+        "home": 15,
+        "draw": 22,
+        "away": 63
+      },
+      "points": {
+        "home": 10,
+        "draw": 8,
+        "away": 3
+      }
+    },
+    {
+      "id": 82,
+      "matchday": 5,
+      "date": "2026-11-25",
+      "homeTeam": "Sabah",
+      "awayTeam": "Barcelona",
+      "probabilities": {
+        "home": 2,
+        "draw": 14,
+        "away": 84
+      },
+      "points": {
+        "home": 12,
+        "draw": 10,
+        "away": 2
+      }
+    },
+    {
+      "id": 83,
+      "matchday": 5,
+      "date": "2026-11-25",
+      "homeTeam": "Slavia Praha",
+      "awayTeam": "Villarreal",
+      "probabilities": {
+        "home": 26,
+        "draw": 25,
+        "away": 49
+      },
+      "points": {
+        "home": 8,
+        "draw": 8,
+        "away": 5
+      }
+    },
+    {
+      "id": 84,
+      "matchday": 5,
+      "date": "2026-11-25",
+      "homeTeam": "Atlético de Madrid",
+      "awayTeam": "Viking",
+      "probabilities": {
+        "home": 82,
+        "draw": 15,
+        "away": 3
+      },
+      "points": {
+        "home": 2,
+        "draw": 10,
+        "away": 12
+      }
+    },
+    {
+      "id": 85,
+      "matchday": 5,
+      "date": "2026-11-25",
+      "homeTeam": "Club Brugge",
+      "awayTeam": "Liverpool",
+      "probabilities": {
+        "home": 15,
+        "draw": 22,
+        "away": 63
+      },
+      "points": {
+        "home": 10,
+        "draw": 8,
+        "away": 3
+      }
+    },
+    {
+      "id": 86,
+      "matchday": 5,
+      "date": "2026-11-25",
+      "homeTeam": "Inter",
+      "awayTeam": "Stuttgart",
+      "probabilities": {
+        "home": 73,
+        "draw": 19,
+        "away": 8
+      },
+      "points": {
+        "home": 2,
+        "draw": 9,
+        "away": 12
+      }
+    },
+    {
+      "id": 87,
+      "matchday": 5,
+      "date": "2026-11-25",
+      "homeTeam": "Shakhtar Donetsk",
+      "awayTeam": "Fenerbahçe",
+      "probabilities": {
+        "home": 39,
+        "draw": 27,
+        "away": 34
+      },
+      "points": {
+        "home": 6,
+        "draw": 7,
+        "away": 6
+      }
+    },
+    {
+      "id": 88,
+      "matchday": 5,
+      "date": "2026-11-25",
+      "homeTeam": "Lille",
+      "awayTeam": "Bayern München",
+      "probabilities": {
+        "home": 21,
+        "draw": 23,
+        "away": 56
+      },
+      "points": {
+        "home": 9,
+        "draw": 8,
+        "away": 4
+      }
+    },
+    {
+      "id": 89,
+      "matchday": 5,
+      "date": "2026-11-25",
+      "homeTeam": "Paris Saint-Germain",
+      "awayTeam": "Roma",
+      "probabilities": {
+        "home": 66,
+        "draw": 21,
+        "away": 13
+      },
+      "points": {
+        "home": 3,
+        "draw": 9,
+        "away": 10
+      }
+    },
+    {
+      "id": 90,
+      "matchday": 5,
+      "date": "2026-11-25",
+      "homeTeam": "Sporting CP",
+      "awayTeam": "Manchester United",
+      "probabilities": {
+        "home": 39,
+        "draw": 27,
+        "away": 34
+      },
+      "points": {
+        "home": 6,
+        "draw": 7,
+        "away": 6
+      }
+    },
+    {
+      "id": 91,
+      "matchday": 6,
+      "date": "2026-12-08",
+      "homeTeam": "Viking",
+      "awayTeam": "Feyenoord",
+      "probabilities": {
+        "home": 21,
+        "draw": 23,
+        "away": 56
+      },
+      "points": {
+        "home": 9,
+        "draw": 8,
+        "away": 4
+      }
+    },
+    {
+      "id": 92,
+      "matchday": 6,
+      "date": "2026-12-08",
+      "homeTeam": "Villarreal",
+      "awayTeam": "Sabah",
+      "probabilities": {
+        "home": 81,
+        "draw": 16,
+        "away": 3
+      },
+      "points": {
+        "home": 2,
+        "draw": 10,
+        "away": 12
+      }
+    },
+    {
+      "id": 93,
+      "matchday": 6,
+      "date": "2026-12-08",
+      "homeTeam": "AEK Athens",
+      "awayTeam": "Galatasaray",
+      "probabilities": {
+        "home": 26,
+        "draw": 25,
+        "away": 49
+      },
+      "points": {
+        "home": 8,
+        "draw": 8,
+        "away": 5
+      }
+    },
+    {
+      "id": 94,
+      "matchday": 6,
+      "date": "2026-12-08",
+      "homeTeam": "Roma",
+      "awayTeam": "Sporting CP",
+      "probabilities": {
+        "home": 49,
+        "draw": 25,
+        "away": 26
+      },
+      "points": {
+        "home": 5,
+        "draw": 8,
+        "away": 8
+      }
+    },
+    {
+      "id": 95,
+      "matchday": 6,
+      "date": "2026-12-08",
+      "homeTeam": "Aston Villa",
+      "awayTeam": "Paris Saint-Germain",
+      "probabilities": {
+        "home": 28,
+        "draw": 25,
+        "away": 47
+      },
+      "points": {
+        "home": 7,
+        "draw": 8,
+        "away": 5
+      }
+    },
+    {
+      "id": 96,
+      "matchday": 6,
+      "date": "2026-12-08",
+      "homeTeam": "Barcelona",
+      "awayTeam": "Manchester City",
+      "probabilities": {
+        "home": 44,
+        "draw": 26,
+        "away": 30
+      },
+      "points": {
+        "home": 5,
+        "draw": 8,
+        "away": 7
+      }
+    },
+    {
+      "id": 97,
+      "matchday": 6,
+      "date": "2026-12-08",
+      "homeTeam": "Bayern München",
+      "awayTeam": "Slavia Praha",
+      "probabilities": {
+        "home": 80,
+        "draw": 16,
+        "away": 4
+      },
+      "points": {
+        "home": 2,
+        "draw": 10,
+        "away": 12
+      }
+    },
+    {
+      "id": 98,
+      "matchday": 6,
+      "date": "2026-12-08",
+      "homeTeam": "Manchester United",
+      "awayTeam": "Leipzig",
+      "probabilities": {
+        "home": 58,
+        "draw": 23,
+        "away": 19
+      },
+      "points": {
+        "home": 4,
+        "draw": 8,
+        "away": 9
+      }
+    },
+    {
+      "id": 99,
+      "matchday": 6,
+      "date": "2026-12-08",
+      "homeTeam": "Napoli",
+      "awayTeam": "Club Brugge",
+      "probabilities": {
+        "home": 64,
+        "draw": 22,
+        "away": 14
+      },
+      "points": {
+        "home": 3,
+        "draw": 8,
+        "away": 10
+      }
+    },
+    {
+      "id": 100,
+      "matchday": 6,
+      "date": "2026-12-09",
+      "homeTeam": "Real Betis",
+      "awayTeam": "Como",
+      "probabilities": {
+        "home": 60,
+        "draw": 23,
+        "away": 17
+      },
+      "points": {
+        "home": 3,
+        "draw": 8,
+        "away": 9
+      }
+    },
+    {
+      "id": 101,
+      "matchday": 6,
+      "date": "2026-12-09",
+      "homeTeam": "Slovan Bratislava",
+      "awayTeam": "Shakhtar Donetsk",
+      "probabilities": {
+        "home": 22,
+        "draw": 24,
+        "away": 54
+      },
+      "points": {
+        "home": 8,
+        "draw": 8,
+        "away": 4
+      }
+    },
+    {
+      "id": 102,
+      "matchday": 6,
+      "date": "2026-12-09",
+      "homeTeam": "Arsenal",
+      "awayTeam": "Real Madrid",
+      "probabilities": {
+        "home": 39,
+        "draw": 27,
+        "away": 34
+      },
+      "points": {
+        "home": 6,
+        "draw": 7,
+        "away": 6
+      }
+    },
+    {
+      "id": 103,
+      "matchday": 6,
+      "date": "2026-12-09",
+      "homeTeam": "Borussia Dortmund",
+      "awayTeam": "Inter",
+      "probabilities": {
+        "home": 37,
+        "draw": 27,
+        "away": 36
+      },
+      "points": {
+        "home": 6,
+        "draw": 7,
+        "away": 6
+      }
+    },
+    {
+      "id": 104,
+      "matchday": 6,
+      "date": "2026-12-09",
+      "homeTeam": "LASK",
+      "awayTeam": "Fenerbahçe",
+      "probabilities": {
+        "home": 22,
+        "draw": 24,
+        "away": 54
+      },
+      "points": {
+        "home": 8,
+        "draw": 8,
+        "away": 4
+      }
+    },
+    {
+      "id": 105,
+      "matchday": 6,
+      "date": "2026-12-09",
+      "homeTeam": "Liverpool",
+      "awayTeam": "Porto",
+      "probabilities": {
+        "home": 66,
+        "draw": 21,
+        "away": 13
+      },
+      "points": {
+        "home": 3,
+        "draw": 9,
+        "away": 10
+      }
+    },
+    {
+      "id": 106,
+      "matchday": 6,
+      "date": "2026-12-09",
+      "homeTeam": "PSV Eindhoven",
+      "awayTeam": "Atlético de Madrid",
+      "probabilities": {
+        "home": 30,
+        "draw": 26,
+        "away": 44
+      },
+      "points": {
+        "home": 7,
+        "draw": 8,
+        "away": 5
+      }
+    },
+    {
+      "id": 107,
+      "matchday": 6,
+      "date": "2026-12-09",
+      "homeTeam": "Lens",
+      "awayTeam": "Bodø/Glimt",
+      "probabilities": {
+        "home": 52,
+        "draw": 24,
+        "away": 24
+      },
+      "points": {
+        "home": 4,
+        "draw": 8,
+        "away": 8
+      }
+    },
+    {
+      "id": 108,
+      "matchday": 6,
+      "date": "2026-12-09",
+      "homeTeam": "Stuttgart",
+      "awayTeam": "Lille",
+      "probabilities": {
+        "home": 39,
+        "draw": 27,
+        "away": 34
+      },
+      "points": {
+        "home": 6,
+        "draw": 7,
+        "away": 6
+      }
+    },
+    {
+      "id": 109,
+      "matchday": 7,
+      "date": "2027-01-19",
+      "homeTeam": "Bodø/Glimt",
+      "awayTeam": "Atlético de Madrid",
+      "probabilities": {
+        "home": 13,
+        "draw": 22,
+        "away": 65
+      },
+      "points": {
+        "home": 10,
+        "draw": 8,
+        "away": 3
+      }
+    },
+    {
+      "id": 110,
+      "matchday": 7,
+      "date": "2027-01-19",
+      "homeTeam": "Galatasaray",
+      "awayTeam": "Feyenoord",
+      "probabilities": {
+        "home": 47,
+        "draw": 25,
+        "away": 28
+      },
+      "points": {
+        "home": 5,
+        "draw": 8,
+        "away": 7
+      }
+    },
+    {
+      "id": 111,
+      "matchday": 7,
+      "date": "2027-01-19",
+      "homeTeam": "AEK Athens",
+      "awayTeam": "Roma",
+      "probabilities": {
+        "home": 16,
+        "draw": 23,
+        "away": 61
+      },
+      "points": {
+        "home": 10,
+        "draw": 8,
+        "away": 3
+      }
+    },
+    {
+      "id": 112,
+      "matchday": 7,
+      "date": "2027-01-19",
+      "homeTeam": "Aston Villa",
+      "awayTeam": "Borussia Dortmund",
+      "probabilities": {
+        "home": 44,
+        "draw": 26,
+        "away": 30
+      },
+      "points": {
+        "home": 5,
+        "draw": 8,
+        "away": 7
+      }
+    },
+    {
+      "id": 113,
+      "matchday": 7,
+      "date": "2027-01-19",
+      "homeTeam": "Inter",
+      "awayTeam": "Liverpool",
+      "probabilities": {
+        "home": 42,
+        "draw": 26,
+        "away": 32
+      },
+      "points": {
+        "home": 5,
+        "draw": 8,
+        "away": 7
+      }
+    },
+    {
+      "id": 114,
+      "matchday": 7,
+      "date": "2027-01-19",
+      "homeTeam": "Porto",
+      "awayTeam": "Slavia Praha",
+      "probabilities": {
+        "home": 70,
+        "draw": 20,
+        "away": 10
+      },
+      "points": {
+        "home": 2,
+        "draw": 9,
+        "away": 11
+      }
+    },
+    {
+      "id": 115,
+      "matchday": 7,
+      "date": "2027-01-19",
+      "homeTeam": "Lille",
+      "awayTeam": "Slovan Bratislava",
+      "probabilities": {
+        "home": 75,
+        "draw": 18,
+        "away": 7
+      },
+      "points": {
+        "home": 2,
+        "draw": 9,
+        "away": 12
+      }
+    },
+    {
+      "id": 116,
+      "matchday": 7,
+      "date": "2027-01-19",
+      "homeTeam": "Real Madrid",
+      "awayTeam": "LASK",
+      "probabilities": {
+        "home": 84,
+        "draw": 14,
+        "away": 2
+      },
+      "points": {
+        "home": 2,
+        "draw": 10,
+        "away": 12
+      }
+    },
+    {
+      "id": 117,
+      "matchday": 7,
+      "date": "2027-01-19",
+      "homeTeam": "Stuttgart",
+      "awayTeam": "Club Brugge",
+      "probabilities": {
+        "home": 47,
+        "draw": 25,
+        "away": 28
+      },
+      "points": {
+        "home": 5,
+        "draw": 8,
+        "away": 7
+      }
+    },
+    {
+      "id": 118,
+      "matchday": 7,
+      "date": "2027-01-20",
+      "homeTeam": "Fenerbahçe",
+      "awayTeam": "Villarreal",
+      "probabilities": {
+        "home": 42,
+        "draw": 26,
+        "away": 32
+      },
+      "points": {
+        "home": 5,
+        "draw": 8,
+        "away": 7
+      }
+    },
+    {
+      "id": 119,
+      "matchday": 7,
+      "date": "2027-01-20",
+      "homeTeam": "Sabah",
+      "awayTeam": "Napoli",
+      "probabilities": {
+        "home": 5,
+        "draw": 18,
+        "away": 77
+      },
+      "points": {
+        "home": 12,
+        "draw": 9,
+        "away": 2
+      }
+    },
+    {
+      "id": 120,
+      "matchday": 7,
+      "date": "2027-01-20",
+      "homeTeam": "Como",
+      "awayTeam": "Paris Saint-Germain",
+      "probabilities": {
+        "home": 10,
+        "draw": 20,
+        "away": 70
+      },
+      "points": {
+        "home": 11,
+        "draw": 9,
+        "away": 2
+      }
+    },
+    {
+      "id": 121,
+      "matchday": 7,
+      "date": "2027-01-20",
+      "homeTeam": "Manchester United",
+      "awayTeam": "Bayern München",
+      "probabilities": {
+        "home": 32,
+        "draw": 26,
+        "away": 42
+      },
+      "points": {
+        "home": 7,
+        "draw": 8,
+        "away": 5
+      }
+    },
+    {
+      "id": 122,
+      "matchday": 7,
+      "date": "2027-01-20",
+      "homeTeam": "Leipzig",
+      "awayTeam": "Shakhtar Donetsk",
+      "probabilities": {
+        "home": 58,
+        "draw": 23,
+        "away": 19
+      },
+      "points": {
+        "home": 4,
+        "draw": 8,
+        "away": 9
+      }
+    },
+    {
+      "id": 123,
+      "matchday": 7,
+      "date": "2027-01-20",
+      "homeTeam": "Lens",
+      "awayTeam": "Manchester City",
+      "probabilities": {
+        "home": 10,
+        "draw": 20,
+        "away": 70
+      },
+      "points": {
+        "home": 11,
+        "draw": 9,
+        "away": 2
+      }
+    },
+    {
+      "id": 124,
+      "matchday": 7,
+      "date": "2027-01-20",
+      "homeTeam": "Real Betis",
+      "awayTeam": "Arsenal",
+      "probabilities": {
+        "home": 22,
+        "draw": 24,
+        "away": 54
+      },
+      "points": {
+        "home": 8,
+        "draw": 8,
+        "away": 4
+      }
+    },
+    {
+      "id": 125,
+      "matchday": 7,
+      "date": "2027-01-20",
+      "homeTeam": "Sporting CP",
+      "awayTeam": "Barcelona",
+      "probabilities": {
+        "home": 24,
+        "draw": 24,
+        "away": 52
+      },
+      "points": {
+        "home": 8,
+        "draw": 8,
+        "away": 4
+      }
+    },
+    {
+      "id": 126,
+      "matchday": 7,
+      "date": "2027-01-20",
+      "homeTeam": "Viking",
+      "awayTeam": "PSV Eindhoven",
+      "probabilities": {
+        "home": 15,
+        "draw": 22,
+        "away": 63
+      },
+      "points": {
+        "home": 10,
+        "draw": 8,
+        "away": 3
+      }
+    },
+    {
+      "id": 127,
+      "matchday": 8,
+      "date": "2027-01-27",
+      "homeTeam": "Arsenal",
+      "awayTeam": "Sabah",
+      "probabilities": {
+        "home": 86,
+        "draw": 13,
+        "away": 1
+      },
+      "points": {
+        "home": 2,
+        "draw": 10,
+        "away": 12
+      }
+    },
+    {
+      "id": 128,
+      "matchday": 8,
+      "date": "2027-01-27",
+      "homeTeam": "Roma",
+      "awayTeam": "Lille",
+      "probabilities": {
+        "home": 57,
+        "draw": 23,
+        "away": 20
+      },
+      "points": {
+        "home": 4,
+        "draw": 8,
+        "away": 9
+      }
+    },
+    {
+      "id": 129,
+      "matchday": 8,
+      "date": "2027-01-27",
+      "homeTeam": "Atlético de Madrid",
+      "awayTeam": "Fenerbahçe",
+      "probabilities": {
+        "home": 68,
+        "draw": 21,
+        "away": 11
+      },
+      "points": {
+        "home": 3,
+        "draw": 9,
+        "away": 11
+      }
+    },
+    {
+      "id": 130,
+      "matchday": 8,
+      "date": "2027-01-27",
+      "homeTeam": "Borussia Dortmund",
+      "awayTeam": "AEK Athens",
+      "probabilities": {
+        "home": 76,
+        "draw": 18,
+        "away": 6
+      },
+      "points": {
+        "home": 2,
+        "draw": 9,
+        "away": 12
+      }
+    },
+    {
+      "id": 131,
+      "matchday": 8,
+      "date": "2027-01-27",
+      "homeTeam": "Club Brugge",
+      "awayTeam": "Bodø/Glimt",
+      "probabilities": {
+        "home": 57,
+        "draw": 23,
+        "away": 20
+      },
+      "points": {
+        "home": 4,
+        "draw": 8,
+        "away": 9
+      }
+    },
+    {
+      "id": 132,
+      "matchday": 8,
+      "date": "2027-01-27",
+      "homeTeam": "Bayern München",
+      "awayTeam": "Real Betis",
+      "probabilities": {
+        "home": 71,
+        "draw": 20,
+        "away": 9
+      },
+      "points": {
+        "home": 2,
+        "draw": 9,
+        "away": 11
+      }
+    },
+    {
+      "id": 133,
+      "matchday": 8,
+      "date": "2027-01-27",
+      "homeTeam": "Barcelona",
+      "awayTeam": "Como",
+      "probabilities": {
+        "home": 79,
+        "draw": 17,
+        "away": 4
+      },
+      "points": {
+        "home": 2,
+        "draw": 9,
+        "away": 12
+      }
+    },
+    {
+      "id": 134,
+      "matchday": 8,
+      "date": "2027-01-27",
+      "homeTeam": "Shakhtar Donetsk",
+      "awayTeam": "Real Madrid",
+      "probabilities": {
+        "home": 11,
+        "draw": 21,
+        "away": 68
+      },
+      "points": {
+        "home": 11,
+        "draw": 9,
+        "away": 3
+      }
+    },
+    {
+      "id": 135,
+      "matchday": 8,
+      "date": "2027-01-27",
+      "homeTeam": "Feyenoord",
+      "awayTeam": "Leipzig",
+      "probabilities": {
+        "home": 42,
+        "draw": 26,
+        "away": 32
+      },
+      "points": {
+        "home": 5,
+        "draw": 8,
+        "away": 7
+      }
+    },
+    {
+      "id": 136,
+      "matchday": 8,
+      "date": "2027-01-27",
+      "homeTeam": "LASK",
+      "awayTeam": "Porto",
+      "probabilities": {
+        "home": 15,
+        "draw": 22,
+        "away": 63
+      },
+      "points": {
+        "home": 10,
+        "draw": 8,
+        "away": 3
+      }
+    },
+    {
+      "id": 137,
+      "matchday": 8,
+      "date": "2027-01-27",
+      "homeTeam": "Liverpool",
+      "awayTeam": "Lens",
+      "probabilities": {
+        "home": 77,
+        "draw": 18,
+        "away": 5
+      },
+      "points": {
+        "home": 2,
+        "draw": 9,
+        "away": 12
+      }
+    },
+    {
+      "id": 138,
+      "matchday": 8,
+      "date": "2027-01-27",
+      "homeTeam": "Manchester City",
+      "awayTeam": "Sporting CP",
+      "probabilities": {
+        "home": 70,
+        "draw": 20,
+        "away": 10
+      },
+      "points": {
+        "home": 2,
+        "draw": 9,
+        "away": 11
+      }
+    },
+    {
+      "id": 139,
+      "matchday": 8,
+      "date": "2027-01-27",
+      "homeTeam": "Paris Saint-Germain",
+      "awayTeam": "Galatasaray",
+      "probabilities": {
+        "home": 74,
+        "draw": 19,
+        "away": 7
+      },
+      "points": {
+        "home": 2,
+        "draw": 9,
+        "away": 12
+      }
+    },
+    {
+      "id": 140,
+      "matchday": 8,
+      "date": "2027-01-27",
+      "homeTeam": "PSV Eindhoven",
+      "awayTeam": "Stuttgart",
+      "probabilities": {
+        "home": 58,
+        "draw": 23,
+        "away": 19
+      },
+      "points": {
+        "home": 4,
+        "draw": 8,
+        "away": 9
+      }
+    },
+    {
+      "id": 141,
+      "matchday": 8,
+      "date": "2027-01-27",
+      "homeTeam": "Slavia Praha",
+      "awayTeam": "Aston Villa",
+      "probabilities": {
+        "home": 18,
+        "draw": 23,
+        "away": 59
+      },
+      "points": {
+        "home": 9,
+        "draw": 8,
+        "away": 4
+      }
+    },
+    {
+      "id": 142,
+      "matchday": 8,
+      "date": "2027-01-27",
+      "homeTeam": "Napoli",
+      "awayTeam": "Viking",
+      "probabilities": {
+        "home": 78,
+        "draw": 17,
+        "away": 5
+      },
+      "points": {
+        "home": 2,
+        "draw": 9,
+        "away": 12
+      }
+    },
+    {
+      "id": 143,
+      "matchday": 8,
+      "date": "2027-01-27",
+      "homeTeam": "Villarreal",
+      "awayTeam": "Manchester United",
+      "probabilities": {
+        "home": 34,
+        "draw": 27,
+        "away": 39
+      },
+      "points": {
+        "home": 6,
+        "draw": 7,
+        "away": 6
+      }
+    },
+    {
+      "id": 144,
+      "matchday": 8,
+      "date": "2027-01-27",
+      "homeTeam": "Slovan Bratislava",
+      "awayTeam": "Inter",
+      "probabilities": {
+        "home": 5,
+        "draw": 18,
+        "away": 77
+      },
+      "points": {
+        "home": 12,
+        "draw": 9,
+        "away": 2
+      }
+    }
+  ]
+}

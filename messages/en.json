@@ -1,0 +1,770 @@
+{
+  "app": {
+    "name": "Alufot",
+    "tagline": "Predict every Champions League match. Outscore your friends."
+  },
+  "common": {
+    "loading": "Loading…",
+    "retry": "Try again",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving…",
+    "saved": "Saved",
+    "back": "Back",
+    "continue": "Continue",
+    "skip": "Skip",
+    "somethingWentWrong": "Something went wrong.",
+    "signOut": "Sign out"
+  },
+  "landing": {
+    "eyebrow": "Champions League 2025/26",
+    "heading": "Call the upsets. Take the points.",
+    "subheading": "A prediction game for you and your friends. Call every scoreline and watch the table move as the goals go in.",
+    "ctaPrimary": "Start playing",
+    "ctaSecondary": "How scoring works",
+    "features": {
+      "blind": {
+        "title": "Blind until kickoff",
+        "body": "Nobody sees anyone else's pick until the match locks. Enforced in the database, not just hidden in the interface."
+      },
+      "live": {
+        "title": "Watch the table move",
+        "body": "Provisional points and live rank changes update as the match plays out, so you know exactly what is riding on the last ten minutes."
+      },
+      "scoring": {
+        "title": "Every match has a price",
+        "body": "Home, draw and away calls each have their own points for every match. An exact score doubles the listed value."
+      }
+    }
+  },
+  "auth": {
+    "signIn": "Sign in",
+    "signUp": "Sign up",
+    "signInHeading": "Welcome back",
+    "signInSubheading": "Sign in to your account and pick up where you left off.",
+    "signUpHeading": "Join the game",
+    "signUpSubheading": "Create an account — it takes about a minute.",
+    "google": "Continue with Google",
+    "or": "or",
+    "emailLabel": "Email address",
+    "emailPlaceholder": "you@example.com",
+    "passwordLabel": "Password",
+    "passwordHint": "At least {min} characters.",
+    "signInAction": "Sign in",
+    "signingIn": "Signing in…",
+    "signUpAction": "Create account",
+    "signingUp": "Creating your account…",
+    "termsLabel": "I have read and accept the <rules>game rules</rules>",
+    "noAccount": "No account yet?",
+    "signUpLink": "Sign up here",
+    "haveAccount": "Already have an account?",
+    "signInLink": "Sign in",
+    "checkInbox": "Check your inbox",
+    "checkInboxBody": "We sent a confirmation link to {email}. Open it to finish creating your account — it expires in an hour.",
+    "errors": {
+      "invalidEmail": "That does not look like an email address.",
+      "invalidCredentials": "That email and password do not match an account.",
+      "emailNotConfirmed": "Confirm your email first — open the link we sent when you signed up.",
+      "weakPassword": "Passwords need at least {min} characters.",
+      "termsRequired": "Accept the game rules to continue.",
+      "emailTaken": "There is already an account with that email. Sign in instead.",
+      "rateLimited": "Too many attempts. Wait a minute and try again.",
+      "generic": "Could not sign you in. Try again.",
+      "exchangeFailed": "That link has expired or has already been used. Request a new one."
+    },
+    "legal": "By signing in you agree that this is a game between friends, played for pride only."
+  },
+  "onboarding": {
+    "heading": "Make your season picks",
+    "wizard": {
+      "eyebrow": "Champions League {season}",
+      "heading": "Start your campaign",
+      "intro": "Four quick steps, then you can start making predictions.",
+      "steps": {
+        "nickname": "Nickname",
+        "champion": "Champion",
+        "scorer": "Top scorer",
+        "review": "Review"
+      },
+      "progressLabel": "Account setup steps",
+      "stepLabel": "Step {current} of {total}: {label}",
+      "nicknameTitle": "What should we call you?",
+      "nicknameDescription": "This name will appear beside your predictions and points.",
+      "nicknameLabel": "Public nickname",
+      "nicknameHint": "2–30 characters, including at least one letter.",
+      "nicknameInvalid": "Choose a 2–30 character nickname with at least one letter.",
+      "championTitle": "Who will be European champion?",
+      "championDescription": "Choose the club you think will lift the trophy.",
+      "championLabel": "Your champion",
+      "championPlaceholder": "Choose a club",
+      "searchTeams": "Search clubs",
+      "noTeamResults": "No matching club found.",
+      "scorerTitle": "Who will finish top scorer?",
+      "scorerDescription": "Choose the player you think will score more than anyone else.",
+      "scorerLabel": "Your top scorer",
+      "scorerPlaceholder": "Choose a player",
+      "searchPlayers": "Search players or clubs",
+      "noPlayerResults": "No matching player found.",
+      "rewardTitle": "The bolder the pick, the bigger the reward.",
+      "rewardDescription": "Favourites earn fewer points; a correct outsider can send you flying up the table.",
+      "points": "{points} pts",
+      "reviewTitle": "Everything is ready",
+      "reviewDescription": "Review your nickname and picks before you start playing.",
+      "editNickname": "Edit nickname",
+      "editChampion": "Edit champion pick",
+      "editScorer": "Edit top scorer pick",
+      "finishHint": "Finishing saves your details and takes you to the predictions screen.",
+      "back": "Back",
+      "continue": "Continue",
+      "finish": "Finish and make predictions",
+      "saving": "Saving and continuing…",
+      "fixSelection": "Go back and fix it"
+    },
+    "errors": {
+      "invalidNickname": "Choose a valid nickname to continue.",
+      "nicknameTaken": "That nickname is already taken. Try another one.",
+      "notSignedIn": "Sign in again to save your picks.",
+      "incomplete": "Choose both a champion and a top scorer.",
+      "locked": "The tournament's first match has started, so these picks can no longer be changed.",
+      "unknownCandidate": "One of those candidates is no longer available. Refresh and choose again.",
+      "generic": "Could not save your picks. Try again."
+    }
+  },
+  "nickname": {
+    "eyebrow": "Public profile",
+    "heading": "Choose your nickname",
+    "subheading": "This is the only name other players will see. Your email and account ID stay private.",
+    "label": "Nickname",
+    "hint": "2–30 characters. Letters, numbers, spaces, dots, hyphens and underscores.",
+    "submit": "Use this nickname",
+    "saving": "Saving nickname…",
+    "errors": {
+      "invalid": "Choose a nickname with 2–30 valid characters and at least one letter.",
+      "taken": "That nickname is already in use.",
+      "notSignedIn": "Sign in again to save your nickname.",
+      "generic": "Could not save the nickname. Try again."
+    }
+  },
+  "profile": {
+    "navLink": "Profile",
+    "title": "Personal profile",
+    "subtitle": "Your account details, season picks, groups and predictions in one place.",
+    "save": "Update nickname",
+    "sections": {
+      "label": "Profile sections",
+      "account": "My account",
+      "seasonPicks": "Season picks",
+      "groups": "My groups",
+      "predictions": "My predictions"
+    },
+    "account": {
+      "title": "My account",
+      "subtitle": "Your private details and the profile picture that identifies you.",
+      "email": "Email",
+      "joined": "Member since",
+      "editNickname": "Edit nickname",
+      "nicknameDialogTitle": "Change nickname",
+      "nicknameDialogDescription": "This is the name other players see in tables and groups.",
+      "saveNickname": "Save nickname",
+      "close": "Close"
+    },
+    "stats": {
+      "groups": "Groups",
+      "predictions": "Predictions",
+      "points": "Points"
+    },
+    "avatar": {
+      "alt": "{name}'s profile picture",
+      "change": "Change profile picture",
+      "close": "Close",
+      "dialogTitle": "Change profile picture",
+      "dialogDescription": "Choose a new picture to show on your profile.",
+      "label": "Profile picture",
+      "hint": "JPG, PNG or WebP, up to 2 MB.",
+      "submit": "Upload and update",
+      "uploading": "Uploading…",
+      "success": "Profile picture updated",
+      "errors": {
+        "missing": "Choose an image to upload.",
+        "invalidType": "Upload a JPG, PNG or WebP image.",
+        "tooLarge": "That image is too large. The maximum size is 2 MB.",
+        "notSignedIn": "Sign in again to update your picture.",
+        "generic": "The picture could not be updated. Try again."
+      }
+    },
+    "seasonPicks": {
+      "title": "Season picks",
+      "subtitle": "Your champion and top-scorer picks are the same in every friends group.",
+      "season": "{season} season",
+      "champion": "Your champion",
+      "topScorer": "Your top scorer",
+      "potentialPoints": "Possible points",
+      "awardedPoints": "Points awarded",
+      "locked": "Picks locked",
+      "editable": "Editable until the first match",
+      "edit": "Change picks",
+      "settled": "Picks settled",
+      "empty": "You have not chosen a champion and top scorer for this season yet.",
+      "choose": "Make season picks"
+    }
+  },
+  "groups": {
+    "navLink": "My groups",
+    "title": "My groups",
+    "subtitle": "Join several groups at once. The same predictions count in every one.",
+    "newGroup": "Create a group",
+    "newGroupHint": "Choose a name, image and entry fee. After creation, invite friends directly through WhatsApp.",
+    "groupName": "Group name",
+    "groupNamePlaceholder": "Friends league",
+    "entryFee": "Entry fee",
+    "entryFeeValue": "Entry: {fee}",
+    "freeEntry": "Free entry",
+    "groupImage": "Group image (optional)",
+    "imageHint": "JPG, PNG or WebP, up to 2MB.",
+    "create": "Create",
+    "creating": "Creating group…",
+    "saved": "Changes saved",
+    "editGroup": "Edit name, image and entry fee",
+    "replaceImage": "Replace group image",
+    "removeImage": "Remove the current image",
+    "save": "Save",
+    "saving": "Saving…",
+    "empty": "You have not created or joined a group yet.",
+    "memberCount": "{count} members",
+    "manager": "Manager",
+    "you": "(you)",
+    "addByEmail": "Add an existing participant by email",
+    "addMember": "Add member",
+    "manualAddHint": "Adding someone manually confirms they have paid when the group has an entry fee.",
+    "shareWhatsApp": "Invite on WhatsApp",
+    "whatsappMessage": "Join the {group} group on Alufot ⚽\nEntry fee: {fee}\n{url}",
+    "paymentRequests": "{count} payment approval requests",
+    "paymentRequestsHint": "Approve only after receiving {fee} from the participant.",
+    "confirmPaid": "Confirm paid",
+    "decline": "Decline request",
+    "roster": "Group members",
+    "makeManager": "Make manager",
+    "makeMember": "Make member",
+    "remove": "Remove member",
+    "deleteGroup": "Delete group",
+    "paymentHeading": "Group payment",
+    "paymentManage": "Set up bit or PayBox payment",
+    "paymentConfigured": "Configured",
+    "paymentNotConfigured": "Not configured",
+    "paymentNotConfiguredBody": "No group payment link has been configured yet. Group managers can add a share link from bit or PayBox.",
+    "paymentAmountHint": "The payment amount is the group's entry fee: {fee}. Change it under group editing.",
+    "paymentRequiresFee": "Set a positive entry fee under group editing before adding payment links.",
+    "bitLink": "bit payment link",
+    "payboxLink": "PayBox group or payment link",
+    "paymentLinkHint": "Paste an HTTPS link shared from the official app. Configuring one provider is enough.",
+    "paymentNote": "Note for group members (optional)",
+    "paymentNotePlaceholder": "For example: season participation fee",
+    "savePayment": "Save payment options",
+    "paymentClearHint": "To disable payments, clear both links and the note, then save.",
+    "paymentSaved": "Payment options were saved.",
+    "payWithBit": "Pay with bit",
+    "payWithPaybox": "Pay with PayBox",
+    "externalPaymentNotice": "Payment is completed in an external app using a link configured by the group manager. Verify the recipient before approving; this site does not process or verify the transfer.",
+    "schema": "Apply the latest database migrations before using groups.",
+    "errors": {
+      "invalid": "Check the entered value.",
+      "invalidImage": "Choose a JPG, PNG or WebP image.",
+      "imageTooLarge": "The image is too large. The maximum size is 2MB.",
+      "invalidPayment": "Enter at least one valid HTTPS link for bit or PayBox. A positive group entry fee is required.",
+      "notFound": "No registered participant was found with that email.",
+      "notAllowed": "Only a group manager can do that.",
+      "alreadyMember": "That participant is already in this group.",
+      "generic": "The group could not be updated. Try again."
+    }
+  },
+  "groupInvite": {
+    "eyebrow": "Group invitation",
+    "subtitle": "Your predictions will automatically count in this group table.",
+    "members": "Participants",
+    "memberCount": "{count} members",
+    "entryFee": "Entry fee",
+    "free": "Free",
+    "alreadyMember": "You are already a member of this group.",
+    "openGroup": "Open group in profile",
+    "signInToJoin": "Sign in and join the group",
+    "joinNow": "Join group",
+    "joining": "Joining…",
+    "joiningAutomatically": "Adding you to the group…",
+    "automaticJoinFailed": "We couldn't add you to the group. Please try again.",
+    "tryAgain": "Try again",
+    "shareTitle": "Invitation to {group}",
+    "shareDescription": "Join the {group} group on Alufot. Entry fee: {fee}."
+  },
+  "admin": {
+    "navLink": "Admin",
+    "eyebrow": "Super Admin · Restricted access",
+    "title": "Control center",
+    "subtitle": "One operational view for participants, groups, competition rules and the data pipeline.",
+    "views": "Control center sections",
+    "overview": "Overview",
+    "users": "Participants",
+    "groups": "Groups",
+    "fixtures": "Fixtures",
+    "rules": "Rules & scoring",
+    "operations": "Operations",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "metrics": {
+      "users": "Registered participants",
+      "groups": "Active groups",
+      "predictions": "Predictions submitted",
+      "fixtures": "Competition fixtures",
+      "points": "Points awarded",
+      "pending": "Pending results"
+    },
+    "attention": {
+      "title": "Requires attention",
+      "onboarding": "Participants still onboarding",
+      "pendingResults": "Results waiting for settlement",
+      "scoringRules": "Match scoring",
+      "perFixtureScoring": "Per fixture · exact 2×"
+    },
+    "recentUsers": "Newest participants",
+    "participants": {
+      "title": "Participant management",
+      "body": "Review account activity, edit public names, reset uploaded avatars or permanently remove an account.",
+      "meta": "{groups} groups · {predictions} predictions · {points} points",
+      "joined": "Joined {date}",
+      "active": "Active",
+      "onboarding": "Onboarding",
+      "nickname": "Public name",
+      "resetAvatar": "Reset avatar",
+      "confirmResetAvatar": "Remove this participant's uploaded avatar and restore their generated identicon?"
+    },
+    "groupAdmin": {
+      "title": "Group management",
+      "body": "Create groups, manage every roster and control manager privileges.",
+      "name": "Group name",
+      "newPlaceholder": "New group name",
+      "create": "Create group",
+      "meta": "{members} members · Created by {creator}",
+      "open": "Manage",
+      "member": "Member",
+      "manager": "Manager",
+      "remove": "Remove",
+      "confirmRemove": "Remove this participant from the group?",
+      "addUser": "Add participant",
+      "role": "Role",
+      "add": "Add"
+    },
+    "fixtureAdmin": {
+      "title": "Fixture schedule",
+      "body": "Inspect every fixture and override its effective kickoff using a full ISO timestamp with timezone.",
+      "kickoff": "Kickoff ISO timestamp",
+      "update": "Update kickoff"
+    },
+    "fixtureStatus": {
+      "scheduled": "Scheduled",
+      "live": "Live",
+      "halftime": "Half-time",
+      "finished": "Finished",
+      "postponed": "Postponed",
+      "cancelled": "Cancelled"
+    },
+    "resultState": {
+      "released": "Result released",
+      "pending": "Awaiting settlement",
+      "missing": "No result received"
+    },
+    "rulesAdmin": {
+      "title": "Match rules",
+      "body": "Match points come from each fixture. Publish an optional bilingual notice on the rules page.",
+      "exactPoints": "Points for exact score",
+      "outcomePoints": "Points for correct outcome",
+      "noteHe": "Additional rules notice · Hebrew",
+      "noteEn": "Additional rules notice · English",
+      "updated": "Last changed: {date}",
+      "save": "Save rules notice",
+      "confirm": "Save this rules notice?"
+    },
+    "candidateAdmin": {
+      "title": "Season-pick pricing",
+      "body": "Adjust champion and top-scorer awards. Unsettled picks update with the candidate price."
+    },
+    "operationsAdmin": {
+      "season": "Provider season",
+      "rebase": "Timeline replay",
+      "scale": "Replay scale",
+      "scheduled": "Scheduled fixtures",
+      "finished": "Finished fixtures",
+      "lastUpdate": "Latest fixture update",
+      "settlementTitle": "Settlement pipeline",
+      "settlementBody": "Release every due result, score its predictions and settle season picks whose final has completed.",
+      "runSettlement": "Run settlement now",
+      "confirmSettlement": "Run the settlement pipeline now? This can release results and award points.",
+      "securityTitle": "Security boundaries",
+      "securityAuth": "Every mutation authenticates the Super Admin again on the server.",
+      "securityServer": "The service-role key remains in server-only modules and is never sent to the browser.",
+      "securityRls": "Player writes and prediction visibility remain protected by database RLS policies."
+    },
+    "championPoints": "Champion points",
+    "scorerPoints": "Top-scorer points",
+    "save": "Save",
+    "delete": "Delete",
+    "confirmDelete": "This action permanently deletes data. Continue?"
+  },
+  "locale": {
+    "switch": "Change language"
+  },
+  "match": {
+    "subheading": "Predict every scoreline and collect points for the call.",
+    "live": "LIVE",
+    "finalScore": "Full time",
+    "locksIn": "Locks in",
+    "goalsFor": "{team} goals",
+    "guess": "Pick",
+    "youPredicted": "You: {score}",
+    "noPrediction": "No prediction",
+    "lockedNote": "Locked at kickoff — predictions are now visible to your group",
+    "signedOutNote": "Sign in to make your picks and join a group.",
+    "signInToPlay": "Sign in to play",
+    "openDetails": "Open {home} vs {away} match page",
+    "details": "Details",
+    "outcomePoints": "Home win: {home}, draw: {draw}, away win: {away} points",
+    "points": "points",
+    "provisional": "live",
+    "saving": "Saving…",
+    "saved": "Saved",
+    "loadMoreRound": "Load another round",
+    "roundProgress": "Showing {shown} of {total}",
+    "knockoutCalendar": {
+      "published": "Official calendar",
+      "teamsPending": "Teams and kick-off times will appear here after the draw and official announcement.",
+      "matchCount": "{count, plural, one {# match} other {# matches}}",
+      "firstLeg": "First legs",
+      "secondLeg": "Second legs",
+      "finalDate": "Final",
+      "venuesPending": "Venues will be set by the qualifying teams and the home-leg draw.",
+      "venue": "{venue}"
+    },
+    "autoPredict": {
+      "trigger": "Auto-predict",
+      "title": "How should the predictions be filled?",
+      "description": "Choose whether to keep the predictions you already made or replace everything with automatic picks.",
+      "missingTitle": "Only matches without a prediction",
+      "missingBody": "Fill {count, plural, one {# match} other {# matches}} without changing existing predictions.",
+      "nothingMissing": "Every open match already has a prediction.",
+      "allTitle": "Predict every match again",
+      "allBody": "Refill all {count} open matches, including your manual predictions.",
+      "saving": "Filling and saving…",
+      "saved": "Saved {count, plural, one {# prediction} other {# predictions}}",
+      "oddsNote": "Scores are calculated from the teams’ title odds, with home advantage and draw probability included.",
+      "error": "The predictions could not be saved. Please try again.",
+      "close": "Close"
+    },
+    "saveError": {
+      "notSignedIn": "Sign in to save your predictions.",
+      "invalidScore": "That score isn’t valid — enter between 0 and 20 goals.",
+      "unknownFixture": "That match could not be found.",
+      "locked": "This match has kicked off — your prediction wasn’t saved.",
+      "generic": "Couldn’t save. Please try again."
+    },
+    "rounds": {
+      "league_phase": "Matchday {matchday}",
+      "playoff": "Knockout play-offs",
+      "r16": "Round of 16",
+      "qf": "Quarter-finals",
+      "sf": "Semi-finals",
+      "final": "Final"
+    },
+    "empty": {
+      "title": "No fixtures yet",
+      "body": "The season has not been ingested. Run npm run ingest with the dev server up.",
+      "schemaTitle": "Database not set up",
+      "schemaBody": "The tables do not exist yet. Apply the migrations in supabase/migrations, then ingest the season."
+    },
+    "kickoff": "Kickoff"
+  },
+  "matchDetails": {
+    "back": "Back to matches",
+    "pageTitle": "{home} vs {away}",
+    "afterExtraTime": "After extra time",
+    "detailsBeforeKickoff": "Lineups and live match data appear here when the provider publishes them.",
+    "status": {
+      "live": "LIVE · {minute}'",
+      "finished": "Full time"
+    },
+    "predictions": {
+      "title": "Your group's live picks",
+      "subtitle": "Everyone's locked prediction, with points calculated against the current score.",
+      "signedOut": "Sign in to see your groups' predictions.",
+      "signIn": "Sign in",
+      "noGroups": "You are not in a friends group yet.",
+      "chooseGroup": "Choose a friends group",
+      "player": "Player",
+      "pick": "Pick",
+      "livePoints": "Live pts",
+      "you": "you"
+    },
+    "lineups": {
+      "title": "Squads & lineups",
+      "subtitle": "Full seasonal squads, with the official match selection highlighted when available.",
+      "unavailable": "Squad information is not available for this match yet.",
+      "teamUnavailable": "This team's squad has not been imported yet.",
+      "coach": "Coach: {name}",
+      "substitutes": "Substitutes ({count})",
+      "rosterCount": "Full squad · {count} players",
+      "goalkeepers": "Goalkeepers",
+      "defenders": "Defenders",
+      "midfielders": "Midfielders",
+      "forwards": "Forwards",
+      "other": "Other",
+      "starter": "Starting XI",
+      "substitute": "Bench"
+    },
+    "statistics": {
+      "title": "Match statistics",
+      "subtitle": "The numbers behind the game, updated with the live feed.",
+      "unavailable": "Match statistics are not available yet.",
+      "metric": "Metric",
+      "expectedGoals": "Expected goals",
+      "possession": "Possession",
+      "totalShots": "Total shots",
+      "shotsOnGoal": "Shots on target",
+      "corners": "Corners",
+      "saves": "Goalkeeper saves",
+      "fouls": "Fouls",
+      "offsides": "Offsides"
+    },
+    "events": {
+      "title": "Match timeline",
+      "subtitle": "Goals, cards and substitutions in chronological order.",
+      "unavailable": "The match timeline will appear when play begins.",
+      "goal": "Goal",
+      "substitution": "Substitution",
+      "yellowCard": "Yellow card",
+      "redCard": "Red card",
+      "assist": "Assist: {name}"
+    },
+    "performers": {
+      "title": "Top performers",
+      "subtitle": "The highest provider ratings from this match.",
+      "goals": "{count} goals",
+      "assists": "{count} assists"
+    },
+    "venue": {
+      "title": "Stadium",
+      "unknown": "Venue details are not available",
+      "imageAlt": "{venue} stadium",
+      "city": "City",
+      "address": "Address",
+      "capacity": "Capacity",
+      "surface": "Surface",
+      "grass": "Grass",
+      "referee": "Referee",
+      "attendance": "Attendance"
+    },
+    "forecast": {
+      "title": "Pre-match forecast",
+      "subtitle": "The model snapshot saved when the fixture was ingested.",
+      "draw": "Draw"
+    },
+    "history": {
+      "title": "Previous matches",
+      "subtitle": "Head-to-head meetings and each club's recent form.",
+      "headToHead": "Head to head",
+      "noMeetings": "No earlier meeting is available in this competition.",
+      "recentForm": "Recent form",
+      "competitionOnly": "Includes only released Champions League matches stored in this game.",
+      "formFor": "Recent form for {team}",
+      "win": "Win",
+      "draw": "Draw",
+      "loss": "Loss",
+      "winShort": "W",
+      "drawShort": "D",
+      "lossShort": "L"
+    }
+  },
+  "hero": {
+    "eyebrow": "The prediction game for friends",
+    "headline": "Start a group, invite your friends — and find out who really is the prediction champion.",
+    "subheading": "Predict Champions League scores, collect points and compete for first place with the whole crew.",
+    "cta": "Join the game",
+    "ctaSignedIn": "Make predictions",
+    "secondaryCta": "How it works",
+    "steps": {
+      "create": "Start a group",
+      "invite": "Invite friends",
+      "compete": "Take the crown"
+    }
+  },
+  "footer": {
+    "navLabel": "Footer",
+    "linkMatches": "Matches",
+    "linkGroups": "My groups",
+    "linkProfile": "Profile",
+    "accessibility": "Accessibility statement",
+    "noWagering": "Group payments are completed and managed outside this site.",
+    "disclaimer": "An independent prediction game made for a group of friends. Not affiliated with, endorsed by, or sponsored by UEFA. Club names and competition names are the trademarks of their respective owners."
+  },
+  "nav": {
+    "label": "Sections",
+    "games": "Games",
+    "table": "Table",
+    "standings": "Champions",
+    "profile": "Profile",
+    "rules": "Rules"
+  },
+  "leaderboard": {
+    "title": "Champions table",
+    "subtitle": "The system-wide ranking of every player, including players without a friends group.",
+    "groupSubtitle": "Only the members of {group}.",
+    "scopeLabel": "Choose a leaderboard",
+    "globalTable": "All players",
+    "groupPotTitle": "{group} pot",
+    "groupPotCalculation": "{members} members × {entryFee}",
+    "participant": "Player",
+    "championPick": "Champion",
+    "scorerPick": "Top scorer",
+    "points": "points",
+    "you": "you",
+    "record": "{exact} exact · {correct} right result · {settled} settled",
+    "seasonBonus": "+{points} season picks",
+    "pickHidden": "This pick will be revealed after the first kickoff",
+    "pickMissing": "No pick submitted",
+    "empty": "No matches have been settled yet. The table fills in as results come in.",
+    "signedOut": "Sign in to see the champions table and your group tables.",
+    "signIn": "Sign in"
+  },
+  "standings": {
+    "title": "Champions League",
+    "subtitle": "The league-phase table, as it stands.",
+    "tabsLabel": "Champions League view",
+    "tabs": {
+      "table": "League table",
+      "scorers": "Top scorer"
+    },
+    "scorers": {
+      "subtitle": "The Golden Boot race, ranked by goals scored so far.",
+      "empty": "No goals have been scored yet. The ranking will update after the first matches.",
+      "caption": "Champions League top-scorer ranking",
+      "player": "Player",
+      "goals": "Goals",
+      "assists": "Assists"
+    },
+    "empty": "No matches have been played yet. The table starts on matchday one.",
+    "note": "Built from results already released in this game, so it never runs ahead of the fixtures you have predicted. Ordered on points, goal difference, then goals scored.",
+    "band": {
+      "direct": "Round of 16",
+      "playoff": "Knockout play-off",
+      "eliminated": "Eliminated"
+    },
+    "col": {
+      "rank": "#",
+      "club": "Club",
+      "played": "P",
+      "playedFull": "Played",
+      "won": "W",
+      "wonFull": "Won",
+      "drawn": "D",
+      "drawnFull": "Drawn",
+      "lost": "L",
+      "lostFull": "Lost",
+      "goalsFor": "GF",
+      "goalsForFull": "Goals for",
+      "goalsAgainst": "GA",
+      "goalsAgainstFull": "Goals against",
+      "goalDifference": "GD",
+      "goalDifferenceFull": "Goal difference",
+      "points": "Pts",
+      "pointsFull": "Points"
+    }
+  },
+  "rules": {
+    "title": "How it works",
+    "subtitle": "Match calls are simple. Your two season picks add one long-range decision.",
+    "exact": {
+      "title": "for the exact score",
+      "body": "An exact score prediction earns 2× the points listed for the match's actual outcome."
+    },
+    "outcome": {
+      "value": "varies",
+      "title": "for the correct outcome",
+      "body": "Each match lists separate points for a home win, draw and away win. A correct outcome earns the points displayed for that outcome."
+    },
+    "nothingElse": "There are no jokers or extra multipliers. The only multiplier is 2× for an exact score; champion and top-scorer picks are scored separately after the final.",
+    "howTitle": "The rules",
+    "predict": {
+      "title": "Predict a scoreline, not a winner",
+      "body": "Set the goals for each side. Which team you are backing follows from the score, so there is nothing else to answer."
+    },
+    "season": {
+      "title": "Choose the season winners once",
+      "body": "After signing in, choose the champion and top scorer. Favourites pay fewer points and outsiders pay more. Both choices are final; a shared Golden Boot counts for every joint winner."
+    },
+    "lock": {
+      "title": "Locked at kickoff",
+      "body": "You can change a call as many times as you like until the match starts. After that it is fixed — enforced in the database, not just hidden in the app."
+    },
+    "blind": {
+      "title": "Nobody sees your call",
+      "body": "Other players' predictions stay hidden until the match kicks off. Then everyone's is visible at once."
+    },
+    "table": {
+      "title": "Points make the table",
+      "body": "Every settled match and season-pick award add to your total. The global table includes every player in the system, and you can also select a specific friends group."
+    },
+    "regulationTime": "In the league phase, scoring uses the result after 90 minutes plus stoppage time. In the knockout rounds, scoring also includes extra time, but never the penalty shootout."
+  },
+  "accessibility": {
+    "title": "Accessibility statement",
+    "description": "Information about Alufot's accessibility, implemented adjustments, and contact options.",
+    "eyebrow": "Accessible to everyone",
+    "skipToContent": "Skip to main content",
+    "updatedLabel": "Last updated",
+    "updatedDate": "August 28, 2026",
+    "commitmentTitle": "Our commitment to accessibility",
+    "commitmentBody": "We believe everyone should be able to use Alufot equally and comfortably, including people with disabilities, and we work to improve accessibility continuously.",
+    "standardBody": "The site was designed and adapted with the aim of meeting Israel's Equal Rights for Persons with Disabilities (Service Accessibility Adjustments) Regulations, 2013, and Israeli Standard 5568 Part 1 at level AA, based on the W3C WCAG 2.0 guidelines.",
+    "featuresTitle": "Accessibility adjustments implemented",
+    "features": {
+      "keyboard": "Links, buttons, forms, and dialogs can be operated with a keyboard and have a visible focus indicator.",
+      "skipLink": "A link at the beginning of every page skips directly to the main content.",
+      "structure": "Pages use headings, navigation regions, and semantic structure to support orientation with assistive technology.",
+      "forms": "Form fields include labels, instructions, and textual status or error messages.",
+      "images": "Informative images have text alternatives; decorative images are hidden from screen readers.",
+      "zoom": "The responsive layout supports browser zoom and does not block pinch-to-zoom on mobile devices.",
+      "motion": "The site respects operating-system preferences for reduced motion and increased contrast.",
+      "language": "The page language and direction are set to Hebrew or English according to the selected locale."
+    },
+    "menuTitle": "Accessibility menu",
+    "menuBody": "The persistent accessibility button can enlarge text, enable high contrast, emphasize links, and reduce animation. Preferences are saved on the device for future visits. The menu is an additional aid and is not a substitute for an accessible site.",
+    "arrangementsTitle": "Service accessibility arrangements",
+    "arrangementsBody": "Alufot is a digital-only service and does not receive visitors at an office or physical venue. Service and support are provided remotely through the contact details in this statement.",
+    "limitationsTitle": "Known accessibility limitations",
+    "limitationsBody": "As of this statement's update, we are not aware of a specific accessibility limitation on the site. Some match data and club badges are updated from external sources; team names are also presented as text. If you encounter difficulty, please report it so we can address it.",
+    "reportTitle": "Report an accessibility issue",
+    "reportBody": "If you encounter inaccessible content, a component, or an action, please contact us and include, when possible, the page URL, a description of the issue, the action you attempted, your device and browser, and any assistive technology used.",
+    "reportDetails": "We will review the report and aim to respond within 5 business days.",
+    "contactTitle": "Accessibility contact",
+    "contactName": "Name",
+    "contactPhone": "Phone",
+    "contactEmail": "Email"
+  },
+  "a11yMenu": {
+    "title": "Accessibility menu",
+    "description": "Adjust the site's display to your needs.",
+    "close": "Close accessibility menu",
+    "textSize": "Text size",
+    "decreaseText": "Decrease text size",
+    "increaseText": "Increase text size",
+    "highContrast": "High contrast",
+    "underlineLinks": "Emphasize links",
+    "reduceMotion": "Reduce animation",
+    "reset": "Reset settings",
+    "statement": "Accessibility statement"
+  },
+  "install": {
+    "title": "Install Alufot",
+    "body": "Add it to your home screen and it opens like an app — full screen, one tap from the lock screen.",
+    "stepsIOS": "Tap <share></share> in the toolbar, then <add></add> Add to Home Screen.",
+    "action": "Install",
+    "notNow": "Not now",
+    "dismiss": "Close"
+  }
+}

@@ -1,0 +1,413 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-app-sans);
+  --font-mono: var(--font-app-mono);
+  --font-heading: var(--font-app-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+
+  /* --- app semantics -------------------------------------------------- */
+  /* Never the only carrier of meaning: every state below is paired with an
+     icon or a text label in the UI (§8 accessibility).                    */
+  --color-live: var(--live);
+  --color-live-foreground: var(--live-foreground);
+  --color-locked: var(--locked);
+  --color-locked-foreground: var(--locked-foreground);
+  --color-success: var(--success);
+  /* The metallic gold on the guess chip. Its own token rather than
+     `destructive`, which means "this deletes something" — the wrong promise
+     to make on the one control every card is asking you to use. */
+  --color-pick: var(--pick);
+  --color-pick-highlight: var(--pick-highlight);
+  --color-pick-shadow: var(--pick-shadow);
+  --color-pick-foreground: var(--pick-foreground);
+  --color-warning: var(--warning);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  /* Floodlight cyan — the brightest note in the palette, reserved for
+     decoration and glow. Not a text colour at these values. */
+  --color-floodlight: var(--floodlight);
+
+  /* --- motion ---------------------------------------------------------- */
+  /* The stock CSS easings are too weak to read as intentional. These are the
+     strong variants:
+
+       snap  — anything entering, or answering a tap. Starts fast, so the
+               interface has already moved by the time the eye arrives.
+       swoop — something travelling across the screen, which needs to
+               accelerate and decelerate at both ends.
+
+     There is deliberately no ease-in token. It starts slow, which reads as
+     the interface hesitating at the exact moment the user is watching. */
+  --ease-snap: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-swoop: cubic-bezier(0.77, 0, 0.175, 1);
+  /* One colour becoming another. Nothing enters, nothing travels, so the curve
+     is symmetric — this is the CSS `ease` keyword, which Tailwind exposes no
+     utility for on its own. */
+  --ease-tint: cubic-bezier(0.25, 0.1, 0.25, 1);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/* The palette. One theme — a stadium at night.
+ *
+ * There is no light mode and no toggle. The app is a floodlit-stadium
+ * photograph with glass panels over it, and that composition does not survive
+ * being inverted: the backdrop had to be hidden under light, which left the
+ * light theme a flat, unrelated-looking app wearing the same colours. Carrying
+ * two palettes to ship one good one is a cost with no return.
+ *
+ * Deep navy rather than neutral black, so the floodlight blue has a darker
+ * blue to sit against rather than a dead ground. The accents run cooler than
+ * the structure — hue 242-245 against 262 — which is what keeps a one-hue
+ * palette from flattening. Elevation is a lighter navy, not a heavier border. */
+:root {
+  --background: oklch(0.16 0.05 262);
+  --foreground: oklch(0.97 0.012 262);
+  --card: oklch(0.21 0.052 262);
+  --card-foreground: oklch(0.97 0.012 262);
+  --popover: oklch(0.23 0.055 262);
+  --popover-foreground: oklch(0.97 0.012 262);
+  --primary: oklch(0.72 0.15 245);
+  --primary-foreground: oklch(0.17 0.06 256);
+  --secondary: oklch(0.28 0.055 262);
+  --secondary-foreground: oklch(0.97 0.012 262);
+  --muted: oklch(0.28 0.055 262);
+  --muted-foreground: oklch(0.75 0.032 262);
+  --accent: oklch(0.35 0.09 256);
+  --accent-foreground: oklch(0.91 0.045 245);
+  --destructive: oklch(0.7 0.19 22);
+  --border: oklch(0.78 0.07 256 / 18%);
+  --input: oklch(0.78 0.07 256 / 22%);
+  --ring: oklch(0.72 0.15 245);
+
+  --surface: oklch(0.19 0.05 262);
+  --surface-raised: oklch(0.245 0.055 262);
+  --floodlight: oklch(0.79 0.115 242);
+  --live: oklch(0.78 0.2 150);
+  --live-foreground: oklch(0.16 0.03 150);
+  --locked: oklch(0.45 0.032 262);
+  --locked-foreground: oklch(0.97 0.012 262);
+  --success: oklch(0.78 0.2 150);
+  --pick-highlight: oklch(0.88 0.13 94);
+  --pick: oklch(0.78 0.15 86);
+  --pick-shadow: oklch(0.62 0.14 72);
+  --pick-foreground: oklch(0.2 0.05 60);
+  --warning: oklch(0.8 0.16 70);
+
+  /* Not a colour, and the only thing in here that never varied by theme —
+     which is exactly how it went missing when the two palettes were merged
+     into one. The whole radius scale in `@theme` is derived from it, so
+     losing it silently flattens every rounded corner in the app. */
+  --radius: 0.75rem;
+
+  --chart-1: oklch(0.72 0.15 245);
+  --chart-2: oklch(0.79 0.115 242);
+  --chart-3: oklch(0.78 0.2 150);
+  --chart-4: oklch(0.8 0.16 70);
+  --chart-5: oklch(0.7 0.19 20);
+
+  --sidebar: oklch(0.19 0.05 262);
+  --sidebar-foreground: oklch(0.97 0.012 262);
+  --sidebar-primary: oklch(0.72 0.15 245);
+  --sidebar-primary-foreground: oklch(0.17 0.06 256);
+  --sidebar-accent: oklch(0.35 0.09 256);
+  --sidebar-accent-foreground: oklch(0.91 0.045 245);
+  --sidebar-border: oklch(0.78 0.07 256 / 18%);
+  --sidebar-ring: oklch(0.72 0.15 245);
+}
+
+
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+
+    /* Floodlight bloom: two beams raking in from the upper corners and a cool
+       wash rising off the pitch. Fixed, so it behaves like a room the content
+       scrolls through rather than a texture stuck to the page.
+
+       Kept low-opacity on purpose — this sits behind body text, and §13 asks
+       for Lighthouse accessibility above 95. Atmosphere must not cost
+       contrast. */
+    background-image:
+      radial-gradient(
+        ellipse 70% 55% at 12% -8%,
+        oklch(0.56 0.2 260 / 0.3),
+        transparent 62%
+      ),
+      radial-gradient(
+        ellipse 70% 55% at 88% -8%,
+        oklch(0.56 0.2 260 / 0.26),
+        transparent 62%
+      ),
+      radial-gradient(
+        ellipse 120% 45% at 50% 108%,
+        oklch(0.5 0.18 260 / 0.18),
+        transparent 70%
+      );
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+  }
+
+
+  html {
+    @apply font-sans;
+    /* Stops the whole layout shifting when a scrollbar appears mid-match. */
+    scrollbar-gutter: stable;
+  }
+
+  /* Numbers must not jitter as they tick up. Scores, points, ranks, and
+     countdowns all live in these elements. */
+  th,
+  td,
+  time,
+  output,
+  [data-numeric] {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+  }
+}
+
+@layer utilities {
+  /* Opt-in tabular figures for anything the selectors above miss. */
+  .numeric {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+  }
+
+  /*
+   * Staggered entrance for a list.
+   *
+   * Set `--enter-index` per item and each one rises in a beat after the last.
+   * The index is clamped so a full matchday does not turn into a two-second
+   * wait for the eighteenth fixture — past the twelfth they arrive together,
+   * which nobody reads as a break in the rhythm because they are below the
+   * fold anyway.
+   *
+   * `backwards` fill keeps an item invisible during its delay; without it
+   * every row paints first and then jumps.
+   */
+  .enter-rise {
+    animation: enter-rise 280ms var(--ease-snap) backwards;
+    animation-delay: calc(min(var(--enter-index, 0), 12) * 26ms);
+  }
+
+  /*
+   * Entrance for a panel that rises from the bottom edge — the install sheet.
+   *
+   * Travels further than .enter-rise (18px against 6px) because it enters from
+   * off-screen rather than in place, and slower, because nothing the user did
+   * summoned it. An uninvited panel that snaps in reads as an interruption.
+   */
+  .enter-sheet {
+    animation: enter-sheet 420ms var(--ease-snap) backwards;
+  }
+
+  /*
+   * Entrance for a single element that appears in response to something the
+   * user did — a save state, a validation message.
+   *
+   * A transition plus `@starting-style` rather than an animation, because a
+   * transition can be interrupted and retargeted: the message swapping from
+   * "Saving…" to "Saved" mid-flight resolves smoothly instead of restarting.
+   */
+  .enter-fade {
+    opacity: 1;
+    transform: translateY(0);
+    transition:
+      opacity 200ms ease,
+      transform 200ms var(--ease-snap);
+
+    @starting-style {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+  }
+
+  /* The live pulse. Falls back to a static dot under reduced motion. */
+  .pulse-live {
+    animation: pulse-live 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  /* Neon line-work, as the floodlit stadium shots. Used on decorative SVG
+     strokes only — never on text, where a glow would hurt legibility. */
+  .neon-stroke {
+    filter: drop-shadow(0 0 6px var(--floodlight))
+      drop-shadow(0 0 18px oklch(0.56 0.2 260 / 0.55));
+  }
+}
+
+/* Registered so the index is a real number rather than an inherited token:
+   without this an item nested inside another staggered list would pick up its
+   parent's delay. */
+@property --enter-index {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
+@keyframes enter-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@keyframes enter-sheet {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+}
+
+@keyframes pulse-live {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+/*
+ * Reduced motion means less movement, not no feedback.
+ *
+ * Everything that travels or scales is removed: keyframes are collapsed to a
+ * single frame, and transitions are narrowed to the properties that carry no
+ * motion. What survives is colour and opacity — the save state still fades in,
+ * a filled score box still tints, the pressed button still responds. Killing
+ * those too (a blanket `transition-duration: 0.01ms`) makes the interface feel
+ * broken rather than calm, and they are not what causes motion sickness.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+
+    transition-property:
+      opacity, color, background-color, border-color, text-decoration-color,
+      fill, stroke, box-shadow !important;
+    transition-duration: 150ms !important;
+    transition-timing-function: ease !important;
+  }
+}
+
+/* Accessibility preferences mirror equivalent browser/OS capabilities. The
+   menu is an additional convenience; the site remains operable without it. */
+:root[data-a11y-font-scale="lg"] {
+  font-size: 112.5%;
+}
+
+:root[data-a11y-font-scale="xl"] {
+  font-size: 125%;
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --background: #000a14;
+    --foreground: #ffffff;
+    --card: #07192b;
+    --card-foreground: #ffffff;
+    --popover: #07192b;
+    --popover-foreground: #ffffff;
+    --primary: #9bdcff;
+    --primary-foreground: #00111f;
+    --secondary: #17344b;
+    --secondary-foreground: #ffffff;
+    --muted: #17344b;
+    --muted-foreground: #ffffff;
+    --accent: #1d4f72;
+    --accent-foreground: #ffffff;
+    --border: rgb(255 255 255 / 72%);
+    --input: rgb(255 255 255 / 82%);
+    --ring: #ffffff;
+  }
+}
+
+:root[data-a11y-contrast="true"] {
+  --background: #000a14;
+  --foreground: #ffffff;
+  --card: #07192b;
+  --card-foreground: #ffffff;
+  --popover: #07192b;
+  --popover-foreground: #ffffff;
+  --primary: #9bdcff;
+  --primary-foreground: #00111f;
+  --secondary: #17344b;
+  --secondary-foreground: #ffffff;
+  --muted: #17344b;
+  --muted-foreground: #ffffff;
+  --accent: #1d4f72;
+  --accent-foreground: #ffffff;
+  --border: rgb(255 255 255 / 72%);
+  --input: rgb(255 255 255 / 82%);
+  --ring: #ffffff;
+}
+
+:root[data-a11y-underline-links="true"] a {
+  text-decoration-line: underline !important;
+  text-decoration-thickness: max(1px, 0.08em);
+  text-underline-offset: 0.18em;
+}
+
+:root[data-a11y-motion="reduce"] *,
+:root[data-a11y-motion="reduce"] *::before,
+:root[data-a11y-motion="reduce"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-delay: 0ms !important;
+  animation-iteration-count: 1 !important;
+  scroll-behavior: auto !important;
+  transition-property:
+    opacity, color, background-color, border-color, text-decoration-color,
+    fill, stroke, box-shadow !important;
+  transition-duration: 150ms !important;
+  transition-timing-function: ease !important;
+}
