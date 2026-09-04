@@ -80,6 +80,12 @@ export type WireScorePair = { home: number | null; away: number | null };
 
 export type WireMatch = {
   id: number;
+  competition?: {
+    id: number;
+    name: string;
+    code: string;
+    emblem?: string | null;
+  };
   utcDate: string;
   status: FootballDataMatchStatus;
   minute: number | null;

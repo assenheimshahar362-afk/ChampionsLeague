@@ -1,6 +1,6 @@
 "use client";
 
-import { Info } from "lucide-react";
+import { BrainCircuit, ChevronDown, Info } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import type { CSSProperties, ReactNode } from "react";
 
@@ -8,7 +8,12 @@ import { LockCountdown } from "@/components/match/lock-countdown";
 import { GuessChip, ScoreBox } from "@/components/match/score-box";
 import { TeamCrest } from "@/components/match/team-crest";
 import { Link } from "@/i18n/navigation";
-import type { Fixture, Prediction, Team } from "@/lib/fixtures/types";
+import type {
+  AiPrediction,
+  Fixture,
+  Prediction,
+  Team,
+} from "@/lib/fixtures/types";
 import { isInPlay } from "@/lib/fixtures/types";
 import { projectedPoints } from "@/lib/scoring/engine";
 import { cn } from "@/lib/utils";
@@ -125,6 +130,7 @@ function PointsPill({
 export function MatchCard({
   fixture,
   prediction,
+  aiPrediction,
   locked,
   canPredict,
   enterIndex,
@@ -132,6 +138,7 @@ export function MatchCard({
 }: {
   fixture: Fixture;
   prediction: Prediction | undefined;
+  aiPrediction?: AiPrediction;
   /** The fixture has kicked off. Authority is the RLS policy (§11). */
   locked: boolean;
   /** Signed in. Signed-out visitors see the inputs, but locked. */
@@ -284,7 +291,102 @@ export function MatchCard({
           </span>
         </p>
       ) : null}
+
+      {aiPrediction ? (
+        <AiPredictionPanel prediction={aiPrediction} fixture={fixture} />
+      ) : null}
     </li>
+  );
+}
+
+function AiPredictionPanel({
+  prediction,
+  fixture,
+}: {
+  prediction: AiPrediction;
+  fixture: Fixture;
+}) {
+  const t = useTranslations("match.aiPrediction");
+  const probabilities = [
+    {
+      label: fixture.homeTeam.shortName,
+      value: prediction.homeWinProbability,
+    },
+    { label: t("draw"), value: prediction.drawProbability },
+    {
+      label: fixture.awayTeam.shortName,
+      value: prediction.awayWinProbability,
+    },
+  ];
+
+  return (
+    <details className="group/ai border-primary/15 border-t">
+      <summary className="focus-visible:ring-primary/40 flex min-h-12 cursor-pointer list-none items-center gap-3 px-3 py-2 focus-visible:ring-2 focus-visible:outline-none [&::-webkit-details-marker]:hidden">
+        <span className="bg-primary/12 text-primary inline-flex size-8 shrink-0 items-center justify-center rounded-md">
+          <BrainCircuit className="size-4" aria-hidden="true" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="text-primary block text-[10px] font-bold tracking-wide uppercase">
+            {t("title")}
+          </span>
+          <span className="block text-sm font-bold" dir="auto">
+            {fixture.homeTeam.shortName}{" "}
+            <span dir="ltr" data-numeric>
+              {prediction.predictedHomeGoals}-{prediction.predictedAwayGoals}
+            </span>{" "}
+            {fixture.awayTeam.shortName}
+          </span>
+        </span>
+        <span className="text-muted-foreground text-[11px]">
+          {t("confidence", { value: prediction.confidence })}
+        </span>
+        <ChevronDown
+          className="text-muted-foreground size-4 shrink-0 transition-transform duration-200 group-open/ai:rotate-180"
+          aria-hidden="true"
+        />
+      </summary>
+
+      <div className="border-primary/10 space-y-3 border-t px-3 pt-3 pb-4">
+        <div className="grid grid-cols-3 gap-2">
+          {probabilities.map((item) => (
+            <div key={item.label} className="min-w-0 text-center">
+              <span className="block truncate text-[10px] font-semibold" dir="auto">
+                {item.label}
+              </span>
+              <span className="text-primary block text-sm font-bold" data-numeric>
+                {item.value}%
+              </span>
+              <span className="bg-muted mt-1 block h-1 overflow-hidden rounded-full">
+                <span
+                  className="bg-primary block h-full rounded-full"
+                  style={{ width: `${item.value}%` }}
+                />
+              </span>
+            </div>
+          ))}
+        </div>
+
+        <p className="text-foreground/90 text-xs leading-relaxed" dir="auto">
+          {prediction.summary}
+        </p>
+
+        <div>
+          <p className="text-muted-foreground mb-1 text-[10px] font-bold uppercase">
+            {t("keyFactors")}
+          </p>
+          <ul className="grid gap-1 text-xs">
+            {prediction.keyFactors.map((factor) => (
+              <li key={factor} className="flex items-start gap-2" dir="auto">
+                <span className="bg-primary mt-1.5 size-1 shrink-0 rounded-full" aria-hidden="true" />
+                <span>{factor}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <p className="text-muted-foreground text-[10px]">{t("disclaimer")}</p>
+      </div>
+    </details>
   );
 }
 

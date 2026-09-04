@@ -383,6 +383,54 @@ create index fixtures_season_stage_idx on public.fixtures (season, stage, matchd
 create index fixtures_home_team_idx on public.fixtures (home_team_id);
 create index fixtures_away_team_idx on public.fixtures (away_team_id);
 
+-- ========================================================= AI predictions ==
+
+-- One generated analysis per fixture. The service role is the only writer;
+-- visitors read the same cached prediction instead of triggering model calls.
+create table public.ai_match_predictions (
+  fixture_id              uuid primary key
+                            references public.fixtures (id) on delete cascade,
+  predicted_home_goals    smallint not null check (predicted_home_goals between 0 and 6),
+  predicted_away_goals    smallint not null check (predicted_away_goals between 0 and 6),
+  home_win_probability    smallint not null check (home_win_probability between 0 and 100),
+  draw_probability        smallint not null check (draw_probability between 0 and 100),
+  away_win_probability    smallint not null check (away_win_probability between 0 and 100),
+  confidence              smallint not null check (confidence between 0 and 100),
+  summary_en              text not null check (char_length(trim(summary_en)) between 1 and 500),
+  summary_he              text not null check (char_length(trim(summary_he)) between 1 and 500),
+  key_factors_en          jsonb not null check (
+                            jsonb_typeof(key_factors_en) = 'array'
+                            and jsonb_array_length(key_factors_en) = 3
+                          ),
+  key_factors_he          jsonb not null check (
+                            jsonb_typeof(key_factors_he) = 'array'
+                            and jsonb_array_length(key_factors_he) = 3
+                          ),
+  model                   text not null,
+  source_snapshot         jsonb not null,
+  generated_at            timestamptz not null default now(),
+
+  constraint ai_match_predictions_probabilities_total check (
+    home_win_probability + draw_probability + away_win_probability = 100
+  )
+);
+
+comment on table public.ai_match_predictions is
+  'Cached entertainment-only AI analysis generated from stored fixture data.';
+
+create table public.fixture_recent_form (
+  fixture_id    uuid primary key
+                  references public.fixtures (id) on delete cascade,
+  home_matches  jsonb not null check (jsonb_typeof(home_matches) = 'array'),
+  away_matches  jsonb not null check (jsonb_typeof(away_matches) = 'array'),
+  home_lineup   jsonb,
+  away_lineup   jsonb,
+  fetched_at    timestamptz not null default now()
+);
+
+comment on table public.fixture_recent_form is
+  'Cached pre-match results from Football-Data.org, shared by match pages and AI analysis.';
+
 -- ======================================================== fixture results ==
 
 -- The withheld result of a fixture.
@@ -1304,6 +1352,8 @@ alter table public.profiles          enable row level security;
 alter table public.groups            enable row level security;
 alter table public.group_members     enable row level security;
 alter table public.fixtures          enable row level security;
+alter table public.ai_match_predictions enable row level security;
+alter table public.fixture_recent_form enable row level security;
 alter table public.fixture_results   enable row level security;
 alter table public.fixture_details   enable row level security;
 alter table public.season_team_candidates   enable row level security;
@@ -1329,6 +1379,12 @@ create policy "teams: readable by everyone"
 
 create policy "fixtures: readable by everyone"
   on public.fixtures
+  for select
+  to anon, authenticated
+  using (true);
+
+create policy "AI match predictions: readable by everyone"
+  on public.ai_match_predictions
   for select
   to anon, authenticated
   using (true);
@@ -1586,6 +1642,7 @@ revoke all on all tables in schema public from anon, authenticated;
 grant select on
   public.teams,
   public.fixtures,
+  public.ai_match_predictions,
   public.game_settings,
   public.team_squad_players
   to anon, authenticated;

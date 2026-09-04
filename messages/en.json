@@ -428,6 +428,13 @@
     "outcomePoints": "Home win: {home}, draw: {draw}, away win: {away} points",
     "points": "points",
     "provisional": "live",
+    "aiPrediction": {
+      "title": "AI prediction",
+      "draw": "Draw",
+      "confidence": "{value}% confidence",
+      "keyFactors": "Key factors",
+      "disclaimer": "Data-based entertainment prediction, not betting advice."
+    },
     "saving": "Saving…",
     "saved": "Saved",
     "loadMoreRound": "Load another round",
@@ -491,8 +498,19 @@
     },
     "tabs": {
       "label": "Match details",
-      "overview": "Match info",
-      "predictions": "Picks & points"
+      "details": "Match info",
+      "lineup": "Lineups",
+      "projectedLineup": "Projected lineup",
+      "statistics": "Stats",
+      "history": "Form",
+      "predictions": "Picks"
+    },
+    "projectedLineup": {
+      "chooseTeam": "Choose team",
+      "estimated": "Estimated starting XI",
+      "official": "Official starting XI",
+      "unavailable": "The provider has not published a formation and starting XI for this team's last match.",
+      "source": "Estimated from the last match against {opponent} on {date}. This is not the official lineup."
     },
     "predictions": {
       "title": "Your group's live picks",
@@ -512,18 +530,13 @@
     "lineups": {
       "title": "Squads & lineups",
       "subtitle": "Full seasonal squads, with the official match selection highlighted when available.",
-      "unavailable": "Squad information is not available for this match yet.",
       "teamUnavailable": "This team's squad has not been imported yet.",
-      "coach": "Coach: {name}",
-      "substitutes": "Substitutes ({count})",
       "rosterCount": "Full squad · {count} players",
       "goalkeepers": "Goalkeepers",
       "defenders": "Defenders",
       "midfielders": "Midfielders",
       "forwards": "Forwards",
-      "other": "Other",
-      "starter": "Starting XI",
-      "substitute": "Bench"
+      "other": "Other"
     },
     "statistics": {
       "title": "Match statistics",
@@ -573,11 +586,13 @@
       "draw": "Draw"
     },
     "history": {
-      "title": "Previous matches",
       "subtitle": "Head-to-head meetings and each club's recent form.",
       "headToHead": "Head to head",
+      "headToHeadSubtitle": "Earlier meetings between the two clubs in this competition.",
       "noMeetings": "No earlier meeting is available in this competition.",
-      "recentForm": "Recent form",
+      "recentMatches": "Last five matches",
+      "allCompetitions": "Completed matches from all competitions, supplied by Football-Data.org and cached before kick-off.",
+      "noMatch": "No match",
       "competitionOnly": "Includes only released Champions League matches stored in this game.",
       "formFor": "Recent form for {team}",
       "win": "Win",

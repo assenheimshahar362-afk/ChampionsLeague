@@ -83,6 +83,19 @@ export type Prediction = {
   awayGoals: number;
 };
 
+export type AiPrediction = {
+  fixtureId: string;
+  predictedHomeGoals: number;
+  predictedAwayGoals: number;
+  homeWinProbability: number;
+  drawProbability: number;
+  awayWinProbability: number;
+  confidence: number;
+  summary: string;
+  keyFactors: string[];
+  generatedAt: string;
+};
+
 export function isInPlay(fixture: Fixture): boolean {
   return fixture.status === "live" || fixture.status === "halftime";
 }

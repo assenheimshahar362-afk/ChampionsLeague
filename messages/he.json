@@ -428,6 +428,13 @@
     "outcomePoints": "ניצחון בית: {home}, תיקו: {draw}, ניצחון חוץ: {away} נקודות",
     "points": "נקודות",
     "provisional": "זמני",
+    "aiPrediction": {
+      "title": "תחזית AI",
+      "draw": "תיקו",
+      "confidence": "{value}% ביטחון",
+      "keyFactors": "גורמים מרכזיים",
+      "disclaimer": "תחזית בידורית מבוססת נתונים, לא המלצת הימורים."
+    },
     "saving": "שומר…",
     "saved": "נשמר",
     "loadMoreRound": "טען עוד מחזור",
@@ -491,8 +498,19 @@
     },
     "tabs": {
       "label": "פרטי המשחק",
-      "overview": "מידע כללי",
-      "predictions": "ניחושים וניקוד"
+      "details": "מידע",
+      "lineup": "הרכבים",
+      "projectedLineup": "הרכב משוער",
+      "statistics": "נתונים",
+      "history": "כושר",
+      "predictions": "ניחושים"
+    },
+    "projectedLineup": {
+      "chooseTeam": "בחירת קבוצה",
+      "estimated": "הרכב פותח משוער",
+      "official": "הרכב פותח רשמי",
+      "unavailable": "הספק לא פרסם מערך והרכב פותח למשחק האחרון של הקבוצה.",
+      "source": "הערכה לפי המשחק האחרון נגד {opponent} בתאריך {date}. זה אינו ההרכב הרשמי."
     },
     "predictions": {
       "title": "הניחושים החיים של הקבוצה",
@@ -512,18 +530,13 @@
     "lineups": {
       "title": "סגלים והרכבים",
       "subtitle": "הסגלים המלאים לעונה, עם סימון ההרכב הרשמי כאשר הוא מתפרסם.",
-      "unavailable": "פרטי הסגלים עדיין אינם זמינים למשחק הזה.",
       "teamUnavailable": "הסגל של הקבוצה עדיין לא יובא.",
-      "coach": "מאמן: {name}",
-      "substitutes": "מחליפים ({count})",
       "rosterCount": "סגל מלא · {count} שחקנים",
       "goalkeepers": "שוערים",
       "defenders": "הגנה",
       "midfielders": "קישור",
       "forwards": "התקפה",
-      "other": "נוספים",
-      "starter": "פותח",
-      "substitute": "ספסל"
+      "other": "נוספים"
     },
     "statistics": {
       "title": "סטטיסטיקות המשחק",
@@ -573,11 +586,13 @@
       "draw": "תיקו"
     },
     "history": {
-      "title": "משחקי עבר",
       "subtitle": "מפגשים קודמים והכושר האחרון של כל קבוצה.",
       "headToHead": "ראש בראש",
+      "headToHeadSubtitle": "המפגשים הקודמים בין שתי הקבוצות במסגרת המפעל.",
       "noMeetings": "לא נמצא מפגש קודם במסגרת המפעל.",
-      "recentForm": "כושר אחרון",
+      "recentMatches": "חמשת המשחקים האחרונים",
+      "allCompetitions": "משחקים שהסתיימו בכל המסגרות, כפי שהתקבלו מ־Football-Data.org ונשמרו לפני שריקת הפתיחה.",
+      "noMatch": "אין משחק",
       "competitionOnly": "כולל רק משחקי ליגת האלופות שתוצאותיהם כבר שוחררו במשחק.",
       "formFor": "כושר אחרון של {team}",
       "win": "ניצחון",

@@ -40,19 +40,12 @@ npx supabase db push
 `<ref>` is the subdomain of your project URL — the `<ref>` in
 `https://<ref>.supabase.co`.
 
-For a brand-new project, the CLI applies `0001_init.sql` and then the additive
-migrations that follow it. `0001_init.sql` is a destructive reset: it drops and
-recreates `public`, so never run it again against an existing project. Auth
-accounts are preserved, but game data and manually edited profile fields are
-erased.
+The complete schema lives in `0001_init.sql`. It is a destructive reset: it
+drops and recreates `public`, so never run it again against an existing project.
+Auth accounts are preserved, but game data and manually edited profile fields
+are erased.
 
-If you use the dashboard **SQL Editor** for an existing project, run only the
-contents of migration files that have not already been applied. In particular,
-`0002_group_profiles_invites.sql`, `0003_link_aek_athens_translation.sql` and
-`0004_group_payments.sql` are additive and do not reset existing users, groups
-or predictions.
-
-Confirm it worked - this should list sixteen tables:
+Confirm it worked - this should list nineteen tables:
 
 ```sql
 select table_name from information_schema.tables
@@ -118,6 +111,8 @@ Authentication → **URL Configuration**:
 
 ```
 CRON_SECRET=<32+ random chars>     # openssl rand -base64 32
+OPENAI_API_KEY=<server-only API key>
+OPENAI_MODEL=gpt-5-mini            # optional
 ```
 
 `NEXT_PUBLIC_APP_URL` is optional and usually best left unset. `getOrigin()`
@@ -227,6 +222,28 @@ the final. It accepts joint top scorers and settles every pick only once.
 Idempotent, so run it as often as you like. On a compressed replay
 (`REBASE_SCALE=0.04`) matches finish about four minutes after kickoff, so a
 schedule of every minute or two keeps the table moving.
+
+## 9. AI match predictions
+
+`GET /api/cron/ai-predictions` creates one shared analysis for every scheduled
+fixture kicking off in the next 24 hours. Each prediction is generated from the
+fixture's stored probabilities and both teams' five most recent completed
+matches across all competitions. Those results come from Football-Data.org,
+are cached for six hours in `fixture_recent_form`, and are displayed from the
+same snapshot on the match details page. The structured prediction is cached
+separately in `ai_match_predictions`. Opening a match card never calls OpenAI.
+
+Run the endpoint a few times per day with `Authorization: Bearer $CRON_SECRET`.
+It is idempotent and skips fixtures that already have an analysis:
+
+```bash
+curl -H "Authorization: Bearer $CRON_SECRET" \
+   http://localhost:3000/api/cron/ai-predictions
+```
+
+For a manual preview of a wider window, use `?hours=168`. Add `&force=1` only
+when existing predictions intentionally need to be regenerated. The API key is
+read exclusively on the server and must never use a `NEXT_PUBLIC_` prefix.
 
 ## Moving to season 2026/27
 

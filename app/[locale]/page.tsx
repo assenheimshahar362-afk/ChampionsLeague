@@ -8,10 +8,11 @@ import { SetupNotice } from "@/components/setup-notice";
 import { isLocale } from "@/i18n/routing";
 import {
   SchemaNotReadyError,
+  getAiPredictions,
   getCurrentAndFutureRoundFixtures,
   getMyPredictions,
 } from "@/lib/fixtures/queries";
-import type { Fixture, Prediction } from "@/lib/fixtures/types";
+import type { AiPrediction, Fixture, Prediction } from "@/lib/fixtures/types";
 import { getUser } from "@/lib/supabase/server";
 
 /**
@@ -54,12 +55,17 @@ async function MatchdayContent({ locale }: { locale: string }) {
   const user = await getUser();
   let fixtures: Fixture[] = [];
   let predictions: Record<string, Prediction> = {};
+  let aiPredictions: Record<string, AiPrediction> = {};
 
   try {
     [fixtures, predictions] = await Promise.all([
       getCurrentAndFutureRoundFixtures(locale),
       user ? getMyPredictions(user.id) : Promise.resolve({}),
     ]);
+    aiPredictions = await getAiPredictions(
+      fixtures.map((fixture) => fixture.id),
+      locale
+    );
   } catch (error) {
     // Migrations not applied yet. Everything else is a real fault and must
     // still surface — swallowing it would hide genuine breakage behind a
@@ -77,6 +83,7 @@ async function MatchdayContent({ locale }: { locale: string }) {
       <MatchList
         fixtures={fixtures}
         initialPredictions={predictions}
+        aiPredictions={aiPredictions}
         canPredict={Boolean(user)}
         nowIso={nowIso}
       />

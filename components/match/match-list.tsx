@@ -9,7 +9,12 @@ import { AutoPredictDialog } from "@/components/match/auto-predict-dialog";
 import { MatchCard } from "@/components/match/match-card";
 import { Button } from "@/components/ui/button";
 import { roundLabelForFixtures } from "@/lib/fixtures/labels";
-import type { Fixture, Prediction, Stage } from "@/lib/fixtures/types";
+import type {
+  AiPrediction,
+  Fixture,
+  Prediction,
+  Stage,
+} from "@/lib/fixtures/types";
 import { cn } from "@/lib/utils";
 import {
   saveAutoPredictions,
@@ -152,12 +157,15 @@ function dayKey(iso: string, locale: string): string {
 export function MatchList({
   fixtures,
   initialPredictions = {},
+  aiPredictions = {},
   canPredict,
   nowIso,
 }: {
   fixtures: Fixture[];
   /** The user's stored picks, loaded server-side. Empty when signed out. */
   initialPredictions?: Record<string, Prediction>;
+  /** One shared, cached analysis per fixture. */
+  aiPredictions?: Record<string, AiPrediction>;
   /** Signed-out visitors see the list and the inputs, but cannot fill them. */
   canPredict: boolean;
   /** The request clock, fixed so the server and client agree on the next round. */
@@ -408,6 +416,7 @@ export function MatchList({
                           key={fixture.id}
                           fixture={fixture}
                           prediction={predictions[fixture.id]}
+                          aiPrediction={aiPredictions[fixture.id]}
                           locked={fixture.status !== "scheduled"}
                           canPredict={canPredict}
                           enterIndex={firstIndex + index}

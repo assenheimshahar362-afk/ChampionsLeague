@@ -601,6 +601,84 @@ export type Database = {
         Relationships: [];
       };
 
+      ai_match_predictions: {
+        Row: {
+          fixture_id: string;
+          predicted_home_goals: number;
+          predicted_away_goals: number;
+          home_win_probability: number;
+          draw_probability: number;
+          away_win_probability: number;
+          confidence: number;
+          summary_en: string;
+          summary_he: string;
+          key_factors_en: Json;
+          key_factors_he: Json;
+          model: string;
+          source_snapshot: Json;
+          generated_at: string;
+        };
+        Insert: {
+          fixture_id: string;
+          predicted_home_goals: number;
+          predicted_away_goals: number;
+          home_win_probability: number;
+          draw_probability: number;
+          away_win_probability: number;
+          confidence: number;
+          summary_en: string;
+          summary_he: string;
+          key_factors_en: Json;
+          key_factors_he: Json;
+          model: string;
+          source_snapshot: Json;
+          generated_at?: string;
+        };
+        Update: {
+          predicted_home_goals?: number;
+          predicted_away_goals?: number;
+          home_win_probability?: number;
+          draw_probability?: number;
+          away_win_probability?: number;
+          confidence?: number;
+          summary_en?: string;
+          summary_he?: string;
+          key_factors_en?: Json;
+          key_factors_he?: Json;
+          model?: string;
+          source_snapshot?: Json;
+          generated_at?: string;
+        };
+        Relationships: [];
+      };
+
+      fixture_recent_form: {
+        Row: {
+          fixture_id: string;
+          home_matches: Json;
+          away_matches: Json;
+          home_lineup: Json | null;
+          away_lineup: Json | null;
+          fetched_at: string;
+        };
+        Insert: {
+          fixture_id: string;
+          home_matches: Json;
+          away_matches: Json;
+          home_lineup?: Json | null;
+          away_lineup?: Json | null;
+          fetched_at?: string;
+        };
+        Update: {
+          home_matches?: Json;
+          away_matches?: Json;
+          home_lineup?: Json | null;
+          away_lineup?: Json | null;
+          fetched_at?: string;
+        };
+        Relationships: [];
+      };
+
       fixture_details: {
         Row: {
           fixture_id: string;

@@ -7,7 +7,12 @@ import {
   teamTranslationKey,
   type PlayerNameTranslations,
 } from "@/lib/fixtures/localization";
-import type { Fixture, Prediction, Team } from "@/lib/fixtures/types";
+import type {
+  AiPrediction,
+  Fixture,
+  Prediction,
+  Team,
+} from "@/lib/fixtures/types";
 import type {
   FixtureRecord,
   TeamRecord,
@@ -366,6 +371,43 @@ export async function getMyPredictions(
       fixtureId: row.fixture_id,
       homeGoals: row.home_goals,
       awayGoals: row.away_goals,
+    };
+  }
+
+  return byFixture;
+}
+
+/** Public cached AI analyses, localized and keyed by fixture id. */
+export async function getAiPredictions(
+  fixtureIds: string[],
+  locale: string
+): Promise<Record<string, AiPrediction>> {
+  if (fixtureIds.length === 0) return {};
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("ai_match_predictions")
+    .select("*")
+    .in("fixture_id", fixtureIds);
+
+  if (error) fail("ai_match_predictions", "Loading AI predictions", error);
+
+  const byFixture: Record<string, AiPrediction> = {};
+  for (const row of data ?? []) {
+    const factors = locale === "he" ? row.key_factors_he : row.key_factors_en;
+    byFixture[row.fixture_id] = {
+      fixtureId: row.fixture_id,
+      predictedHomeGoals: row.predicted_home_goals,
+      predictedAwayGoals: row.predicted_away_goals,
+      homeWinProbability: row.home_win_probability,
+      drawProbability: row.draw_probability,
+      awayWinProbability: row.away_win_probability,
+      confidence: row.confidence,
+      summary: locale === "he" ? row.summary_he : row.summary_en,
+      keyFactors: Array.isArray(factors)
+        ? factors.filter((factor): factor is string => typeof factor === "string")
+        : [],
+      generatedAt: row.generated_at,
     };
   }
 
