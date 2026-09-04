@@ -72,6 +72,16 @@ export async function SiteFooter() {
                   </Link>
                 </li>
                 <li>
+                  <Link href="/terms" className="transition-colors duration-150 hover:text-white">
+                    {t("footer.terms")}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/privacy" className="transition-colors duration-150 hover:text-white">
+                    {t("footer.privacy")}
+                  </Link>
+                </li>
+                <li>
                   <Link
                     href="/accessibility"
                     className="transition-colors duration-150 hover:text-white"
@@ -100,6 +110,9 @@ export async function SiteFooter() {
           className="mt-4 text-center text-xs text-white/60"
         >
           © 2026 SA Software Solutions
+        </p>
+        <p className="mx-auto mt-2 max-w-2xl text-center text-xs leading-relaxed text-white/45">
+          {t("footer.disclaimer")}
         </p>
       </div>
     </footer>

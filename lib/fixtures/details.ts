@@ -2,7 +2,10 @@ import "server-only";
 
 import { connection } from "next/server";
 
-import { footballDataGet } from "@/lib/football-data/client";
+import {
+  claimFootballDataViewerRefresh,
+  footballDataGet,
+} from "@/lib/football-data/client";
 import { toFixtureProviderDetails } from "@/lib/football-data/mappers";
 import type { WireMatch } from "@/lib/football-data/types";
 import type { FixtureProviderDetails } from "@/lib/fixtures/detail-types";
@@ -109,6 +112,7 @@ export async function getFixtureProviderDetails(
 
   const providerId = fixture.footballDataId;
   if (providerId === undefined) return cachedDetails;
+  if (!(await claimFootballDataViewerRefresh())) return cachedDetails;
 
   try {
     const response = await footballDataGet<WireMatch>(

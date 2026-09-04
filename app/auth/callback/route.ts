@@ -4,6 +4,7 @@ import { defaultLocale } from "@/i18n/routing";
 import { getPublicOrigin } from "@/lib/auth/origin";
 import { seasonPickOnboardingPath } from "@/lib/auth/paths";
 import { createClient } from "@/lib/supabase/server";
+import { LEGAL_VERSION } from "@/lib/legal/version";
 
 /**
  * OAuth + email-confirmation landing point.
@@ -47,6 +48,20 @@ export async function GET(request: NextRequest) {
   if (error) {
     console.error("auth callback: code exchange failed", error.message);
     return NextResponse.redirect(failure);
+  }
+
+  if (searchParams.get("legal") === LEGAL_VERSION) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { error: consentError } = await supabase
+        .from("profiles")
+        .update({
+          accepted_terms_at: new Date().toISOString(),
+          accepted_terms_version: LEGAL_VERSION,
+        })
+        .eq("id", user.id);
+      if (consentError) console.error("Saving legal consent failed", consentError.message);
+    }
   }
 
   // The profile row is created by the on_auth_user_created trigger, so there

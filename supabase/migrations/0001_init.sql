@@ -126,6 +126,8 @@ create table public.profiles (
   locale        text        not null default 'en'
                               check (locale in ('en', 'he')),
   nickname_confirmed_at timestamptz,
+  accepted_terms_at timestamptz,
+  accepted_terms_version text,
   created_at    timestamptz not null default now(),
   updated_at    timestamptz not null default now()
 );
@@ -163,10 +165,20 @@ begin
     'Player'
   );
 
-  insert into public.profiles (id, display_name)
+  insert into public.profiles (
+    id,
+    display_name,
+    accepted_terms_at,
+    accepted_terms_version
+  )
   values (
     new.id,
-    left(candidate, 31) || '-' || left(new.id::text, 8)
+    left(candidate, 31) || '-' || left(new.id::text, 8),
+    case
+      when new.raw_user_meta_data ->> 'accepted_terms_version' is not null then now()
+      else null
+    end,
+    new.raw_user_meta_data ->> 'accepted_terms_version'
   )
   on conflict (id) do nothing;
 
@@ -1345,6 +1357,112 @@ begin
 end;
 $$;
 
+-- Page views may refresh stale provider caches, but they must not form an
+-- unbounded queue under deliberate reloads. All viewers share this claim;
+-- callers that lose it serve stale cache and retry on a later page refresh.
+create or replace function public.claim_football_data_viewer_refresh()
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  claimed boolean;
+begin
+  insert into public.provider_poll_state (job, last_requested_at)
+  values ('football_data_viewer', now())
+  on conflict (job) do update
+    set last_requested_at = excluded.last_requested_at
+    where provider_poll_state.last_requested_at <= now() - interval '30 seconds'
+  returning true into claimed;
+
+  return coalesce(claimed, false);
+end;
+$$;
+
+-- Public browsers may all poll together. Admit only one request into the
+-- heavier fixture lookup every three seconds; rejected callers retry later.
+create or replace function public.claim_public_live_request()
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  claimed boolean;
+begin
+  insert into public.provider_poll_state (job, last_requested_at)
+  values ('public_live_endpoint', now())
+  on conflict (job) do update
+    set last_requested_at = excluded.last_requested_at
+    where provider_poll_state.last_requested_at <= now() - interval '3 seconds'
+  returning true into claimed;
+
+  return coalesce(claimed, false);
+end;
+$$;
+
+-- Every Football-Data request passes through this project-wide gate. The
+-- in-process client queue smooths one server instance; this lock also covers
+-- concurrent Vercel instances. Seven seconds keeps the project below ten
+-- requests per rolling minute. Near the next expected live poll, background
+-- work yields so a viewer cannot starve score updates by opening cached pages.
+create or replace function public.claim_football_data_request(
+  request_kind text default 'background'
+)
+returns integer
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  requested_at timestamptz := clock_timestamp();
+  global_last timestamptz;
+  live_last timestamptz;
+  wait_ms integer;
+  live_age_seconds numeric;
+begin
+  if request_kind not in ('background', 'live') then
+    raise exception 'invalid Football-Data request kind';
+  end if;
+
+  perform pg_advisory_xact_lock(hashtextextended('football_data_request', 0));
+
+  select last_requested_at into global_last
+  from public.provider_poll_state
+  where job = 'football_data_global';
+
+  select last_requested_at into live_last
+  from public.provider_poll_state
+  where job = 'football_data_live';
+
+  wait_ms := greatest(
+    0,
+    coalesce(ceil(extract(epoch from (
+      global_last + interval '7 seconds' - requested_at
+    )) * 1000), 0)
+  )::integer;
+
+  if request_kind <> 'live' and live_last is not null then
+    live_age_seconds := extract(epoch from (requested_at - live_last));
+    if live_age_seconds >= 0 and live_age_seconds < 15 then
+      wait_ms := greatest(wait_ms, ceil((15 - live_age_seconds) * 1000)::integer);
+    elsif live_age_seconds >= 48 and live_age_seconds < 60 then
+      wait_ms := greatest(wait_ms, ceil((60 - live_age_seconds) * 1000)::integer);
+    end if;
+  end if;
+
+  if wait_ms > 0 then return wait_ms; end if;
+
+  insert into public.provider_poll_state (job, last_requested_at)
+  values ('football_data_global', requested_at)
+  on conflict (job) do update
+    set last_requested_at = excluded.last_requested_at;
+
+  return 0;
+end;
+$$;
+
 -- ==================================================== row level security ===
 
 alter table public.teams             enable row level security;
@@ -1691,6 +1809,21 @@ grant execute on function public.admin_set_game_settings(
 revoke all on function public.claim_football_data_live_poll()
   from public, anon, authenticated;
 grant execute on function public.claim_football_data_live_poll()
+  to service_role;
+
+revoke all on function public.claim_football_data_viewer_refresh()
+  from public, anon, authenticated;
+grant execute on function public.claim_football_data_viewer_refresh()
+  to service_role;
+
+revoke all on function public.claim_public_live_request()
+  from public, anon, authenticated;
+grant execute on function public.claim_public_live_request()
+  to service_role;
+
+revoke all on function public.claim_football_data_request(text)
+  from public, anon, authenticated;
+grant execute on function public.claim_football_data_request(text)
   to service_role;
 
 -- ======================================================= avatar storage ===

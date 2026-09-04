@@ -77,7 +77,7 @@ export async function pollLiveMatches(): Promise<LivePollReport> {
   const response = await footballDataGet<WireMatchesResponse>(
     "/matches",
     { ids: ids.join(",") },
-    { unfold: true }
+    { unfold: true, requestKind: "live" }
   );
   report.requestMade = true;
   report.quota = response.quota;

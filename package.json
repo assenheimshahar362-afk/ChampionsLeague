@@ -12,10 +12,6 @@
     "typecheck": "tsc --noEmit",
     "ingest": "node scripts/ingest.mjs",
     "demo:locked-match": "node scripts/create-locked-demo-fixture.mjs",
-    "import:uefa-2026": "node scripts/import-uefa-2026-fixtures.mjs",
-    "migrate:player-photos": "node scripts/migrate-player-photos-to-storage.mjs",
-    "migrate:team-crests": "node scripts/migrate-team-crests-to-storage.mjs",
-    "sync:player-photos": "node scripts/sync-api-football-player-photos.mjs",
     "import:squad-csv": "node scripts/import-squad-csv.mjs"
   },
   "dependencies": {

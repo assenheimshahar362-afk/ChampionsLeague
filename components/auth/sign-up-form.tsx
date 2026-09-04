@@ -7,9 +7,9 @@ import { useFormStatus } from "react-dom";
 
 import { signUpWithPassword, type SignUpState } from "@/lib/auth/actions";
 import { MIN_PASSWORD_LENGTH } from "@/lib/auth/constants";
-import { GoogleSignIn } from "@/components/auth/google-sign-in";
+import { GoogleSignUpButton } from "@/components/auth/google-sign-in";
+import { LegalConsent } from "@/components/auth/legal-consent";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link } from "@/i18n/navigation";
@@ -136,37 +136,7 @@ export function SignUpForm({ next }: { next: string }) {
           </p>
         </div>
 
-        {/* Radix renders the hidden input this posts as; the required-ness is
-            enforced in the action, not by the markup, because a visually
-            hidden required control cannot be focused for the browser's own
-            validation bubble. */}
-        <div className="flex items-start gap-2.5">
-          <Checkbox
-            id="terms"
-            name="terms"
-            className="mt-0.5"
-            aria-invalid={fieldError("terms") ? true : undefined}
-            aria-describedby={fieldError("terms") ? errorId : undefined}
-          />
-          <Label
-            htmlFor="terms"
-            /* Label is flex by default, which would make the text and the
-               rules link separate flex items with a gap between them and no
-               shared line box to wrap in. */
-            className="text-muted-foreground block text-sm leading-snug font-normal"
-          >
-            {t.rich("termsLabel", {
-              rules: (chunks) => (
-                <Link
-                  href="/rules"
-                  className="text-primary underline underline-offset-4"
-                >
-                  {chunks}
-                </Link>
-              ),
-            })}
-          </Label>
-        </div>
+        <LegalConsent id="terms" describedBy={fieldError("terms") ? errorId : undefined} />
 
         {errorMessage ? (
           <p id={errorId} role="alert" className="text-destructive text-sm">
@@ -175,9 +145,17 @@ export function SignUpForm({ next }: { next: string }) {
         ) : null}
 
         <SubmitButton />
-      </form>
 
-      <GoogleSignIn next={next} />
+        <div className="flex items-center gap-3 pt-1">
+          <span className="bg-border h-px flex-1" />
+          <span className="text-muted-foreground text-xs uppercase tracking-wide">
+            {t("or")}
+          </span>
+          <span className="bg-border h-px flex-1" />
+        </div>
+
+        <GoogleSignUpButton />
+      </form>
 
       <p className="text-muted-foreground text-center text-sm">
         {t("haveAccount")}{" "}

@@ -2,7 +2,10 @@ import "server-only";
 
 import { connection } from "next/server";
 
-import { footballDataGet } from "@/lib/football-data/client";
+import {
+  claimFootballDataViewerRefresh,
+  footballDataGet,
+} from "@/lib/football-data/client";
 import type { WireMatch, WireMatchesResponse } from "@/lib/football-data/types";
 import {
   projectedLineupFromMatch,
@@ -130,6 +133,11 @@ async function loadFixtureRecentSnapshot(
     };
   }
   if (cacheError) return stale ? { form: stale, lineups: null } : null;
+  if (!(await claimFootballDataViewerRefresh())) {
+    return stale
+      ? { form: stale, lineups: cached ? cachedProjectedLineups(cached) : null }
+      : null;
+  }
 
   try {
     const cutoff = new Date(fixture.original_kickoff_at);
@@ -257,6 +265,9 @@ export async function getFixtureProjectedLineups(
   if (!snapshot) return { home: null, away: null };
   if (snapshot.lineups) return snapshot.lineups;
   const { form } = snapshot;
+  if (!(await claimFootballDataViewerRefresh())) {
+    return { home: null, away: null };
+  }
 
   const [home, away] = await Promise.all([
     fetchProjectedLineup(form.homeMatches[0], form.homeTeamProviderId),

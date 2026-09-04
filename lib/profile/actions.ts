@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import { safeRelativePath } from "@/lib/auth/paths";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceRoleClient } from "@/lib/supabase/service-role";
 import { hasMatchingImageSignature } from "@/lib/uploads/image";
 
 export type NicknameState =
@@ -118,4 +119,42 @@ export async function saveAvatar(
 
   revalidatePath("/", "layout");
   return { status: "success" };
+}
+
+export async function deleteOwnAccount(formData: FormData): Promise<void> {
+  if (formData.get("confirmation") !== "DELETE") return;
+
+  const db = await createClient();
+  const {
+    data: { user },
+  } = await db.auth.getUser();
+  if (!user) return;
+
+  const service = createServiceRoleClient();
+  const { data: managedGroups } = await service
+    .from("groups")
+    .select("id")
+    .eq("created_by", user.id);
+
+  const groupImagePaths = (managedGroups ?? []).map(({ id }) => `${id}/cover`);
+  if (groupImagePaths.length > 0) {
+    const { error } = await service.storage
+      .from("group-images")
+      .remove(groupImagePaths);
+    if (error) console.error("Removing account group images failed", error.message);
+  }
+
+  const { error: avatarError } = await service.storage
+    .from("avatars")
+    .remove([`${user.id}/avatar`]);
+  if (avatarError) console.error("Removing account avatar failed", avatarError.message);
+
+  const { error } = await service.auth.admin.deleteUser(user.id);
+  if (error) {
+    console.error("Deleting account failed", error.message);
+    return;
+  }
+
+  await db.auth.signOut();
+  redirect("/");
 }

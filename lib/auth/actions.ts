@@ -7,6 +7,7 @@ import { z } from "zod";
 import { MIN_PASSWORD_LENGTH } from "@/lib/auth/constants";
 import { getPublicOrigin } from "@/lib/auth/origin";
 import { seasonPickOnboardingPath } from "@/lib/auth/paths";
+import { LEGAL_VERSION } from "@/lib/legal/version";
 import { createClient } from "@/lib/supabase/server";
 
 /**
@@ -144,6 +145,7 @@ export async function signUpWithPassword(
     password,
     options: {
       emailRedirectTo: `${origin}/auth/callback?next=${encodeURIComponent(next)}`,
+      data: { accepted_terms_version: LEGAL_VERSION },
     },
   });
 
@@ -196,6 +198,28 @@ export async function signInWithGoogle(formData: FormData): Promise<void> {
     redirect(`/sign-in?error=generic`);
   }
 
+  redirect(data.url);
+}
+
+export async function signUpWithGoogle(formData: FormData): Promise<void> {
+  if (formData.get("terms") !== "on") redirect("/sign-up?error=termsRequired");
+
+  const next = safeNext(formData.get("next"));
+  const supabase = await createClient();
+  const origin = await getOrigin();
+  const callback = `${origin}/auth/callback?next=${encodeURIComponent(next)}&legal=${LEGAL_VERSION}`;
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: callback,
+      queryParams: { prompt: "select_account" },
+    },
+  });
+
+  if (error || !data.url) {
+    console.error("signUpWithGoogle failed", error?.message);
+    redirect("/sign-up?error=generic");
+  }
   redirect(data.url);
 }
 

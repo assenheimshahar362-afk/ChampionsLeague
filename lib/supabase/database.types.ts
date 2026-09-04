@@ -85,6 +85,8 @@ export type Database = {
           favorite_team_id: string | null;
           locale: string;
           nickname_confirmed_at: string | null;
+          accepted_terms_at: string | null;
+          accepted_terms_version: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -95,6 +97,8 @@ export type Database = {
           favorite_team_id?: string | null;
           locale?: string;
           nickname_confirmed_at?: string | null;
+          accepted_terms_at?: string | null;
+          accepted_terms_version?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -105,6 +109,8 @@ export type Database = {
           favorite_team_id?: string | null;
           locale?: string;
           nickname_confirmed_at?: string | null;
+          accepted_terms_at?: string | null;
+          accepted_terms_version?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -843,7 +849,19 @@ export type Database = {
     };
     Views: Record<never, never>;
     Functions: {
+      claim_football_data_request: {
+        Args: { request_kind?: "background" | "live" };
+        Returns: number;
+      };
       claim_football_data_live_poll: {
+        Args: Record<never, never>;
+        Returns: boolean;
+      };
+      claim_football_data_viewer_refresh: {
+        Args: Record<never, never>;
+        Returns: boolean;
+      };
+      claim_public_live_request: {
         Args: Record<never, never>;
         Returns: boolean;
       };

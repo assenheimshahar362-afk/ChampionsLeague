@@ -54,7 +54,7 @@
     "signingIn": "Signing in…",
     "signUpAction": "Create account",
     "signingUp": "Creating your account…",
-    "termsLabel": "I have read and accept the <rules>game rules</rules>",
+    "termsLabel": "I have read and accept the <rules>game rules</rules>, <terms>Terms of Use</terms> and <privacy>Privacy Policy</privacy>",
     "noAccount": "No account yet?",
     "signUpLink": "Sign up here",
     "haveAccount": "Already have an account?",
@@ -66,7 +66,7 @@
       "invalidCredentials": "That email and password do not match an account.",
       "emailNotConfirmed": "Confirm your email first — open the link we sent when you signed up.",
       "weakPassword": "Passwords need at least {min} characters.",
-      "termsRequired": "Accept the game rules to continue.",
+      "termsRequired": "Accept the game rules, Terms of Use and Privacy Policy to continue.",
       "emailTaken": "There is already an account with that email. Sign in instead.",
       "rateLimited": "Too many attempts. Wait a minute and try again.",
       "generic": "Could not sign you in. Try again.",
@@ -167,6 +167,13 @@
       "nicknameDialogDescription": "This is the name other players see in tables and groups.",
       "saveNickname": "Save nickname",
       "close": "Close"
+      ,"exportTitle": "Export my data",
+      "exportDescription": "Download a JSON copy of your account details, memberships, predictions and scores.",
+      "exportAction": "Download data",
+      "deleteTitle": "Delete account",
+      "deleteDescription": "Deletion is permanent and removes your profile, predictions, memberships and images. Type DELETE to confirm.",
+      "deleteConfirmation": "Type DELETE to confirm deletion",
+      "deleteAction": "Delete permanently"
     },
     "stats": {
       "groups": "Groups",
@@ -481,9 +488,9 @@
     },
     "empty": {
       "title": "No fixtures yet",
-      "body": "The season has not been ingested. Run npm run ingest with the dev server up.",
-      "schemaTitle": "Database not set up",
-      "schemaBody": "The tables do not exist yet. Apply the migrations in supabase/migrations, then ingest the season."
+      "body": "Season data is not available yet. Try again later.",
+      "schemaTitle": "Service temporarily unavailable",
+      "schemaBody": "We could not load the match data. Try again later."
     },
     "kickoff": "Kickoff"
   },
@@ -591,7 +598,7 @@
       "headToHeadSubtitle": "Earlier meetings between the two clubs in this competition.",
       "noMeetings": "No earlier meeting is available in this competition.",
       "recentMatches": "Last five matches",
-      "allCompetitions": "Completed matches from all competitions, supplied by Football-Data.org and cached before kick-off.",
+      "allCompetitions": "Completed matches from all competitions, cached before kick-off.",
       "noMatch": "No match",
       "competitionOnly": "Includes only released Champions League matches stored in this game.",
       "formFor": "Recent form for {team}",
@@ -622,6 +629,8 @@
     "linkGroups": "My groups",
     "linkProfile": "Profile",
     "accessibility": "Accessibility statement",
+    "terms": "Terms of Use",
+    "privacy": "Privacy Policy",
     "noWagering": "Group payments are completed and managed outside this site.",
     "disclaimer": "An independent prediction game made for a group of friends. Not affiliated with, endorsed by, or sponsored by UEFA. Club names and competition names are the trademarks of their respective owners."
   },

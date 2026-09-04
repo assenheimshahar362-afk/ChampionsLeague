@@ -24,7 +24,9 @@ What a human has to do before the app can run. Everything else is automated.
 
 `APP_ADMIN_EMAILS` is a comma-separated allowlist. Those signed-in accounts can
 open `/admin`, manage participants and groups, and override season-pick points.
-It is server-only and must not use the `NEXT_PUBLIC_` prefix.
+It is server-only and must not use the `NEXT_PUBLIC_` prefix. Production admin
+access fails closed when the list is empty; verify that it contains only current
+administrators before every release.
 
 ## 2. Apply the schema
 
@@ -124,21 +126,9 @@ derives the origin from the request Host header, falling back to Vercel's
 1. Register at <https://www.football-data.org/client/register>.
 2. Copy the token into `.env.local` as `FOOTBALL_DATA_API_TOKEN` and set
    `FOOTBALL_DATA_SEASON=2026` for the live 2026/27 campaign.
-3. Player photos and team crests are served from the public Supabase
-   `player-images` and `team-images` buckets. When importing rows whose image
-   URLs point elsewhere, copy the files into project-owned Storage once:
-
-   ```
-   PLAYER_CATALOG_SEASON=2026
-   TEAM_CATALOG_SEASON=2026
-   npm run migrate:player-photos
-   npm run migrate:team-crests
-   ```
-
-   The commands are idempotent and verify that every populated image URL
-   belongs to this Supabase project. Regular season ingestion never calls a
-   separate image API, and it preserves team crest URLs already migrated to
-   owned Storage.
+3. Only use player photos and team crests covered by a written display and
+   redistribution licence. The repository intentionally contains no script for
+   copying third-party images into project-owned Storage.
 4. Run the reconnaissance sweep — this is Milestone 0 and gates the data-source
    decision:
 
@@ -176,34 +166,32 @@ updated fixtures, candidate pools, and the remaining provider quota. The scorer
 pool is optional: Football-Data's free plan does not include Deep Data, so a
 Deep Data plan is required to create a fresh top-scorer candidate list.
 
-For the 2026/27 league phase, the confirmed UEFA fixture page and its backing
-match feed can seed all eight matchdays before Football-Data exposes the new
-season. The importer validates 144 matches, 18 per matchday, and includes each
-fixture's UTC kickoff and UEFA-declared stadium:
-
-```bash
-npm run import:uefa-2026 -- --dry
-npm run import:uefa-2026
-```
-
-The import is idempotent by home/away pairing for season 2026. A later regular
-Football-Data ingest matches these rows by teams and kickoff, attaches its own
-provider ids, and takes over live updates without replacing fixture ids.
-Fixtures whose stadium has not yet been announced by UEFA are still imported
-with a null venue and are filled by a later rerun once UEFA publishes it.
+Do not scrape or import UEFA's website or backing feeds. Seed fixtures only
+through a provider agreement that permits the intended use.
 
 ## 7. Live polling
 
 `GET /api/cron/live` is the scheduler endpoint. Call it once per minute with
 `Authorization: Bearer $CRON_SECRET`. It first checks the local schedule; when
 no game is near kickoff or active, it stops without making a provider request.
-Overlapping calls share a database claim, so Football-Data receives at most one
-request per 55 seconds.
+Overlapping live calls share a database claim, so only one live refresh can
+reach Football-Data per 55 seconds. Every provider call also passes through a
+project-wide database gate with a seven-second minimum interval, including
+calls from different Vercel instances. This caps the whole deployment at eight
+to nine requests per rolling minute and reserves priority for live updates.
+Provider cache refreshes initiated by page views share a separate 30-second
+claim; losing requests serve cached data instead of queuing more API work.
+The public viewer endpoint admits only one request every three seconds into the
+fixture lookup; other callers receive `429` and a `Retry-After` header. Add a
+Vercel Firewall rule when the plan supports it, because application code cannot
+prevent the initial Vercel invocation itself.
 
-The match-detail page also calls `GET /api/matches/live` every 60 seconds while
+The match-detail page also calls `POST /api/matches/live` every 30 seconds while
 the selected game is near kickoff or active. This is a viewer-driven fallback;
 it uses the same database claim and stops after the match becomes `FINISHED`.
 One `/v4/matches?ids=...` call updates every active Champions League match.
+Repeated page refreshes may call the application route, but cannot bypass the
+database claims or access the provider token.
 
 ## 8. Settlement
 

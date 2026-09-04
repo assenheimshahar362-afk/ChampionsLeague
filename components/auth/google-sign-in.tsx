@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useFormStatus } from "react-dom";
 
 import { signInWithGoogle } from "@/lib/auth/actions";
+import { signUpWithGoogle } from "@/lib/auth/actions";
 import { Button } from "@/components/ui/button";
 
 function GoogleMark() {
@@ -29,7 +30,13 @@ function GoogleMark() {
   );
 }
 
-function GoogleButton() {
+function GoogleButton({
+  formAction,
+  formNoValidate,
+}: {
+  formAction?: (formData: FormData) => void | Promise<void>;
+  formNoValidate?: boolean;
+}) {
   const t = useTranslations("auth");
   const { pending } = useFormStatus();
 
@@ -40,6 +47,8 @@ function GoogleButton() {
       size="lg"
       className="w-full"
       disabled={pending}
+      formAction={formAction}
+      formNoValidate={formNoValidate}
     >
       <GoogleMark />
       {t("google")}
@@ -73,4 +82,8 @@ export function GoogleSignIn({ next }: { next: string }) {
       </form>
     </div>
   );
+}
+
+export function GoogleSignUpButton() {
+  return <GoogleButton formAction={signUpWithGoogle} formNoValidate />;
 }

@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
 
 import { ProfileAvatarDialog } from "@/components/profile/profile-avatar-dialog";
+import { AccountPrivacyActions } from "@/components/profile/account-privacy-actions";
 import { ProfileGroupsSection } from "@/components/profile/groups-section";
 import { ProfileNicknameDialog } from "@/components/profile/profile-nickname-dialog";
 import { ProfileSeasonPicksSection } from "@/components/profile/season-picks-section";
@@ -156,6 +157,7 @@ async function ProfileContent({
               value={joinedAt}
             />
           </dl>
+          <AccountPrivacyActions />
         </footer>
       </div>
     </main>
