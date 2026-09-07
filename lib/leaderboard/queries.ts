@@ -9,6 +9,7 @@ import {
   type LeaderboardRow,
 } from "@/lib/leaderboard/ranking";
 import { createClient } from "@/lib/supabase/server";
+import { getGameSettings } from "@/lib/scoring/settings";
 
 export type { LeaderboardRow } from "@/lib/leaderboard/ranking";
 
@@ -75,17 +76,17 @@ function assertResult(
 export async function getLeaderboard(
   userId: string,
   requestedGroupId?: string,
-  requestedPlayerId?: string,
-  locale = "en"
+  requestedPlayerId?: string
 ): Promise<LeaderboardView> {
   const supabase = await createClient();
 
-  const [mine, pickStateResult] = await Promise.all([
+  const [mine, pickStateResult, gameSettings] = await Promise.all([
     supabase
       .from("group_members")
       .select("group_id")
       .eq("user_id", userId),
     supabase.rpc("current_season_pick_state"),
+    getGameSettings(),
   ]);
   assertResult("group_members", mine);
   assertResult("current_season_pick_state", pickStateResult);
@@ -227,8 +228,8 @@ export async function getLeaderboard(
       })),
       {
         id: AI_PLAYER_ID,
-        displayName: locale === "he" ? "חזאי AI" : "AI Predictor",
-        avatarUrl: null,
+        displayName: gameSettings.aiPlayerName,
+        avatarUrl: gameSettings.aiPlayerAvatarUrl,
       },
     ],
     scores: [

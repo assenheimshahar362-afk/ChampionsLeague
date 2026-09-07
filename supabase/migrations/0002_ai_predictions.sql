@@ -27,6 +27,19 @@ alter table public.ai_match_predictions
 comment on column public.ai_match_predictions.sources is
   'Clickable web sources returned by the OpenAI web-search run.';
 
+-- Public presentation settings for the virtual AI participant. It remains a
+-- system participant rather than an Auth account, so it cannot be deleted.
+alter table public.game_settings
+  add column if not exists ai_player_name text not null default 'AI',
+  add column if not exists ai_player_avatar_url text;
+
+alter table public.game_settings
+  drop constraint if exists game_settings_ai_player_name_check;
+
+alter table public.game_settings
+  add constraint game_settings_ai_player_name_check
+    check (char_length(trim(ai_player_name)) between 1 and 30);
+
 -- Reserve prediction budget atomically so overlapping cron runs cannot
 -- overspend. Interrupted jobs are older than the route's five-minute limit
 -- after ten minutes, so the next reservation safely clears those stale rows.

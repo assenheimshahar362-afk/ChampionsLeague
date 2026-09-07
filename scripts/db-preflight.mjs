@@ -56,6 +56,12 @@ const { error: sourcesError } = await service
   .select("sources")
   .limit(1);
 
+const { error: aiPlayerSettingsError } = await service
+  .from("game_settings")
+  .select("ai_player_name, ai_player_avatar_url")
+  .eq("id", 1)
+  .maybeSingle();
+
 const { data: anonymousUsage, error: anonymousUsageError } = await anon
   .from("ai_prediction_usage")
   .select("id")
@@ -88,6 +94,7 @@ console.log(
       expectedTables: tables.length,
       tableFailures: failures,
       sourcesColumnAvailable: !sourcesError,
+      aiPlayerSettingsAvailable: !aiPlayerSettingsError,
       staleReservations: staleError ? null : staleReservations,
       staleReservationQueryOk: !staleError,
       migrationCleanupRequired: (staleReservations ?? 0) > 0,
@@ -105,6 +112,7 @@ console.log(
 if (
   failures.length > 0 ||
   sourcesError ||
+  aiPlayerSettingsError ||
   staleError ||
   (staleReservations ?? 0) > 0 ||
   !rpcAvailable ||

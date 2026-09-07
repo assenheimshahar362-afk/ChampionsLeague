@@ -4,9 +4,25 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { isAdminEmail } from "@/lib/admin/auth";
+import { generateDueAiPredictions } from "@/lib/ai-predictions/generate";
+import { AI_PREDICTION_HORIZON_HOURS } from "@/lib/ai-predictions/horizon";
 import { settleDueFixtures } from "@/lib/settle/run";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
+import { hasMatchingImageSignature } from "@/lib/uploads/image";
+
+const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
+const AVATAR_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+
+export type AdminAiPredictionState =
+  | { status: "idle" }
+  | {
+      status: "success" | "error";
+      generated: number;
+      skipped: number;
+      failed: number;
+      error?: string;
+    };
 
 async function adminUser() {
   const db = await createClient();
@@ -59,6 +75,67 @@ export async function adminUpdateNickname(formData: FormData): Promise<void> {
     .update({ display_name: nickname, nickname_confirmed_at: new Date().toISOString() })
     .eq("id", userId);
   if (error) throw new Error(`Updating nickname failed: ${error.message}`);
+  revalidatePath("/", "layout");
+}
+
+export async function adminUpdateAiPlayerName(
+  formData: FormData
+): Promise<void> {
+  await adminUser();
+  const name = z
+    .string()
+    .trim()
+    .min(1)
+    .max(30)
+    .regex(/^[\p{L}\p{N} _.\-]+$/u)
+    .parse(formData.get("name"));
+  const { error } = await createServiceRoleClient()
+    .from("game_settings")
+    .update({ ai_player_name: name })
+    .eq("id", 1);
+  if (error) throw new Error(`Updating AI player name failed: ${error.message}`);
+  revalidatePath("/", "layout");
+}
+
+export async function adminUpdateAiPlayerAvatar(
+  formData: FormData
+): Promise<void> {
+  await adminUser();
+  const avatar = formData.get("avatar");
+  if (!(avatar instanceof File) || avatar.size === 0) {
+    throw new Error("Select an AI player image");
+  }
+  if (!AVATAR_MIME_TYPES.has(avatar.type) || avatar.size > MAX_AVATAR_BYTES) {
+    throw new Error("AI player image must be a JPEG, PNG or WebP up to 2 MB");
+  }
+  if (!(await hasMatchingImageSignature(avatar))) {
+    throw new Error("AI player image content does not match its file type");
+  }
+
+  const service = createServiceRoleClient();
+  const objectPath = "ai-player/avatar";
+  const { error: uploadError } = await service.storage
+    .from("avatars")
+    .upload(objectPath, avatar, {
+      cacheControl: "3600",
+      contentType: avatar.type,
+      upsert: true,
+    });
+  if (uploadError) {
+    throw new Error(`Uploading AI player image failed: ${uploadError.message}`);
+  }
+
+  const { data: publicAvatar } = service.storage
+    .from("avatars")
+    .getPublicUrl(objectPath);
+  const avatarUrl = `${publicAvatar.publicUrl}?v=${Date.now()}`;
+  const { error: settingsError } = await service
+    .from("game_settings")
+    .update({ ai_player_avatar_url: avatarUrl })
+    .eq("id", 1);
+  if (settingsError) {
+    throw new Error(`Saving AI player image failed: ${settingsError.message}`);
+  }
   revalidatePath("/", "layout");
 }
 
@@ -214,6 +291,37 @@ export async function adminRunSettlement(): Promise<void> {
   await adminUser();
   await settleDueFixtures();
   revalidatePath("/", "layout");
+}
+
+export async function adminRunAiPredictions(
+  _previous: AdminAiPredictionState,
+  _formData: FormData
+): Promise<AdminAiPredictionState> {
+  void _previous;
+  void _formData;
+  await adminUser();
+
+  try {
+    const report = await generateDueAiPredictions({
+      horizonHours: AI_PREDICTION_HORIZON_HOURS,
+    });
+    revalidatePath("/", "layout");
+    return {
+      status: report.failures.length === 0 ? "success" : "error",
+      generated: report.generated,
+      skipped: report.skipped + report.budgetSkipped,
+      failed: report.failures.length,
+      error: report.failures[0]?.error,
+    };
+  } catch (error) {
+    return {
+      status: "error",
+      generated: 0,
+      skipped: 0,
+      failed: 1,
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
 }
 
 export async function adminUpdateCandidatePoints(formData: FormData): Promise<void> {

@@ -173,8 +173,7 @@ export default async function MatchDetailsPage({
       ? await getFixtureGroupPredictions(
           user.id,
           fixture.id,
-          requestedGroupId,
-          locale
+          requestedGroupId
         )
       : null;
   const projectedLineups: FixtureProjectedLineups | null =

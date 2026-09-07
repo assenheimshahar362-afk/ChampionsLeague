@@ -51,8 +51,7 @@ export default async function LeaderboardPage({
       leaderboard = await getLeaderboard(
         user.id,
         query.group,
-        query.player,
-        locale
+        query.player
       );
     } catch (error) {
       if (!(error instanceof SchemaNotReadyError)) throw error;

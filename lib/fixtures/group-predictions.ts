@@ -1,6 +1,7 @@
 import "server-only";
 
 import { AI_PLAYER_ID } from "@/lib/leaderboard/ai-player";
+import { getGameSettings } from "@/lib/scoring/settings";
 import { createClient } from "@/lib/supabase/server";
 
 export type PredictionGroup = { id: string; name: string };
@@ -23,8 +24,7 @@ export type FixtureGroupPredictions = {
 export async function getFixtureGroupPredictions(
   userId: string,
   fixtureId: string,
-  requestedGroupId?: string,
-  locale = "en"
+  requestedGroupId?: string
 ): Promise<FixtureGroupPredictions> {
   const db = await createClient();
   const { data: mine, error: mineError } = await db
@@ -65,7 +65,7 @@ export async function getFixtureGroupPredictions(
   const memberIds = (memberships ?? []).map((row) => row.user_id);
   if (memberIds.length === 0) return { groups, selectedGroup, rows: [] };
 
-  const [profiles, predictions, scores, aiPrediction] = await Promise.all([
+  const [profiles, predictions, scores, aiPrediction, gameSettings] = await Promise.all([
     db
       .from("profiles")
       .select("id, display_name, avatar_url")
@@ -85,6 +85,7 @@ export async function getFixtureGroupPredictions(
       .select("predicted_home_goals, predicted_away_goals")
       .eq("fixture_id", fixtureId)
       .maybeSingle(),
+    getGameSettings(),
   ]);
 
   if (profiles.error) {
@@ -127,8 +128,8 @@ export async function getFixtureGroupPredictions(
   if (aiPrediction.data) {
     rows.push({
       userId: AI_PLAYER_ID,
-      nickname: locale === "he" ? "חזאי AI" : "AI Predictor",
-      avatarUrl: null,
+      nickname: gameSettings.aiPlayerName,
+      avatarUrl: gameSettings.aiPlayerAvatarUrl,
       homeGoals: aiPrediction.data.predicted_home_goals,
       awayGoals: aiPrediction.data.predicted_away_goals,
       settledPoints: null,

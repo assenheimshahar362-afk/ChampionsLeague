@@ -4,10 +4,6 @@
     {
       "path": "/api/cron/ingest",
       "schedule": "0 3 * * *"
-    },
-    {
-      "path": "/api/cron/ai-predictions",
-      "schedule": "0 4 * * *"
     }
   ]
 }

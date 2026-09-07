@@ -53,6 +53,8 @@ export type Database = {
           outcome_points: number;
           rules_note_en: string;
           rules_note_he: string;
+          ai_player_name: string;
+          ai_player_avatar_url: string | null;
           updated_by: string | null;
           updated_at: string;
         };
@@ -62,6 +64,8 @@ export type Database = {
           outcome_points?: number;
           rules_note_en?: string;
           rules_note_he?: string;
+          ai_player_name?: string;
+          ai_player_avatar_url?: string | null;
           updated_by?: string | null;
           updated_at?: string;
         };
@@ -71,6 +75,8 @@ export type Database = {
           outcome_points?: number;
           rules_note_en?: string;
           rules_note_he?: string;
+          ai_player_name?: string;
+          ai_player_avatar_url?: string | null;
           updated_by?: string | null;
           updated_at?: string;
         };

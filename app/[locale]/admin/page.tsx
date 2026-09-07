@@ -17,6 +17,7 @@ import {
   ConfirmActionButton,
   ConfirmDeleteButton,
 } from "@/components/admin/confirm-submit";
+import { AiPredictionRunner } from "@/components/admin/ai-prediction-runner";
 import { GroupPaymentForm } from "@/components/groups/group-forms";
 import { ProfileAvatar } from "@/components/profile/profile-avatar";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,8 @@ import {
   adminRenameGroup,
   adminResetAvatar,
   adminRunSettlement,
+  adminUpdateAiPlayerAvatar,
+  adminUpdateAiPlayerName,
   adminUpdateCandidatePoints,
   adminUpdateFixtureKickoff,
   adminUpdateGameSettings,
@@ -44,6 +47,7 @@ import { getAdminOverview } from "@/lib/admin/queries";
 import { cn } from "@/lib/utils";
 
 type AdminData = Awaited<ReturnType<typeof getAdminOverview>>;
+export const maxDuration = 300;
 type View =
   | "overview"
   | "users"
@@ -238,6 +242,62 @@ async function Participants({
         title={t("participants.title")}
         body={t("participants.body")}
       />
+      <article className="border-b border-white/10 py-4">
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.8fr)_minmax(18rem,0.8fr)] lg:items-center">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="relative size-11 shrink-0 overflow-hidden rounded-xl border border-primary/30">
+              <ProfileAvatar
+                avatarUrl={data.settings.aiPlayerAvatarUrl}
+                seed="ai-predictor"
+                alt=""
+                sizes="44px"
+              />
+            </span>
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="truncate text-sm font-semibold">
+                  {data.settings.aiPlayerName}
+                </h3>
+                <SmallChip>{t("participants.systemPlayer")}</SmallChip>
+              </div>
+              <p className="text-muted-foreground mt-1 text-xs">
+                {t("participants.aiPlayerBody")}
+              </p>
+            </div>
+          </div>
+
+          <form action={adminUpdateAiPlayerName} className="flex min-w-0 gap-2">
+            <Input
+              name="name"
+              defaultValue={data.settings.aiPlayerName}
+              minLength={1}
+              maxLength={30}
+              required
+              aria-label={t("participants.aiPlayerName")}
+            />
+            <Button type="submit" size="sm">
+              {t("save")}
+            </Button>
+          </form>
+
+          <form
+            action={adminUpdateAiPlayerAvatar}
+            className="flex min-w-0 items-center gap-2"
+          >
+            <Input
+              type="file"
+              name="avatar"
+              accept="image/jpeg,image/png,image/webp"
+              required
+              aria-label={t("participants.aiPlayerAvatar")}
+              className="min-w-0"
+            />
+            <Button type="submit" size="sm">
+              {t("participants.uploadAvatar")}
+            </Button>
+          </form>
+        </div>
+      </article>
       {data.users.map((user) => (
         <article
           key={user.id}
@@ -579,7 +639,17 @@ async function AiCosts({ data, locale }: { data: AdminData; locale: string }) {
     <div className="mt-6 space-y-8">
       <SectionIntro title={t("title")} body={t("body")} />
 
-      <section className="grid grid-cols-2 gap-x-6 gap-y-5 border-y border-white/10 py-5 lg:grid-cols-5">
+      <section className="flex flex-col gap-4 border-y border-white/10 py-5 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-sm font-semibold">{t("manualTitle")}</h2>
+          <p className="text-muted-foreground mt-1 max-w-2xl text-xs">
+            {t("manualBody")}
+          </p>
+        </div>
+        <AiPredictionRunner />
+      </section>
+
+      <section className="grid grid-cols-2 gap-x-6 gap-y-5 border-b border-white/10 pb-5 lg:grid-cols-5">
         <OperationCard
           label={t("estimatedTotal")}
           value={formatUsd(data.aiCosts.totalEstimatedUsd)}

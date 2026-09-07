@@ -9,6 +9,8 @@ export type GameSettings = {
   outcomePoints: number;
   rulesNoteEn: string;
   rulesNoteHe: string;
+  aiPlayerName: string;
+  aiPlayerAvatarUrl: string | null;
   updatedAt: string | null;
 };
 
@@ -17,6 +19,8 @@ const FALLBACK_SETTINGS: GameSettings = {
   outcomePoints: 1,
   rulesNoteEn: "",
   rulesNoteHe: "",
+  aiPlayerName: "AI",
+  aiPlayerAvatarUrl: null,
   updatedAt: null,
 };
 
@@ -25,6 +29,8 @@ type SettingsRow = {
   outcome_points: number;
   rules_note_en: string;
   rules_note_he: string;
+  ai_player_name: string;
+  ai_player_avatar_url: string | null;
   updated_at: string;
 };
 
@@ -35,6 +41,8 @@ function toSettings(row: SettingsRow | null): GameSettings {
     outcomePoints: row.outcome_points,
     rulesNoteEn: row.rules_note_en,
     rulesNoteHe: row.rules_note_he,
+    aiPlayerName: row.ai_player_name,
+    aiPlayerAvatarUrl: row.ai_player_avatar_url,
     updatedAt: row.updated_at,
   };
 }
@@ -51,7 +59,7 @@ export async function getGameSettings(): Promise<GameSettings> {
   const db = await createClient();
   const { data, error } = await db
     .from("game_settings")
-    .select("exact_points, outcome_points, rules_note_en, rules_note_he, updated_at")
+    .select("exact_points, outcome_points, rules_note_en, rules_note_he, ai_player_name, ai_player_avatar_url, updated_at")
     .eq("id", 1)
     .maybeSingle();
 
@@ -65,7 +73,7 @@ export async function getGameSettings(): Promise<GameSettings> {
 export async function getGameSettingsAsAdmin(): Promise<GameSettings> {
   const { data, error } = await createServiceRoleClient()
     .from("game_settings")
-    .select("exact_points, outcome_points, rules_note_en, rules_note_he, updated_at")
+    .select("exact_points, outcome_points, rules_note_en, rules_note_he, ai_player_name, ai_player_avatar_url, updated_at")
     .eq("id", 1)
     .maybeSingle();
 

@@ -176,8 +176,8 @@ updated fixtures, candidate pools, and the remaining provider quota. The scorer
 pool is optional: Football-Data's free plan does not include Deep Data, so a
 Deep Data plan is required to create a fresh top-scorer candidate list.
 
-The included Vercel schedule refreshes the season daily at 03:00 UTC, before
-the 04:00 UTC AI-prediction run, so fixture changes are available to it.
+The included Vercel schedule refreshes the season daily at 03:00 UTC. A Super
+Admin can then run AI predictions manually from the dashboard when needed.
 
 Do not scrape or import UEFA's website or backing feeds. Seed fixtures only
 through a provider agreement that permits the intended use.
@@ -241,9 +241,10 @@ response contains bilingual analysis, an exact score, 1X2 percentages,
 confidence, key factors and verified clickable sources.
 
 The structured prediction and its input snapshot are cached in
-`ai_match_predictions`. Opening a match page never calls OpenAI. The included
-Vercel cron runs daily at 04:00 UTC; predictions newer than 20 hours are skipped
-so duplicate deliveries remain idempotent.
+`ai_match_predictions`. Opening a match page never calls OpenAI. A Super Admin
+can start the job from **Admin → AI costs**; predictions newer than 20 hours are
+skipped so repeated clicks remain idempotent. The cron route remains available
+for optional external scheduling, but `vercel.json` does not schedule it.
 
 Each fixture uses its own Responses API call so its usage can be measured
 independently. Before the call, the cron atomically reserves `$0.05` from the
