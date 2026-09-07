@@ -682,6 +682,10 @@ async function Fixtures({ data, locale }: { data: AdminData; locale: string }) {
                             currentEstimatedCostUsd={fixture.aiPredictionEstimatedCostUsd}
                             currentGeneratedAt={fixture.aiPredictionGeneratedAt}
                             availability={fixture.aiPredictionAvailability}
+                            homeTeam={fixture.homeTeam}
+                            awayTeam={fixture.awayTeam}
+                            predictionDetails={fixture.aiPredictionDetails}
+                            usageDetails={fixture.aiUsageDetails}
                           />
                         </div>
                       </li>
@@ -813,8 +817,16 @@ async function AiCosts({ data, locale }: { data: AdminData; locale: string }) {
           value={number.format(data.aiCosts.inputTokens)}
         />
         <OperationCard
+          label={t("cachedInputTokens")}
+          value={number.format(data.aiCosts.cachedInputTokens)}
+        />
+        <OperationCard
           label={t("outputTokens")}
           value={number.format(data.aiCosts.outputTokens)}
+        />
+        <OperationCard
+          label={t("cacheWriteTokens")}
+          value={number.format(data.aiCosts.cacheWriteTokens)}
         />
         <OperationCard
           label={t("webSearches")}
@@ -822,43 +834,6 @@ async function AiCosts({ data, locale }: { data: AdminData; locale: string }) {
         />
       </section>
 
-      <section aria-label={t("entries")} className="divide-y divide-white/10 border-y border-white/10">
-        {data.aiCosts.entries.length === 0 ? (
-          <p className="text-muted-foreground py-10 text-center text-sm">
-            {t("empty")}
-          </p>
-        ) : (
-          data.aiCosts.entries.map((entry) => (
-            <article key={entry.id} className="grid gap-4 py-5 lg:grid-cols-[minmax(12rem,1.3fr)_repeat(4,minmax(7rem,0.7fr))] lg:items-center">
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="truncate text-sm font-semibold" dir="auto">
-                    {entry.homeTeam} {t("versus")} {entry.awayTeam}
-                  </h3>
-                  <SmallChip>{entry.model}</SmallChip>
-                  <StatusChip
-                    active={entry.status === "completed"}
-                    activeLabel={t("completed")}
-                    inactiveLabel={t("reserved")}
-                  />
-                </div>
-                <p className="text-muted-foreground mt-1 text-xs">
-                  {formatDateTime(locale, entry.kickoffAt)} · {t("generated", {
-                    date: formatDateTime(locale, entry.createdAt),
-                  })}
-                </p>
-              </div>
-              <UsageValue label={t("input")} value={number.format(entry.inputTokens)} />
-              <UsageValue label={t("output")} value={number.format(entry.outputTokens)} />
-              <UsageValue label={t("searches")} value={number.format(entry.webSearchCalls)} />
-              <UsageValue
-                label={entry.estimatedCostUsd === null ? t("reservedCost") : t("estimatedCost")}
-                value={formatUsd(entry.estimatedCostUsd ?? entry.reservedCostUsd)}
-              />
-            </article>
-          ))
-        )}
-      </section>
     </div>
   );
 }
@@ -963,15 +938,6 @@ function OperationCard({ label, value }: { label: string; value: ReactNode }) {
     <div className="min-w-0">
       <p className="text-muted-foreground text-xs">{label}</p>
       <p data-numeric className="mt-2 text-lg font-semibold">{value}</p>
-    </div>
-  );
-}
-
-function UsageValue({ label, value }: { label: string; value: ReactNode }) {
-  return (
-    <div className="flex items-baseline justify-between gap-4 lg:block">
-      <p className="text-muted-foreground text-xs">{label}</p>
-      <p data-numeric className="mt-1 text-sm font-semibold tabular-nums">{value}</p>
     </div>
   );
 }

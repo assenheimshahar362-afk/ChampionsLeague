@@ -676,6 +676,7 @@ export type Database = {
           estimated_cost_microusd: number | null;
           input_tokens: number | null;
           cached_input_tokens: number | null;
+          cache_write_tokens: number | null;
           output_tokens: number | null;
           web_search_calls: number | null;
           status: "reserved" | "completed";
@@ -690,6 +691,7 @@ export type Database = {
           estimated_cost_microusd?: number | null;
           input_tokens?: number | null;
           cached_input_tokens?: number | null;
+          cache_write_tokens?: number | null;
           output_tokens?: number | null;
           web_search_calls?: number | null;
           status?: "reserved" | "completed";
@@ -700,6 +702,7 @@ export type Database = {
           estimated_cost_microusd?: number | null;
           input_tokens?: number | null;
           cached_input_tokens?: number | null;
+          cache_write_tokens?: number | null;
           output_tokens?: number | null;
           web_search_calls?: number | null;
           status?: "reserved" | "completed";

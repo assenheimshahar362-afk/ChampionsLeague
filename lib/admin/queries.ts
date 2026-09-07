@@ -12,7 +12,7 @@ import {
   currentRoundSelection,
 } from "@/lib/fixtures/schedule";
 import { getGameSettingsAsAdmin } from "@/lib/scoring/settings";
-import type { Database } from "@/lib/supabase/database.types";
+import type { Database, Json } from "@/lib/supabase/database.types";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
 
 type AdminPredictionRow = Pick<
@@ -126,7 +126,7 @@ export async function getAdminOverview() {
     db.from("fixture_results").select("fixture_id, released_at"),
     db
       .from("ai_match_predictions")
-      .select("fixture_id, model, generated_at"),
+      .select("*"),
     db
       .from("ai_prediction_usage")
       .select("*")
@@ -326,6 +326,36 @@ export async function getAdminOverview() {
         : "missing",
       aiPredictionModel: aiPrediction?.model ?? null,
       aiPredictionGeneratedAt: aiPrediction?.generated_at ?? null,
+      aiPredictionDetails: aiPrediction
+        ? {
+            predictedHomeGoals: aiPrediction.predicted_home_goals,
+            predictedAwayGoals: aiPrediction.predicted_away_goals,
+            homeWinProbability: aiPrediction.home_win_probability,
+            drawProbability: aiPrediction.draw_probability,
+            awayWinProbability: aiPrediction.away_win_probability,
+            confidence: aiPrediction.confidence,
+            summaryEn: aiPrediction.summary_en,
+            summaryHe: aiPrediction.summary_he,
+            keyFactorsEn: stringArray(aiPrediction.key_factors_en),
+            keyFactorsHe: stringArray(aiPrediction.key_factors_he),
+            sources: predictionSources(aiPrediction.sources),
+          }
+        : null,
+      aiUsageDetails: aiUsage
+        ? {
+            inputTokens: aiUsage.input_tokens ?? 0,
+            cachedInputTokens: aiUsage.cached_input_tokens ?? 0,
+            cacheWriteTokens: aiUsage.cache_write_tokens ?? 0,
+            outputTokens: aiUsage.output_tokens ?? 0,
+            webSearchCalls: aiUsage.web_search_calls ?? 0,
+            reservedCostUsd: aiUsage.budget_charge_microusd / 1_000_000,
+            estimatedCostUsd:
+              aiUsage.estimated_cost_microusd === null
+                ? null
+                : aiUsage.estimated_cost_microusd / 1_000_000,
+            completedAt: aiUsage.completed_at,
+          }
+        : null,
       aiPredictionEstimatedCostUsd:
         aiUsage?.estimated_cost_microusd === null || aiUsage === undefined
           ? null
@@ -337,9 +367,6 @@ export async function getAdminOverview() {
       ),
     };
   });
-  const adminFixtureById = new Map(
-    adminFixtures.map((fixture) => [fixture.id, fixture])
-  );
   const fixtureScheduleSelection = currentRoundSelection(
     adminFixtures,
     predictionWindowStart
@@ -419,35 +446,22 @@ export async function getAdminOverview() {
         (sum, row) => sum + (row.input_tokens ?? 0),
         0
       ),
+      cachedInputTokens: aiUsage.reduce(
+        (sum, row) => sum + (row.cached_input_tokens ?? 0),
+        0
+      ),
       outputTokens: aiUsage.reduce(
         (sum, row) => sum + (row.output_tokens ?? 0),
+        0
+      ),
+      cacheWriteTokens: aiUsage.reduce(
+        (sum, row) => sum + (row.cache_write_tokens ?? 0),
         0
       ),
       webSearchCalls: aiUsage.reduce(
         (sum, row) => sum + (row.web_search_calls ?? 0),
         0
       ),
-      entries: aiUsage.map((row) => {
-        const fixture = adminFixtureById.get(row.fixture_id);
-        return {
-          id: row.id,
-          fixtureId: row.fixture_id,
-          homeTeam: fixture?.homeTeam ?? "-",
-          awayTeam: fixture?.awayTeam ?? "-",
-          kickoffAt: fixture?.kickoff_at ?? null,
-          model: row.model,
-          inputTokens: row.input_tokens ?? 0,
-          outputTokens: row.output_tokens ?? 0,
-          webSearchCalls: row.web_search_calls ?? 0,
-          estimatedCostUsd:
-            row.estimated_cost_microusd === null
-              ? null
-              : row.estimated_cost_microusd / 1_000_000,
-          reservedCostUsd: row.budget_charge_microusd / 1_000_000,
-          status: row.status,
-          createdAt: row.created_at,
-        };
-      }),
     },
     teamCandidates: (teamCandidatesResult.data ?? []).map((candidate) => ({
       ...candidate,
@@ -455,6 +469,34 @@ export async function getAdminOverview() {
     })),
     playerCandidates: playerCandidatesResult.data ?? [],
   };
+}
+
+function stringArray(value: Json): string[] {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string")
+    : [];
+}
+
+function predictionSources(value: Json): Array<{ title: string; url: string }> {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((source) => {
+    if (
+      typeof source !== "object" ||
+      source === null ||
+      Array.isArray(source) ||
+      typeof source.title !== "string" ||
+      typeof source.url !== "string"
+    ) {
+      return [];
+    }
+    try {
+      const url = new URL(source.url);
+      if (url.protocol !== "https:" && url.protocol !== "http:") return [];
+      return [{ title: source.title, url: url.toString() }];
+    } catch {
+      return [];
+    }
+  });
 }
 
 function countBy<T>(rows: T[], key: (row: T) => string) {

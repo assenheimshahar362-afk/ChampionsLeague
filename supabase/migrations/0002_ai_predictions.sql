@@ -52,12 +52,17 @@ create table if not exists public.ai_prediction_usage (
   estimated_cost_microusd  bigint check (estimated_cost_microusd >= 0),
   input_tokens             integer check (input_tokens >= 0),
   cached_input_tokens      integer check (cached_input_tokens >= 0),
+  cache_write_tokens       integer check (cache_write_tokens >= 0),
   output_tokens            integer check (output_tokens >= 0),
   web_search_calls         smallint check (web_search_calls >= 0),
   status                   text not null default 'reserved',
   created_at               timestamptz not null default now(),
   completed_at             timestamptz
 );
+
+alter table public.ai_prediction_usage
+  add column if not exists cache_write_tokens integer
+    check (cache_write_tokens >= 0);
 
 alter table public.ai_prediction_usage
   drop constraint if exists ai_prediction_usage_status_check;

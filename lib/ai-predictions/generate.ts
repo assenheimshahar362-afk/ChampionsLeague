@@ -245,6 +245,7 @@ export async function generateDueAiPredictions(
             estimated_cost_microusd: estimatedCostMicrousd,
             input_tokens: result.usage.inputTokens,
             cached_input_tokens: result.usage.cachedInputTokens,
+            cache_write_tokens: result.usage.cacheWriteTokens,
             output_tokens: result.usage.outputTokens,
             web_search_calls: result.usage.webSearchCalls,
             status: "completed",
