@@ -18,6 +18,7 @@ import {
   ConfirmDeleteButton,
 } from "@/components/admin/confirm-submit";
 import { AiPredictionRunner } from "@/components/admin/ai-prediction-runner";
+import { AiFixturePredictionRunner } from "@/components/admin/ai-fixture-prediction-runner";
 import { GroupPaymentForm } from "@/components/groups/group-forms";
 import { ProfileAvatar } from "@/components/profile/profile-avatar";
 import { Button } from "@/components/ui/button";
@@ -186,6 +187,16 @@ async function Overview({ data, locale }: { data: AdminData; locale: string }) {
               warning={data.metrics.pendingResults > 0}
             />
             <HealthRow
+              label={t("attention.missingSeasonPicks")}
+              value={data.metrics.usersMissingSeasonPicks}
+              warning={data.metrics.usersMissingSeasonPicks > 0}
+            />
+            <HealthRow
+              label={t("attention.missingPredictions")}
+              value={data.metrics.usersMissingPredictions}
+              warning={data.metrics.usersMissingPredictions > 0}
+            />
+            <HealthRow
               label={t("attention.scoringRules")}
               value={t("attention.perFixtureScoring")}
             />
@@ -234,6 +245,9 @@ async function Participants({
   locale: string;
 }) {
   const t = await getTranslations("admin");
+  const openFixtureById = new Map(
+    data.openPredictionFixtures.map((fixture) => [fixture.id, fixture])
+  );
 
   return (
     <section className="mt-6 space-y-3" aria-labelledby="participants-heading">
@@ -369,6 +383,54 @@ async function Participants({
                 <input type="hidden" name="userId" value={user.id} />
                 <ConfirmDeleteButton disabled={user.id === adminId} />
               </form>
+            </div>
+          </div>
+          <div className="mt-3 grid gap-3 border-t border-white/10 pt-3 lg:grid-cols-2">
+            <div>
+              <p className="text-muted-foreground mb-2 text-[0.7rem] font-medium">
+                {t("participants.seasonChoices", {
+                  season: data.operations.season,
+                })}
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                <StatusChip
+                  active={user.championPicked}
+                  activeLabel={t("participants.championChosen")}
+                  inactiveLabel={t("participants.championMissing")}
+                />
+                <StatusChip
+                  active={user.topScorerPicked}
+                  activeLabel={t("participants.scorerChosen")}
+                  inactiveLabel={t("participants.scorerMissing")}
+                />
+              </div>
+            </div>
+            <div>
+              {user.missingPredictionFixtureIds.length === 0 ? (
+                <p className="text-success text-xs font-medium">
+                  {t("participants.allMatchesPredicted")}
+                </p>
+              ) : (
+                <details>
+                  <summary className="text-warning cursor-pointer text-xs font-semibold">
+                    {t("participants.missingMatches", {
+                      count: user.missingPredictionFixtureIds.length,
+                    })}
+                  </summary>
+                  <ul className="text-muted-foreground mt-2 space-y-1 text-xs">
+                    {user.missingPredictionFixtureIds.map((fixtureId) => {
+                      const fixture = openFixtureById.get(fixtureId);
+                      if (!fixture) return null;
+                      return (
+                        <li key={fixture.id}>
+                          <span dir="auto">{fixture.homeTeam} – {fixture.awayTeam}</span>
+                          {" · "}{formatDateTime(locale, fixture.kickoffAt)}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </details>
+              )}
             </div>
           </div>
         </article>
@@ -544,38 +606,54 @@ async function Fixtures({ data, locale }: { data: AdminData; locale: string }) {
         body={t("fixtureAdmin.body")}
       />
       <div className="mt-4 max-h-[62rem] overflow-y-auto border-t border-white/10">
-        {data.fixtures.map((fixture) => (
-          <form
-            key={fixture.id}
-            action={adminUpdateFixtureKickoff}
-            className="grid gap-3 border-b border-white/10 p-3 last:border-0 md:grid-cols-[minmax(0,1fr)_13rem_auto] md:items-center"
-          >
-            <input type="hidden" name="fixtureId" value={fixture.id} />
-            <div className="min-w-0">
-              <p className="truncate text-sm font-semibold" dir="auto">
-                {fixture.homeTeam} <span className="text-muted-foreground px-1">–</span> {fixture.awayTeam}
-              </p>
-              <p className="text-muted-foreground mt-0.5 text-xs">
-                {fixture.round} · {formatDateTime(locale, fixture.kickoff_at)}
-              </p>
-              <div className="mt-1 flex flex-wrap gap-1.5">
-                <SmallChip>{t(`fixtureStatus.${fixture.status}`)}</SmallChip>
-                <SmallChip>{t(`resultState.${fixture.resultState}`)}</SmallChip>
-                {fixture.home_goals !== null ? (
-                  <SmallChip>{fixture.home_goals}–{fixture.away_goals}</SmallChip>
-                ) : null}
-              </div>
-            </div>
-            <Input
-              name="kickoffAt"
-              defaultValue={fixture.kickoff_at}
-              required
-              dir="ltr"
-              aria-label={t("fixtureAdmin.kickoff")}
-            />
-            <Button type="submit" size="sm">{t("fixtureAdmin.update")}</Button>
-          </form>
-        ))}
+        {data.fixtures.map((fixture) => {
+          return (
+            <article
+              key={fixture.id}
+              className="border-b border-white/10 p-3 last:border-0"
+            >
+              <form
+                action={adminUpdateFixtureKickoff}
+                className="grid gap-3 md:grid-cols-[minmax(0,1fr)_13rem_auto] md:items-center"
+              >
+                <input type="hidden" name="fixtureId" value={fixture.id} />
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold" dir="auto">
+                    {fixture.homeTeam} <span className="text-muted-foreground px-1">–</span> {fixture.awayTeam}
+                  </p>
+                  <p className="text-muted-foreground mt-0.5 text-xs">
+                    {fixture.round} · {formatDateTime(locale, fixture.kickoff_at)}
+                  </p>
+                  <div className="mt-1 flex flex-wrap gap-1.5">
+                    <SmallChip>{t(`fixtureStatus.${fixture.status}`)}</SmallChip>
+                    <SmallChip>{t(`resultState.${fixture.resultState}`)}</SmallChip>
+                    {fixture.home_goals !== null ? (
+                      <SmallChip>{fixture.home_goals}–{fixture.away_goals}</SmallChip>
+                    ) : null}
+                  </div>
+                </div>
+                <Input
+                  name="kickoffAt"
+                  defaultValue={fixture.kickoff_at}
+                  required
+                  dir="ltr"
+                  aria-label={t("fixtureAdmin.kickoff")}
+                />
+                <Button type="submit" size="sm">{t("fixtureAdmin.update")}</Button>
+              </form>
+
+              {fixture.aiPredictionEligible ? (
+                <div className="mt-3 border-t border-white/10 pt-3">
+                  <AiFixturePredictionRunner
+                    fixtureId={fixture.id}
+                    currentModel={fixture.aiPredictionModel}
+                    currentEstimatedCostUsd={fixture.aiPredictionEstimatedCostUsd}
+                  />
+                </div>
+              ) : null}
+            </article>
+          );
+        })}
       </div>
     </section>
   );

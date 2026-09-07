@@ -329,6 +329,8 @@
       "title": "דורש תשומת לב",
       "onboarding": "משתתפים שטרם סיימו הרשמה",
       "pendingResults": "תוצאות שממתינות לחישוב",
+      "missingSeasonPicks": "משתמשים ללא בחירות עונה מלאות",
+      "missingPredictions": "משתמשים עם משחקים ללא ניחוש",
       "scoringRules": "ניקוד משחקים",
       "perFixtureScoring": "לפי משחק · מדויק פי 2"
     },
@@ -346,6 +348,13 @@
       "aiPlayerName": "שם שחקן ה-AI",
       "aiPlayerAvatar": "תמונת שחקן ה-AI",
       "uploadAvatar": "העלאת תמונה",
+      "seasonChoices": "בחירות לעונת {season}",
+      "championChosen": "נבחרה אלופה",
+      "championMissing": "חסרה בחירת אלופה",
+      "scorerChosen": "נבחר מלך שערים",
+      "scorerMissing": "חסרה בחירת מלך שערים",
+      "allMatchesPredicted": "קיים ניחוש לכל המשחקים הפתוחים",
+      "missingMatches": "{count, plural, one {חסר ניחוש למשחק פתוח אחד} other {חסרים ניחושים ל-# משחקים פתוחים}}",
       "resetAvatar": "איפוס תמונה",
       "confirmResetAvatar": "להסיר את התמונה שהמשתתף העלה ולהחזיר את האוואטר האוטומטי?"
     },
@@ -369,7 +378,14 @@
       "title": "לוח המשחקים",
       "body": "צפייה בכל המשחקים ועדכון מועד הפתיחה האפקטיבי באמצעות חותמת ISO מלאה הכוללת אזור זמן.",
       "kickoff": "מועד פתיחה בפורמט ISO",
-      "update": "עדכון מועד"
+      "update": "עדכון מועד",
+      "model": "מודל החיזוי",
+      "predictNow": "חיזוי למשחק הזה",
+      "predicting": "התחזית נוצרת…",
+      "estimatedBefore": "אומדן לפני השליחה: {cost}. מבוסס על כ-30K טוקני קלט, 3K טוקני פלט וחיפוש רשת אחד.",
+      "estimatedAfter": "אומדן לפי השימוש שנמדד לאחר השליחה: {cost} באמצעות {model}.",
+      "lastEstimatedAfter": "האומדן האחרון שנמדד: {cost} באמצעות {model}.",
+      "predictionError": "החיזוי נכשל: {error}"
     },
     "fixtureStatus": {
       "scheduled": "מתוכנן",

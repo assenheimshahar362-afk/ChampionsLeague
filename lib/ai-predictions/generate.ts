@@ -1,6 +1,9 @@
 import "server-only";
 
-import { estimateOpenAiCostMicrousd } from "@/lib/ai-predictions/cost";
+import {
+  estimateOpenAiCostMicrousd,
+  predictionReservationMicrousd,
+} from "@/lib/ai-predictions/cost";
 import { aiPredictionHorizonHours } from "@/lib/ai-predictions/horizon";
 import {
   type MatchResult,
@@ -20,9 +23,9 @@ const BATCH_SIZE = 1;
 // the 60K TPM limit of a low-tier project; researchPredictions also retries a
 // transient 429 using the server-provided delay.
 const CONCURRENT_BATCHES = 1;
-const BATCH_BUDGET_CHARGE_MICROUSD = 50_000;
 
 export type AiPredictionReport = {
+  model: string;
   eligible: number;
   generated: number;
   skipped: number;
@@ -105,13 +108,19 @@ function batchesOf<T>(values: T[], size: number): T[][] {
 }
 
 export async function generateDueAiPredictions(
-  options: { horizonHours?: number | null; force?: boolean } = {}
+  options: {
+    horizonHours?: number | null;
+    force?: boolean;
+    fixtureId?: string;
+    model?: string;
+  } = {}
 ): Promise<AiPredictionReport> {
   const env = serverEnv();
   if (!env.OPENAI_API_KEY) {
     throw new Error("OPENAI_API_KEY is required to generate AI predictions");
   }
-  estimateOpenAiCostMicrousd(env.OPENAI_MODEL, {
+  const model = options.model ?? env.OPENAI_MODEL;
+  estimateOpenAiCostMicrousd(model, {
     inputTokens: 0,
     cachedInputTokens: 0,
     cacheWriteTokens: 0,
@@ -130,6 +139,7 @@ export async function generateDueAiPredictions(
     .eq("status", "scheduled")
     .gt("kickoff_at", now.toISOString())
     .lte("kickoff_at", horizon.toISOString());
+  if (options.fixtureId) dueQuery.eq("id", options.fixtureId);
 
   const [{ data: due, error: dueError }, { data: allFixtures, error: fixtureError }, { data: teams, error: teamError }] =
     await Promise.all([
@@ -144,6 +154,7 @@ export async function generateDueAiPredictions(
 
   const dueFixtures = due ?? [];
   const report: AiPredictionReport = {
+    model,
     eligible: dueFixtures.length,
     generated: 0,
     skipped: 0,
@@ -203,8 +214,8 @@ export async function generateDueAiPredictions(
             budget_microusd: Math.floor(
               env.OPENAI_PREDICTION_BUDGET_USD * 1_000_000
             ),
-            charge_microusd: BATCH_BUDGET_CHARGE_MICROUSD,
-            model_name: env.OPENAI_MODEL,
+            charge_microusd: predictionReservationMicrousd(model),
+            model_name: model,
             prediction_fixture_id: batch[0]!.fixtureId,
           }
         );
@@ -221,11 +232,11 @@ export async function generateDueAiPredictions(
         const result = await researchPredictions(
           batch,
           env.OPENAI_API_KEY!,
-          env.OPENAI_MODEL,
+          model,
           now
         );
         const estimatedCostMicrousd = estimateOpenAiCostMicrousd(
-          env.OPENAI_MODEL,
+          model,
           result.usage
         );
         const { error: usageError } = await db
@@ -260,7 +271,7 @@ export async function generateDueAiPredictions(
           key_factors_en: prediction.keyFactorsEn,
           key_factors_he: prediction.keyFactorsHe,
           sources: prediction.sources,
-          model: env.OPENAI_MODEL,
+          model,
           source_snapshot: sourceByFixture.get(
             prediction.fixtureId
           ) as unknown as Json,

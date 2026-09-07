@@ -329,6 +329,8 @@
       "title": "Requires attention",
       "onboarding": "Participants still onboarding",
       "pendingResults": "Results waiting for settlement",
+      "missingSeasonPicks": "Users missing season picks",
+      "missingPredictions": "Users missing match predictions",
       "scoringRules": "Match scoring",
       "perFixtureScoring": "Per fixture · exact 2×"
     },
@@ -346,6 +348,13 @@
       "aiPlayerName": "AI player name",
       "aiPlayerAvatar": "AI player image",
       "uploadAvatar": "Upload image",
+      "seasonChoices": "Season {season} choices",
+      "championChosen": "Champion selected",
+      "championMissing": "Champion missing",
+      "scorerChosen": "Top scorer selected",
+      "scorerMissing": "Top scorer missing",
+      "allMatchesPredicted": "All currently open matches have predictions",
+      "missingMatches": "{count, plural, one {# open match is missing a prediction} other {# open matches are missing predictions}}",
       "resetAvatar": "Reset avatar",
       "confirmResetAvatar": "Remove this participant's uploaded avatar and restore their generated identicon?"
     },
@@ -369,7 +378,14 @@
       "title": "Fixture schedule",
       "body": "Inspect every fixture and override its effective kickoff using a full ISO timestamp with timezone.",
       "kickoff": "Kickoff ISO timestamp",
-      "update": "Update kickoff"
+      "update": "Update kickoff",
+      "model": "Prediction model",
+      "predictNow": "Predict this match",
+      "predicting": "Predicting…",
+      "estimatedBefore": "Estimated before sending: {cost}. Based on approximately 30K input tokens, 3K output tokens and one web search.",
+      "estimatedAfter": "Estimated measured cost after sending: {cost} with {model}.",
+      "lastEstimatedAfter": "Latest measured estimate: {cost} with {model}.",
+      "predictionError": "Prediction failed: {error}"
     },
     "fixtureStatus": {
       "scheduled": "Scheduled",

@@ -1,12 +1,74 @@
 import "server-only";
 
+import {
+  openPredictionFixtureIds,
+  participantCompletionByUser,
+} from "@/lib/admin/completeness";
 import { serverEnv } from "@/lib/env.server";
 import { groupPaymentSettingsFromRow } from "@/lib/groups/payment";
 import { getGameSettingsAsAdmin } from "@/lib/scoring/settings";
+import type { Database } from "@/lib/supabase/database.types";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
+
+type AdminPredictionRow = Pick<
+  Database["public"]["Tables"]["predictions"]["Row"],
+  "user_id" | "fixture_id"
+>;
+
+type AdminSeasonPickRow = Pick<
+  Database["public"]["Tables"]["season_picks"]["Row"],
+  | "user_id"
+  | "season"
+  | "champion_candidate_id"
+  | "top_scorer_candidate_id"
+  | "champion_awarded_points"
+  | "scorer_awarded_points"
+  | "settled_at"
+>;
+
+async function loadAllAdminPredictions(
+  db: ReturnType<typeof createServiceRoleClient>
+) {
+  const rows: AdminPredictionRow[] = [];
+  const pageSize = 1000;
+
+  for (let from = 0; ; from += pageSize) {
+    const result = await db
+      .from("predictions")
+      .select("user_id, fixture_id")
+      .range(from, from + pageSize - 1);
+    if (result.error) return { data: rows, error: result.error };
+    rows.push(...(result.data ?? []));
+    if ((result.data?.length ?? 0) < pageSize) {
+      return { data: rows, error: null };
+    }
+  }
+}
+
+async function loadAllAdminSeasonPicks(
+  db: ReturnType<typeof createServiceRoleClient>
+) {
+  const rows: AdminSeasonPickRow[] = [];
+  const pageSize = 1000;
+
+  for (let from = 0; ; from += pageSize) {
+    const result = await db
+      .from("season_picks")
+      .select(
+        "user_id, season, champion_candidate_id, top_scorer_candidate_id, champion_awarded_points, scorer_awarded_points, settled_at"
+      )
+      .range(from, from + pageSize - 1);
+    if (result.error) return { data: rows, error: result.error };
+    rows.push(...(result.data ?? []));
+    if ((result.data?.length ?? 0) < pageSize) {
+      return { data: rows, error: null };
+    }
+  }
+}
 
 export async function getAdminOverview() {
   const db = createServiceRoleClient();
+  const env = serverEnv();
   const [
     authResult,
     profilesResult,
@@ -20,6 +82,7 @@ export async function getAdminOverview() {
     scoresResult,
     seasonPicksResult,
     resultsResult,
+    aiPredictionsResult,
     aiUsageResult,
     settings,
   ] = await Promise.all([
@@ -52,14 +115,13 @@ export async function getAdminOverview() {
         "id, season, stage, round, kickoff_at, status, home_goals, away_goals, home_team_id, away_team_id, updated_at"
       )
       .order("kickoff_at", { ascending: false }),
-    db.from("predictions").select("user_id, fixture_id"),
+    loadAllAdminPredictions(db),
     db.from("prediction_scores").select("user_id, fixture_id, total_points"),
-    db
-      .from("season_picks")
-      .select(
-        "user_id, champion_awarded_points, scorer_awarded_points, settled_at"
-      ),
+    loadAllAdminSeasonPicks(db),
     db.from("fixture_results").select("fixture_id, released_at"),
+    db
+      .from("ai_match_predictions")
+      .select("fixture_id, model, generated_at"),
     db
       .from("ai_prediction_usage")
       .select("*")
@@ -83,6 +145,7 @@ export async function getAdminOverview() {
     ["prediction scores", scoresResult],
     ["season picks", seasonPicksResult],
     ["fixture results", resultsResult],
+    ["AI match predictions", aiPredictionsResult],
     ["AI prediction usage", aiUsageResult],
   ] as const) {
     if (result.error) {
@@ -99,6 +162,7 @@ export async function getAdminOverview() {
   const scores = scoresResult.data ?? [];
   const seasonPicks = seasonPicksResult.data ?? [];
   const results = resultsResult.data ?? [];
+  const aiPredictions = aiPredictionsResult.data ?? [];
   const aiUsage = aiUsageResult.data ?? [];
 
   const profileById = new Map(profiles.map((row) => [row.id, row]));
@@ -107,6 +171,45 @@ export async function getAdminOverview() {
   const releasedByFixture = new Map(
     results.map((result) => [result.fixture_id, result.released_at])
   );
+  const aiPredictionByFixture = new Map(
+    aiPredictions.map((prediction) => [prediction.fixture_id, prediction])
+  );
+  const latestCompletedAiUsageByFixture = new Map<
+    string,
+    (typeof aiUsage)[number]
+  >();
+  for (const usage of aiUsage) {
+    if (
+      usage.status === "completed" &&
+      !latestCompletedAiUsageByFixture.has(usage.fixture_id)
+    ) {
+      latestCompletedAiUsageByFixture.set(usage.fixture_id, usage);
+    }
+  }
+
+  const openFixtureIds = openPredictionFixtureIds(
+    fixtures,
+    env.FOOTBALL_DATA_SEASON,
+    Date.now()
+  );
+  const completionByUser = participantCompletionByUser(
+    authResult.data.users.map((user) => user.id),
+    env.FOOTBALL_DATA_SEASON,
+    openFixtureIds,
+    predictions,
+    seasonPicks
+  );
+  const fixtureById = new Map(fixtures.map((fixture) => [fixture.id, fixture]));
+  const openPredictionFixtures = openFixtureIds.flatMap((fixtureId) => {
+    const fixture = fixtureById.get(fixtureId);
+    if (!fixture) return [];
+    return [{
+      id: fixture.id,
+      kickoffAt: fixture.kickoff_at,
+      homeTeam: teamById.get(fixture.home_team_id)?.short_name ?? "-",
+      awayTeam: teamById.get(fixture.away_team_id)?.short_name ?? "-",
+    }];
+  });
 
   const predictionCountByUser = countBy(predictions, (row) => row.user_id);
   const groupCountByUser = countDistinctBy(
@@ -128,6 +231,7 @@ export async function getAdminOverview() {
   const users = authResult.data.users
     .map((user) => {
       const profile = profileById.get(user.id);
+      const completion = completionByUser.get(user.id)!;
       return {
         id: user.id,
         nickname: profile?.display_name ?? "-",
@@ -137,6 +241,9 @@ export async function getAdminOverview() {
         emailConfirmed: Boolean(user.email_confirmed_at),
         groupCount: groupCountByUser.get(user.id) ?? 0,
         predictionCount: predictionCountByUser.get(user.id) ?? 0,
+        championPicked: completion.championPicked,
+        topScorerPicked: completion.topScorerPicked,
+        missingPredictionFixtureIds: completion.missingPredictionFixtureIds,
         points:
           (matchPointsByUser.get(user.id) ?? 0) +
           (seasonPointsByUser.get(user.id) ?? 0),
@@ -180,21 +287,37 @@ export async function getAdminOverview() {
     };
   });
 
-  const adminFixtures = fixtures.map((fixture) => ({
-    ...fixture,
-    homeTeam: teamById.get(fixture.home_team_id)?.short_name ?? "-",
-    awayTeam: teamById.get(fixture.away_team_id)?.short_name ?? "-",
-    resultState: releasedByFixture.has(fixture.id)
-      ? releasedByFixture.get(fixture.id)
-        ? "released"
-        : "pending"
-      : "missing",
-  }));
+  const predictionWindowStart = Date.now();
+  const predictionWindowEnd = predictionWindowStart + 48 * 60 * 60_000;
+  const adminFixtures = fixtures.map((fixture) => {
+    const aiPrediction = aiPredictionByFixture.get(fixture.id);
+    const aiUsage = latestCompletedAiUsageByFixture.get(fixture.id);
+    const kickoff = new Date(fixture.kickoff_at).getTime();
+    return {
+      ...fixture,
+      homeTeam: teamById.get(fixture.home_team_id)?.short_name ?? "-",
+      awayTeam: teamById.get(fixture.away_team_id)?.short_name ?? "-",
+      resultState: releasedByFixture.has(fixture.id)
+        ? releasedByFixture.get(fixture.id)
+          ? "released"
+          : "pending"
+        : "missing",
+      aiPredictionModel: aiPrediction?.model ?? null,
+      aiPredictionGeneratedAt: aiPrediction?.generated_at ?? null,
+      aiPredictionEstimatedCostUsd:
+        aiUsage?.estimated_cost_microusd === null || aiUsage === undefined
+          ? null
+          : aiUsage.estimated_cost_microusd / 1_000_000,
+      aiPredictionEligible:
+        fixture.status === "scheduled" &&
+        kickoff > predictionWindowStart &&
+        kickoff <= predictionWindowEnd,
+    };
+  });
   const adminFixtureById = new Map(
     adminFixtures.map((fixture) => [fixture.id, fixture])
   );
 
-  const env = serverEnv();
   const totalMatchPoints = scores.reduce(
     (sum, score) => sum + score.total_points,
     0
@@ -214,8 +337,15 @@ export async function getAdminOverview() {
       fixtures: fixtures.length,
       pointsAwarded: totalMatchPoints + totalSeasonPoints,
       pendingResults: results.filter((result) => !result.released_at).length,
+      usersMissingSeasonPicks: users.filter(
+        (user) => !user.championPicked || !user.topScorerPicked
+      ).length,
+      usersMissingPredictions: users.filter(
+        (user) => user.missingPredictionFixtureIds.length > 0
+      ).length,
     },
     users,
+    openPredictionFixtures,
     groups: adminGroups,
     fixtures: adminFixtures,
     settings,

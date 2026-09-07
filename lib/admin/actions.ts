@@ -4,6 +4,10 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { isAdminEmail } from "@/lib/admin/auth";
+import {
+  isAiPredictionModel,
+  type AiPredictionModel,
+} from "@/lib/ai-predictions/cost";
 import { generateDueAiPredictions } from "@/lib/ai-predictions/generate";
 import { AI_PREDICTION_HORIZON_HOURS } from "@/lib/ai-predictions/horizon";
 import { settleDueFixtures } from "@/lib/settle/run";
@@ -21,6 +25,15 @@ export type AdminAiPredictionState =
       generated: number;
       skipped: number;
       failed: number;
+      error?: string;
+    };
+
+export type AdminAiFixturePredictionState =
+  | { status: "idle" }
+  | {
+      status: "success" | "error";
+      model: AiPredictionModel;
+      estimatedCostUsd: number | null;
       error?: string;
     };
 
@@ -319,6 +332,56 @@ export async function adminRunAiPredictions(
       generated: 0,
       skipped: 0,
       failed: 1,
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
+}
+
+export async function adminRunAiFixturePrediction(
+  _previous: AdminAiFixturePredictionState,
+  formData: FormData
+): Promise<AdminAiFixturePredictionState> {
+  void _previous;
+  await adminUser();
+  const fixtureId = z.uuid().parse(formData.get("fixtureId"));
+  const requestedModel = z.string().parse(formData.get("model"));
+  if (!isAiPredictionModel(requestedModel)) {
+    throw new Error("Unsupported AI prediction model");
+  }
+
+  try {
+    const report = await generateDueAiPredictions({
+      fixtureId,
+      model: requestedModel,
+      horizonHours: AI_PREDICTION_HORIZON_HOURS,
+      force: true,
+    });
+    revalidatePath("/", "layout");
+
+    if (report.generated === 1 && report.failures.length === 0) {
+      return {
+        status: "success",
+        model: requestedModel,
+        estimatedCostUsd: report.estimatedCostUsd,
+      };
+    }
+
+    return {
+      status: "error",
+      model: requestedModel,
+      estimatedCostUsd:
+        report.estimatedCostUsd > 0 ? report.estimatedCostUsd : null,
+      error:
+        report.failures[0]?.error ??
+        (report.budgetExhausted
+          ? "AI prediction budget exhausted"
+          : "This fixture is not scheduled within the next 48 hours"),
+    };
+  } catch (error) {
+    return {
+      status: "error",
+      model: requestedModel,
+      estimatedCostUsd: null,
       error: error instanceof Error ? error.message : String(error),
     };
   }

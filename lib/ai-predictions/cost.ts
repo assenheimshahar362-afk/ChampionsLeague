@@ -13,7 +13,38 @@ type TokenPrices = {
   output: number;
 };
 
+export const AI_PREDICTION_MODELS = [
+  { id: "gpt-5.6-luna", label: "GPT-5.6 Luna" },
+  { id: "gpt-5.6-terra", label: "GPT-5.6 Terra" },
+  { id: "gpt-5.6-sol", label: "GPT-5.6 Sol" },
+  { id: "gpt-6-astra", label: "GPT-6 Astra" },
+] as const;
+
+export type AiPredictionModel = (typeof AI_PREDICTION_MODELS)[number]["id"];
+
+export function isAiPredictionModel(model: string): model is AiPredictionModel {
+  return AI_PREDICTION_MODELS.some((candidate) => candidate.id === model);
+}
+
 const PRICE_MICROUSD_PER_TOKEN: Record<string, TokenPrices> = {
+  "gpt-6-astra": {
+    input: 10,
+    cachedInput: 1,
+    cacheWrite: 12.5,
+    output: 50,
+  },
+  "gpt-5.6-sol": {
+    input: 4,
+    cachedInput: 0.4,
+    cacheWrite: 5,
+    output: 20,
+  },
+  "gpt-5.6-terra": {
+    input: 2,
+    cachedInput: 0.2,
+    cacheWrite: 2.5,
+    output: 12,
+  },
   "gpt-5.6-luna": {
     input: 0.2,
     cachedInput: 0.02,
@@ -35,6 +66,13 @@ const PRICE_MICROUSD_PER_TOKEN: Record<string, TokenPrices> = {
 };
 
 const WEB_SEARCH_MICROUSD = 10_000;
+const TYPICAL_PREDICTION_USAGE: OpenAiUsage = {
+  inputTokens: 30_000,
+  cachedInputTokens: 0,
+  cacheWriteTokens: 0,
+  outputTokens: 3_000,
+  webSearchCalls: 1,
+};
 
 function pricesFor(model: string): TokenPrices {
   const alias = Object.keys(PRICE_MICROUSD_PER_TOKEN).find(
@@ -62,5 +100,18 @@ export function estimateOpenAiCostMicrousd(
       usage.cacheWriteTokens * prices.cacheWrite +
       usage.outputTokens * prices.output +
       usage.webSearchCalls * WEB_SEARCH_MICROUSD
+  );
+}
+
+/** Pre-flight estimate based on the current prediction prompt's typical use. */
+export function estimateTypicalPredictionCostMicrousd(model: string): number {
+  return estimateOpenAiCostMicrousd(model, TYPICAL_PREDICTION_USAGE);
+}
+
+/** Conservative budget claim; actual measured usage is stored after the run. */
+export function predictionReservationMicrousd(model: string): number {
+  return Math.max(
+    50_000,
+    Math.ceil(estimateTypicalPredictionCostMicrousd(model) * 1.25)
   );
 }
