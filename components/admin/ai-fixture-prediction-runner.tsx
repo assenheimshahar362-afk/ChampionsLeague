@@ -137,9 +137,15 @@ export function AiFixturePredictionRunner({
           <dl className="mt-3 grid grid-cols-2 gap-3 text-xs sm:grid-cols-4">
             <div>
               <dt className="text-muted-foreground">{t("aiPick")}</dt>
-              <dd className="mt-1 text-lg font-bold" dir="ltr" data-numeric>
+              <dd className="mt-1 text-lg font-bold" data-numeric>
                 {predictionDetails
-                  ? `${predictionDetails.predictedHomeGoals}-${predictionDetails.predictedAwayGoals}`
+                  ? <PredictionScoreline
+                      homeGoals={predictionDetails.predictedHomeGoals}
+                      awayGoals={predictionDetails.predictedAwayGoals}
+                      locale={locale}
+                      homeTeam={homeTeam}
+                      awayTeam={awayTeam}
+                    />
                   : "—"}
               </dd>
             </div>
@@ -203,8 +209,14 @@ export function AiFixturePredictionRunner({
                   <div className="mt-5 space-y-5">
                     <section className="bg-primary/[0.07] rounded-xl border border-primary/20 p-4 text-center">
                       <p className="text-muted-foreground text-xs">{t("aiPick")}</p>
-                      <p className="mt-1 text-4xl font-black tracking-tight" dir="ltr" data-numeric>
-                        {predictionDetails.predictedHomeGoals} – {predictionDetails.predictedAwayGoals}
+                      <p className="mt-1 text-4xl font-black tracking-tight" data-numeric>
+                        <PredictionScoreline
+                          homeGoals={predictionDetails.predictedHomeGoals}
+                          awayGoals={predictionDetails.predictedAwayGoals}
+                          locale={locale}
+                          homeTeam={homeTeam}
+                          awayTeam={awayTeam}
+                        />
                       </p>
                       <p className="text-muted-foreground mt-1 text-xs">
                         {t("confidence", { value: predictionDetails.confidence })}
@@ -352,5 +364,31 @@ function DetailValue({ label, value }: { label: string; value: string }) {
         {value}
       </dd>
     </div>
+  );
+}
+
+function PredictionScoreline({
+  homeGoals,
+  awayGoals,
+  locale,
+  homeTeam,
+  awayTeam,
+}: {
+  homeGoals: number;
+  awayGoals: number;
+  locale: string;
+  homeTeam: string;
+  awayTeam: string;
+}) {
+  return (
+    <span
+      className="inline-grid grid-cols-[auto_auto_auto] items-baseline gap-1"
+      dir={locale.startsWith("he") ? "rtl" : "ltr"}
+      aria-label={`${homeTeam} ${homeGoals}, ${awayTeam} ${awayGoals}`}
+    >
+      <span dir="ltr">{homeGoals}</span>
+      <span aria-hidden="true">–</span>
+      <span dir="ltr">{awayGoals}</span>
+    </span>
   );
 }
