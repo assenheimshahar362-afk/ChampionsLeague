@@ -355,6 +355,10 @@
       "scorerMissing": "Top scorer missing",
       "allMatchesPredicted": "All currently open matches have predictions",
       "missingMatches": "{count, plural, one {# open match is missing a prediction} other {# open matches are missing predictions}}",
+      "openPredictions": "Open predictions for {name}",
+      "dialogTitle": "{name}'s predictions",
+      "dialogDescription": "Season choices and open matches that still need a prediction.",
+      "closeDialog": "Close prediction details",
       "resetAvatar": "Reset avatar",
       "confirmResetAvatar": "Remove this participant's uploaded avatar and restore their generated identicon?"
     },
@@ -525,6 +529,7 @@
       "draw": "Draw",
       "confidence": "{value}% confidence",
       "keyFactors": "Key factors",
+      "model": "Model:",
       "disclaimer": "Data-based entertainment prediction, not betting advice."
     },
     "saving": "Saving…",

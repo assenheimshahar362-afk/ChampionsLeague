@@ -45,6 +45,7 @@ export type LeaderboardPrediction = {
 export type LeaderboardPlayerHistory = {
   userId: string;
   displayName: string;
+  avatarUrl: string | null;
   isAi: boolean;
   predictions: LeaderboardPrediction[];
 };
@@ -312,6 +313,7 @@ export async function getLeaderboard(
     selectedPlayer = {
       userId: selectedRow.userId,
       displayName: selectedRow.displayName,
+      avatarUrl: selectedRow.avatarUrl,
       isAi: selectedRow.userId === AI_PLAYER_ID,
       predictions: predictions.flatMap((prediction) => {
         const fixture = fixtureById.get(prediction.fixture_id);

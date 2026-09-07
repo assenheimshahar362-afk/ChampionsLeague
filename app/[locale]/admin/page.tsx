@@ -20,6 +20,7 @@ import {
 } from "@/components/admin/confirm-submit";
 import { AiPredictionRunner } from "@/components/admin/ai-prediction-runner";
 import { AiFixturePredictionRunner } from "@/components/admin/ai-fixture-prediction-runner";
+import { ParticipantPredictionsDialog } from "@/components/admin/participant-predictions-dialog";
 import { GroupPaymentForm } from "@/components/groups/group-forms";
 import { TeamCrest } from "@/components/match/team-crest";
 import { ProfileAvatar } from "@/components/profile/profile-avatar";
@@ -145,7 +146,7 @@ export default async function AdminPage({
         <div className="px-4 pb-6 sm:px-6 sm:pb-8">
           {view === "overview" ? <Overview data={data} locale={locale} /> : null}
           {view === "users" ? (
-            <Participants data={data} adminId={admin.id} locale={locale} />
+            <Participants data={data} adminId={admin.id} />
           ) : null}
           {view === "groups" ? <Groups data={data} /> : null}
           {view === "fixtures" ? <Fixtures data={data} locale={locale} /> : null}
@@ -240,11 +241,9 @@ async function Overview({ data, locale }: { data: AdminData; locale: string }) {
 async function Participants({
   data,
   adminId,
-  locale,
 }: {
   data: AdminData;
   adminId: string;
-  locale: string;
 }) {
   const t = await getTranslations("admin");
   const openFixtureById = new Map(
@@ -320,41 +319,14 @@ async function Participants({
           className="border-b border-white/10 py-4 last:border-b-0"
         >
           <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.8fr)_auto] lg:items-center">
-            <div className="flex min-w-0 items-center gap-3">
-              <span className="relative size-11 shrink-0 overflow-hidden rounded-xl border border-white/15">
-                <ProfileAvatar
-                  avatarUrl={user.avatarUrl}
-                  seed={user.id}
-                  alt=""
-                  sizes="44px"
-                />
-              </span>
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="truncate text-sm font-semibold">{user.nickname}</h3>
-                  <StatusChip
-                    active={user.nicknameConfirmed}
-                    activeLabel={t("participants.active")}
-                    inactiveLabel={t("participants.onboarding")}
-                  />
-                </div>
-                <p dir="ltr" className="text-muted-foreground truncate text-xs">
-                  {user.email}
-                </p>
-                <p className="text-muted-foreground mt-1 text-[0.7rem]">
-                  {t("participants.meta", {
-                    groups: user.groupCount,
-                    predictions: user.predictionCount,
-                    points: user.points,
-                  })}
-                </p>
-                <p className="text-muted-foreground/70 mt-0.5 text-[0.68rem]">
-                  {t("participants.joined", {
-                    date: formatDate(locale, user.createdAt),
-                  })}
-                </p>
-              </div>
-            </div>
+            <ParticipantPredictionsDialog
+              user={user}
+              season={data.operations.season}
+              missingFixtures={user.missingPredictionFixtureIds.flatMap((fixtureId) => {
+                const fixture = openFixtureById.get(fixtureId);
+                return fixture ? [fixture] : [];
+              })}
+            />
 
             <form action={adminUpdateNickname} className="flex min-w-0 gap-2">
               <input type="hidden" name="userId" value={user.id} />
@@ -385,54 +357,6 @@ async function Participants({
                 <input type="hidden" name="userId" value={user.id} />
                 <ConfirmDeleteButton disabled={user.id === adminId} />
               </form>
-            </div>
-          </div>
-          <div className="mt-3 grid gap-3 border-t border-white/10 pt-3 lg:grid-cols-2">
-            <div>
-              <p className="text-muted-foreground mb-2 text-[0.7rem] font-medium">
-                {t("participants.seasonChoices", {
-                  season: data.operations.season,
-                })}
-              </p>
-              <div className="flex flex-wrap gap-1.5">
-                <StatusChip
-                  active={user.championPicked}
-                  activeLabel={t("participants.championChosen")}
-                  inactiveLabel={t("participants.championMissing")}
-                />
-                <StatusChip
-                  active={user.topScorerPicked}
-                  activeLabel={t("participants.scorerChosen")}
-                  inactiveLabel={t("participants.scorerMissing")}
-                />
-              </div>
-            </div>
-            <div>
-              {user.missingPredictionFixtureIds.length === 0 ? (
-                <p className="text-success text-xs font-medium">
-                  {t("participants.allMatchesPredicted")}
-                </p>
-              ) : (
-                <details>
-                  <summary className="text-warning cursor-pointer text-xs font-semibold">
-                    {t("participants.missingMatches", {
-                      count: user.missingPredictionFixtureIds.length,
-                    })}
-                  </summary>
-                  <ul className="text-muted-foreground mt-2 space-y-1 text-xs">
-                    {user.missingPredictionFixtureIds.map((fixtureId) => {
-                      const fixture = openFixtureById.get(fixtureId);
-                      if (!fixture) return null;
-                      return (
-                        <li key={fixture.id}>
-                          <span dir="auto">{fixture.homeTeam} – {fixture.awayTeam}</span>
-                          {" · "}{formatDateTime(locale, fixture.kickoffAt)}
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </details>
-              )}
             </div>
           </div>
         </article>
@@ -901,22 +825,6 @@ function HealthRow({ label, value, warning = false }: { label: string; value: Re
       <span className="text-sm">{label}</span>
       <span className={warning ? "text-warning text-sm font-semibold" : "text-success text-sm font-semibold"}>{value}</span>
     </div>
-  );
-}
-
-function StatusChip({
-  active,
-  activeLabel,
-  inactiveLabel,
-}: {
-  active: boolean;
-  activeLabel: string;
-  inactiveLabel: string;
-}) {
-  return (
-    <span className={active ? "bg-success/15 text-success rounded-full px-2 py-0.5 text-[0.65rem] font-medium" : "bg-warning/15 text-warning rounded-full px-2 py-0.5 text-[0.65rem] font-medium"}>
-      {active ? activeLabel : inactiveLabel}
-    </span>
   );
 }
 

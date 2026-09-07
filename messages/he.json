@@ -355,6 +355,10 @@
       "scorerMissing": "חסרה בחירת מלך שערים",
       "allMatchesPredicted": "קיים ניחוש לכל המשחקים הפתוחים",
       "missingMatches": "{count, plural, one {חסר ניחוש למשחק פתוח אחד} other {חסרים ניחושים ל-# משחקים פתוחים}}",
+      "openPredictions": "פתיחת הניחושים של {name}",
+      "dialogTitle": "הניחושים של {name}",
+      "dialogDescription": "בחירות העונה והמשחקים הפתוחים שעדיין חסר עבורם ניחוש.",
+      "closeDialog": "סגירת פרטי הניחושים",
       "resetAvatar": "איפוס תמונה",
       "confirmResetAvatar": "להסיר את התמונה שהמשתתף העלה ולהחזיר את האוואטר האוטומטי?"
     },
@@ -525,6 +529,7 @@
       "draw": "תיקו",
       "confidence": "{value}% ביטחון",
       "keyFactors": "גורמים מרכזיים",
+      "model": "מודל:",
       "disclaimer": "תחזית בידורית מבוססת נתונים, לא המלצת הימורים."
     },
     "saving": "שומר…",
