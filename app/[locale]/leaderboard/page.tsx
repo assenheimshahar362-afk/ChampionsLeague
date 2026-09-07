@@ -1,8 +1,7 @@
-import { Banknote, Bot, LockKeyhole, Trophy, UserRound, Users } from "lucide-react";
+import { Banknote, LockKeyhole, Trophy, UserRound, Users } from "lucide-react";
 import Image from "next/image";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
-import { ProfileAvatar } from "@/components/profile/profile-avatar";
 import { PlayerPredictionHistoryDialog } from "@/components/leaderboard/player-prediction-history-dialog";
 import { SetupNotice } from "@/components/setup-notice";
 import { Button } from "@/components/ui/button";
@@ -10,7 +9,6 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Link } from "@/i18n/navigation";
 import { isLocale } from "@/i18n/routing";
 import { SchemaNotReadyError } from "@/lib/fixtures/queries";
-import { AI_PLAYER_ID } from "@/lib/leaderboard/ai-player";
 import {
   getLeaderboard,
   type LeaderboardGroup,
@@ -29,7 +27,7 @@ export default async function LeaderboardPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ group?: string; player?: string }>;
+  searchParams: Promise<{ group?: string }>;
 }) {
   const { locale } = await params;
   const query = await searchParams;
@@ -48,11 +46,7 @@ export default async function LeaderboardPage({
   };
   if (user) {
     try {
-      leaderboard = await getLeaderboard(
-        user.id,
-        query.group,
-        query.player
-      );
+      leaderboard = await getLeaderboard(user.id, query.group);
     } catch (error) {
       if (!(error instanceof SchemaNotReadyError)) throw error;
       return <SetupNotice reason="schema" />;
@@ -119,14 +113,6 @@ export default async function LeaderboardPage({
             </div>
           ) : null}
 
-          {leaderboard.selectedPlayer ? (
-            <PlayerPredictionHistoryDialog
-              player={leaderboard.selectedPlayer}
-              selectedGroupId={leaderboard.selectedGroup?.id ?? null}
-              locale={locale}
-            />
-          ) : null}
-
           {leaderboard.rows.length === 0 ? (
             <p className="text-muted-foreground mt-8 rounded-xl border border-dashed px-4 py-8 text-center text-sm text-balance">
               {t("empty")}
@@ -163,7 +149,6 @@ export default async function LeaderboardPage({
                       key={row.userId}
                       row={row}
                       isMe={row.userId === user.id}
-                      isSelected={row.userId === leaderboard.selectedPlayer?.userId}
                       selectedGroupId={leaderboard.selectedGroup?.id ?? null}
                       locale={locale}
                     />
@@ -239,86 +224,40 @@ function formatAgorot(agorot: number, locale: string): string {
   }).format(agorot / 100);
 }
 
-async function LeaderboardTableRow({
+function LeaderboardTableRow({
   row,
   isMe,
-  isSelected,
   selectedGroupId,
   locale,
 }: {
   row: LeaderboardRow;
   isMe: boolean;
-  isSelected: boolean;
   selectedGroupId: string | null;
   locale: string;
 }) {
-  const t = await getTranslations("leaderboard");
-
   return (
     <tr
       className={cn(
         "transition-colors duration-150",
         // Your own row stays easy to find without overpowering the picks.
-        isMe && "bg-primary/[0.09]",
-        isSelected && "bg-primary/[0.14]"
+        isMe && "bg-primary/[0.09]"
       )}
     >
       <td className="min-w-0 px-3 py-2.5">
-        <Link
-          href={{
-            pathname: "/leaderboard",
-            query: selectedGroupId
-              ? { group: selectedGroupId, player: row.userId }
-              : { player: row.userId },
+        <PlayerPredictionHistoryDialog
+          playerSummary={{
+            userId: row.userId,
+            displayName: row.displayName,
+            avatarUrl: row.avatarUrl,
+            rank: row.rank,
+            exact: row.exact,
+            correct: row.correct,
+            settled: row.settled,
           }}
-          aria-label={t("showPredictions", { player: row.displayName })}
-          aria-current={isSelected ? "true" : undefined}
-          className="-m-1 flex min-w-0 items-center gap-2 rounded-lg p-1 outline-none focus-visible:ring-2 focus-visible:ring-ring sm:gap-3"
-        >
-          <span className="flex w-5 shrink-0 justify-center sm:w-6">
-            <span
-              data-numeric
-              className="text-muted-foreground text-xs font-semibold sm:text-sm"
-            >
-              {row.rank}
-            </span>
-          </span>
-
-          <span className="relative size-9 shrink-0 overflow-hidden rounded-full border border-white/15 shadow-[inset_0_1px_0_rgb(255_255_255/0.12)] sm:size-10">
-            <ProfileAvatar
-              avatarUrl={row.avatarUrl}
-              seed={row.userId}
-              alt=""
-              sizes="40px"
-            />
-          </span>
-
-          <span className="min-w-0 flex-1">
-            <span
-              className="block truncate text-start text-sm font-semibold sm:text-base"
-            >
-              <bdi>{row.displayName}</bdi>
-              {isMe ? (
-                <span className="text-primary ms-1 text-[0.65rem] font-medium sm:ms-1.5 sm:text-xs">
-                  {t("you")}
-                </span>
-              ) : null}
-              {row.userId === AI_PLAYER_ID ? (
-                <span className="text-warning ms-1 inline-flex items-center gap-0.5 text-[0.65rem] font-medium sm:ms-1.5 sm:text-xs">
-                  <Bot className="size-3" aria-hidden="true" />
-                  {t("ai")}
-                </span>
-              ) : null}
-            </span>
-            <span className="text-muted-foreground mt-0.5 hidden truncate text-[0.65rem] min-[390px]:block sm:text-xs">
-              {t("record", {
-                exact: row.exact,
-                correct: row.correct,
-                settled: row.settled,
-              })}
-            </span>
-          </span>
-        </Link>
+          isMe={isMe}
+          selectedGroupId={selectedGroupId}
+          locale={locale}
+        />
       </td>
 
       <td className="px-1 py-2 text-center">
