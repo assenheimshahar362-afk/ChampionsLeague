@@ -85,6 +85,7 @@ export type Prediction = {
 
 export type AiPrediction = {
   fixtureId: string;
+  model: string;
   predictedHomeGoals: number;
   predictedAwayGoals: number;
   homeWinProbability: number;

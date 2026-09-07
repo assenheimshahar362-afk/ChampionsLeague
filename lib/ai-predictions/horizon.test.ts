@@ -51,4 +51,17 @@ describe("AI prediction horizon", () => {
       "closed"
     );
   });
+
+  it("enables an upcoming match-week fixture beyond 48 hours", () => {
+    const now = Date.parse("2026-09-07T12:00:00.000Z");
+    assert.equal(
+      aiPredictionFixtureAvailability(
+        "scheduled",
+        "2026-09-09T20:00:00.000Z",
+        now,
+        true
+      ),
+      "eligible"
+    );
+  });
 });

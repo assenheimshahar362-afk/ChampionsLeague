@@ -5,6 +5,10 @@ import {
   predictionReservationMicrousd,
 } from "@/lib/ai-predictions/cost";
 import { aiPredictionHorizonHours } from "@/lib/ai-predictions/horizon";
+import {
+  type AiPredictionScope,
+  fixturesForPredictionScope,
+} from "@/lib/ai-predictions/scope";
 import { isMissingCacheWriteTokensColumn } from "@/lib/ai-predictions/usage-storage";
 import {
   type MatchResult,
@@ -114,6 +118,7 @@ export async function generateDueAiPredictions(
     force?: boolean;
     fixtureId?: string;
     model?: string;
+    scope?: AiPredictionScope;
   } = {}
 ): Promise<AiPredictionReport> {
   const env = serverEnv();
@@ -130,6 +135,7 @@ export async function generateDueAiPredictions(
   });
 
   const horizonHours = aiPredictionHorizonHours(options.horizonHours);
+  const scope = options.scope ?? "horizon";
   const now = new Date();
   const db = createServiceRoleClient();
 
@@ -138,10 +144,10 @@ export async function generateDueAiPredictions(
     .from("fixtures")
     .select("*")
     .eq("status", "scheduled")
-    .gt("kickoff_at", now.toISOString())
-    .lte("kickoff_at", horizon.toISOString());
-  if (options.fixtureId) dueQuery.eq("id", options.fixtureId);
-
+    .gt("kickoff_at", now.toISOString());
+  if (scope === "horizon") {
+    dueQuery.lte("kickoff_at", horizon.toISOString());
+  }
   const [{ data: due, error: dueError }, { data: allFixtures, error: fixtureError }, { data: teams, error: teamError }] =
     await Promise.all([
       dueQuery.order("kickoff_at", { ascending: true }),
@@ -153,7 +159,14 @@ export async function generateDueAiPredictions(
   if (fixtureError) throw new Error(`Loading fixture history failed: ${fixtureError.message}`);
   if (teamError) throw new Error(`Loading teams failed: ${teamError.message}`);
 
-  const dueFixtures = due ?? [];
+  let dueFixtures = fixturesForPredictionScope(
+    due ?? [],
+    scope,
+    horizon.toISOString()
+  );
+  if (options.fixtureId) {
+    dueFixtures = dueFixtures.filter((fixture) => fixture.id === options.fixtureId);
+  }
   const report: AiPredictionReport = {
     model,
     eligible: dueFixtures.length,

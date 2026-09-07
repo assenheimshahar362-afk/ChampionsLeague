@@ -345,8 +345,17 @@ function AiPredictionPanel({
           <BrainCircuit className="size-4" aria-hidden="true" />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="text-primary block text-[10px] font-bold tracking-wide uppercase">
-            {t("title")}
+          <span className="flex min-w-0 items-center gap-1.5">
+            <span className="text-primary text-[10px] font-bold tracking-wide uppercase">
+              {t("title")}
+            </span>
+            <span
+              className="text-muted-foreground min-w-0 truncate rounded border border-white/10 px-1 py-0.5 text-[9px] font-medium normal-case tracking-normal"
+              dir="ltr"
+              title={prediction.model}
+            >
+              {prediction.model}
+            </span>
           </span>
           <span
             className="grid grid-cols-[minmax(0,1fr)_auto_auto_auto_minmax(0,1fr)] items-baseline gap-1 text-sm font-bold"

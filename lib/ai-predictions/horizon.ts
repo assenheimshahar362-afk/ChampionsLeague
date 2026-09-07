@@ -23,7 +23,8 @@ export function aiPredictionHorizonHours(
 export function aiPredictionFixtureAvailability(
   status: string,
   kickoffAt: string,
-  nowMs: number
+  nowMs: number,
+  inUpcomingMatchWeek = false
 ): AiPredictionFixtureAvailability {
   const kickoffMs = new Date(kickoffAt).getTime();
   if (status !== "scheduled" || !Number.isFinite(kickoffMs) || kickoffMs <= nowMs) {
@@ -31,5 +32,7 @@ export function aiPredictionFixtureAvailability(
   }
 
   const horizonMs = AI_PREDICTION_HORIZON_HOURS * 60 * 60_000;
-  return kickoffMs <= nowMs + horizonMs ? "eligible" : "too-early";
+  return kickoffMs <= nowMs + horizonMs || inUpcomingMatchWeek
+    ? "eligible"
+    : "too-early";
 }

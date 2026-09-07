@@ -7,6 +7,7 @@ import {
 import { serverEnv } from "@/lib/env.server";
 import { groupPaymentSettingsFromRow } from "@/lib/groups/payment";
 import { aiPredictionFixtureAvailability } from "@/lib/ai-predictions/horizon";
+import { upcomingMatchWeekFixtures } from "@/lib/ai-predictions/scope";
 import {
   currentAndFutureRoundItems,
   currentRoundSelection,
@@ -293,6 +294,15 @@ export async function getAdminOverview() {
   });
 
   const predictionWindowStart = Date.now();
+  const upcomingMatchWeekFixtureIds = new Set(
+    upcomingMatchWeekFixtures(
+      fixtures.filter(
+        (fixture) =>
+          fixture.status === "scheduled" &&
+          new Date(fixture.kickoff_at).getTime() > predictionWindowStart
+      )
+    ).map((fixture) => fixture.id)
+  );
   const adminFixtures = fixtures.map((fixture) => {
     const aiPrediction = aiPredictionByFixture.get(fixture.id);
     const aiUsage = latestCompletedAiUsageByFixture.get(fixture.id);
@@ -363,7 +373,8 @@ export async function getAdminOverview() {
       aiPredictionAvailability: aiPredictionFixtureAvailability(
         fixture.status,
         fixture.kickoff_at,
-        predictionWindowStart
+        predictionWindowStart,
+        upcomingMatchWeekFixtureIds.has(fixture.id)
       ),
     };
   });

@@ -412,6 +412,7 @@ export async function getAiPredictions(
       : [];
     byFixture[row.fixture_id] = {
       fixtureId: row.fixture_id,
+      model: row.model,
       predictedHomeGoals: row.predicted_home_goals,
       predictedAwayGoals: row.predicted_away_goals,
       homeWinProbability: row.home_win_probability,

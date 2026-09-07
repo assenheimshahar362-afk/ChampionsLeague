@@ -293,15 +293,18 @@ export async function adminRunSettlement(): Promise<void> {
 
 export async function adminRunAiPredictions(
   _previous: AdminAiPredictionState,
-  _formData: FormData
+  formData: FormData
 ): Promise<AdminAiPredictionState> {
   void _previous;
-  void _formData;
   await adminUser();
+  const scope = z
+    .enum(["horizon", "upcoming-round"])
+    .parse(formData.get("scope") ?? "horizon");
 
   try {
     const report = await generateDueAiPredictions({
       horizonHours: AI_PREDICTION_HORIZON_HOURS,
+      scope,
     });
     revalidatePath("/", "layout");
     return {
@@ -339,6 +342,7 @@ export async function adminRunAiFixturePrediction(
       fixtureId,
       model: requestedModel,
       horizonHours: AI_PREDICTION_HORIZON_HOURS,
+      scope: "horizon-or-upcoming-round",
       force: true,
     });
     revalidatePath("/", "layout");

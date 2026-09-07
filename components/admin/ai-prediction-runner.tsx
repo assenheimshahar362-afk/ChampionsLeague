@@ -22,6 +22,18 @@ export function AiPredictionRunner() {
 
   return (
     <form action={action} className="flex w-full flex-col items-start gap-2 sm:min-w-80 sm:items-end">
+      <label className="w-full text-xs">
+        <span className="text-muted-foreground mb-1 block">{t("scope")}</span>
+        <select
+          name="scope"
+          defaultValue="horizon"
+          disabled={pending}
+          className="h-9 w-full rounded-lg border border-white/20 bg-background/45 px-2.5 text-xs text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+        >
+          <option value="horizon">{t("scopeHorizon")}</option>
+          <option value="upcoming-round">{t("scopeUpcomingWeek")}</option>
+        </select>
+      </label>
       <Button type="submit" disabled={pending}>
         <Sparkles aria-hidden="true" />
         {pending ? t("runningNow") : t("runNow")}
