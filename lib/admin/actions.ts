@@ -34,6 +34,7 @@ export type AdminAiFixturePredictionState =
       status: "success" | "error";
       model: AiPredictionModel;
       estimatedCostUsd: number | null;
+      generatedAt?: string;
       error?: string;
     };
 
@@ -347,6 +348,7 @@ export async function adminRunAiFixturePrediction(
         status: "success",
         model: requestedModel,
         estimatedCostUsd: report.estimatedCostUsd,
+        generatedAt: new Date().toISOString(),
       };
     }
 

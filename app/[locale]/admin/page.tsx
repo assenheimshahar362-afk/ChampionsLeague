@@ -3,6 +3,7 @@ import {
   CalendarClock,
   Coins,
   Database,
+  ExternalLink,
   Gauge,
   Settings2,
   ShieldCheck,
@@ -20,6 +21,7 @@ import {
 import { AiPredictionRunner } from "@/components/admin/ai-prediction-runner";
 import { AiFixturePredictionRunner } from "@/components/admin/ai-fixture-prediction-runner";
 import { GroupPaymentForm } from "@/components/groups/group-forms";
+import { TeamCrest } from "@/components/match/team-crest";
 import { ProfileAvatar } from "@/components/profile/profile-avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -644,9 +646,12 @@ async function Fixtures({ data, locale }: { data: AdminData; locale: string }) {
                         className="bg-card/55 overflow-hidden rounded-lg border border-white/15 shadow-[0_10px_28px_rgb(8_4_24/0.2)]"
                       >
                         <div className="from-primary/16 to-primary/5 border-primary/20 grid grid-cols-[minmax(0,1fr)_8rem_minmax(0,1fr)] items-center gap-2 border-b bg-gradient-to-b px-3 py-3 sm:px-5">
-                          <p className="truncate text-sm font-semibold" dir="auto">
-                            {fixture.homeTeam}
-                          </p>
+                          <div className="flex min-w-0 flex-col items-center gap-1.5 text-center">
+                            <TeamCrest team={fixture.homeTeamInfo} className="h-12 w-14" />
+                            <p className="w-full truncate text-sm font-semibold" dir="auto">
+                              {fixture.homeTeam}
+                            </p>
+                          </div>
                           <div className="border-primary/15 flex flex-col items-center gap-1 border-x px-2 text-center">
                             <span className="text-sm font-bold" data-numeric>
                               {new Date(fixture.kickoff_at).toLocaleTimeString(locale, {
@@ -662,21 +667,23 @@ async function Fixtures({ data, locale }: { data: AdminData; locale: string }) {
                               <SmallChip>{t(`fixtureStatus.${fixture.status}`)}</SmallChip>
                             )}
                           </div>
-                          <p className="truncate text-sm font-semibold" dir="auto">
-                            {fixture.awayTeam}
-                          </p>
+                          <div className="flex min-w-0 flex-col items-center gap-1.5 text-center">
+                            <TeamCrest team={fixture.awayTeamInfo} className="h-12 w-14" />
+                            <p className="w-full truncate text-sm font-semibold" dir="auto">
+                              {fixture.awayTeam}
+                            </p>
+                          </div>
                         </div>
 
-                        {fixture.aiPredictionAvailability !== "closed" ? (
-                          <div className="p-3 sm:px-5">
-                            <AiFixturePredictionRunner
-                              fixtureId={fixture.id}
-                              currentModel={fixture.aiPredictionModel}
-                              currentEstimatedCostUsd={fixture.aiPredictionEstimatedCostUsd}
-                              eligible={fixture.aiPredictionAvailability === "eligible"}
-                            />
-                          </div>
-                        ) : null}
+                        <div className="p-3 sm:px-5">
+                          <AiFixturePredictionRunner
+                            fixtureId={fixture.id}
+                            currentModel={fixture.aiPredictionModel}
+                            currentEstimatedCostUsd={fixture.aiPredictionEstimatedCostUsd}
+                            currentGeneratedAt={fixture.aiPredictionGeneratedAt}
+                            availability={fixture.aiPredictionAvailability}
+                          />
+                        </div>
                       </li>
                     ))}
                   </ul>
@@ -758,7 +765,26 @@ async function AiCosts({ data, locale }: { data: AdminData; locale: string }) {
         <AiPredictionRunner />
       </section>
 
-      <section className="grid grid-cols-2 gap-x-6 gap-y-5 border-b border-white/10 pb-5 lg:grid-cols-5">
+      <section className="bg-card/45 flex flex-col gap-4 rounded-xl border border-white/15 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-sm font-semibold">{t("openAiBalance")}</h2>
+          <p className="text-muted-foreground mt-1 max-w-2xl text-xs">
+            {t("openAiBalanceUnavailable")}
+          </p>
+        </div>
+        <Button asChild variant="outline" size="sm">
+          <a
+            href="https://platform.openai.com/settings/organization/billing/overview"
+            target="_blank"
+            rel="noreferrer"
+          >
+            {t("openBilling")}
+            <ExternalLink aria-hidden="true" />
+          </a>
+        </Button>
+      </section>
+
+      <section className="grid grid-cols-2 gap-x-6 gap-y-5 border-b border-white/10 pb-5 lg:grid-cols-4 xl:grid-cols-8">
         <OperationCard
           label={t("estimatedTotal")}
           value={formatUsd(data.aiCosts.totalEstimatedUsd)}
@@ -769,6 +795,18 @@ async function AiCosts({ data, locale }: { data: AdminData; locale: string }) {
             used: formatUsd(data.aiCosts.budgetCommittedUsd),
             limit: formatUsd(data.aiCosts.budgetLimitUsd),
           })}
+        />
+        <OperationCard
+          label={t("budgetRemaining")}
+          value={formatUsd(data.aiCosts.budgetRemainingUsd)}
+        />
+        <OperationCard
+          label={t("completedRuns")}
+          value={number.format(data.aiCosts.completedCalls)}
+        />
+        <OperationCard
+          label={t("activeReservations")}
+          value={number.format(data.aiCosts.reservedCalls)}
         />
         <OperationCard
           label={t("inputTokens")}

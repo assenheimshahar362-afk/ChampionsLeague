@@ -105,7 +105,7 @@ export async function getAdminOverview() {
     db
       .from("group_members")
       .select("group_id, user_id, role, joined_at"),
-    db.from("teams").select("id, name, short_name"),
+    db.from("teams").select("id, name, short_name, code, color, logo_url"),
     db
       .from("season_team_candidates")
       .select("season, candidate_id, name_en, pick_points, rank")
@@ -296,11 +296,29 @@ export async function getAdminOverview() {
   const adminFixtures = fixtures.map((fixture) => {
     const aiPrediction = aiPredictionByFixture.get(fixture.id);
     const aiUsage = latestCompletedAiUsageByFixture.get(fixture.id);
+    const homeTeam = teamById.get(fixture.home_team_id);
+    const awayTeam = teamById.get(fixture.away_team_id);
     return {
       ...fixture,
       kickoffAt: fixture.kickoff_at,
-      homeTeam: teamById.get(fixture.home_team_id)?.short_name ?? "-",
-      awayTeam: teamById.get(fixture.away_team_id)?.short_name ?? "-",
+      homeTeam: homeTeam?.short_name ?? "-",
+      awayTeam: awayTeam?.short_name ?? "-",
+      homeTeamInfo: {
+        id: homeTeam?.id ?? fixture.home_team_id,
+        name: homeTeam?.name ?? "-",
+        shortName: homeTeam?.short_name ?? "-",
+        code: homeTeam?.code ?? "?",
+        color: homeTeam?.color ?? "#334155",
+        logoUrl: homeTeam?.logo_url ?? null,
+      },
+      awayTeamInfo: {
+        id: awayTeam?.id ?? fixture.away_team_id,
+        name: awayTeam?.name ?? "-",
+        shortName: awayTeam?.short_name ?? "-",
+        code: awayTeam?.code ?? "?",
+        color: awayTeam?.color ?? "#334155",
+        logoUrl: awayTeam?.logo_url ?? null,
+      },
       resultState: releasedByFixture.has(fixture.id)
         ? releasedByFixture.get(fixture.id)
           ? "released"
@@ -381,6 +399,15 @@ export async function getAdminOverview() {
           (sum, row) => sum + row.budget_charge_microusd,
           0
         ) / 1_000_000,
+      budgetRemainingUsd: Math.max(
+        0,
+        env.OPENAI_PREDICTION_BUDGET_USD -
+          aiUsage.reduce(
+            (sum, row) => sum + row.budget_charge_microusd,
+            0
+          ) /
+            1_000_000
+      ),
       totalEstimatedUsd:
         aiUsage.reduce(
           (sum, row) => sum + (row.estimated_cost_microusd ?? 0),
