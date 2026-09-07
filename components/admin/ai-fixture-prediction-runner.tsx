@@ -7,6 +7,7 @@ import { Dialog as DialogPrimitive } from "radix-ui";
 import { useActionState, useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { AiRunProgress } from "@/components/admin/ai-run-progress";
 import {
   adminRunAiFixturePrediction,
   type AdminAiFixturePredictionState,
@@ -329,6 +330,13 @@ export function AiFixturePredictionRunner({
               {t("predictionError", { error: state.error ?? "Unknown error" })}
             </p>
           ) : null}
+        </div>
+        <div className="sm:col-span-2">
+          <AiRunProgress
+            key={pending ? "running" : state.status}
+            pending={pending}
+            outcome={state.status}
+          />
         </div>
         </form>
       ) : null}

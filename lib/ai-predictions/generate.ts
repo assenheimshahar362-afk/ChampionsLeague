@@ -5,6 +5,7 @@ import {
   predictionReservationMicrousd,
 } from "@/lib/ai-predictions/cost";
 import { aiPredictionHorizonHours } from "@/lib/ai-predictions/horizon";
+import { isMissingCacheWriteTokensColumn } from "@/lib/ai-predictions/usage-storage";
 import {
   type MatchResult,
   type PredictionSource,
@@ -239,19 +240,30 @@ export async function generateDueAiPredictions(
           model,
           result.usage
         );
-        const { error: usageError } = await db
+        const usageValues = {
+          estimated_cost_microusd: estimatedCostMicrousd,
+          input_tokens: result.usage.inputTokens,
+          cached_input_tokens: result.usage.cachedInputTokens,
+          cache_write_tokens: result.usage.cacheWriteTokens,
+          output_tokens: result.usage.outputTokens,
+          web_search_calls: result.usage.webSearchCalls,
+          status: "completed" as const,
+          completed_at: new Date().toISOString(),
+        };
+        let { error: usageError } = await db
           .from("ai_prediction_usage")
-          .update({
-            estimated_cost_microusd: estimatedCostMicrousd,
-            input_tokens: result.usage.inputTokens,
-            cached_input_tokens: result.usage.cachedInputTokens,
-            cache_write_tokens: result.usage.cacheWriteTokens,
-            output_tokens: result.usage.outputTokens,
-            web_search_calls: result.usage.webSearchCalls,
-            status: "completed",
-            completed_at: new Date().toISOString(),
-          })
+          .update(usageValues)
           .eq("id", reservationId);
+        if (usageError && isMissingCacheWriteTokensColumn(usageError)) {
+          const { cache_write_tokens: _pendingMigrationValue, ...legacyValues } =
+            usageValues;
+          void _pendingMigrationValue;
+          const legacyResult = await db
+            .from("ai_prediction_usage")
+            .update(legacyValues)
+            .eq("id", reservationId);
+          usageError = legacyResult.error;
+        }
         if (usageError) {
           throw new Error(`Saving AI usage failed: ${usageError.message}`);
         }

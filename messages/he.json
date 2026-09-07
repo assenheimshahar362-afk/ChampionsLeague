@@ -409,6 +409,19 @@
       "lastEstimatedAfter": "האומדן האחרון שנמדד: {cost} באמצעות {model}.",
       "predictionError": "החיזוי נכשל: {error}"
     },
+    "aiProgress": {
+      "label": "התקדמות יצירת תחזית AI",
+      "preparing": "מכין את ההרצה",
+      "loadingData": "טוען את נתוני המשחק",
+      "buildingPrompt": "בונה הקשר ופרומפט",
+      "sending": "שולח בקשה למודל",
+      "researching": "מבצע מחקר ברשת",
+      "processing": "מעבד ומאמת את התשובה",
+      "saving": "שומר את התחזית ונתוני העלות",
+      "complete": "התחזית נשמרה בהצלחה",
+      "failed": "הרצת התחזית נכשלה",
+      "estimatedNote": "ההתקדמות משוערת; 100% יוצג רק לאחר שהשרת יסיים."
+    },
     "fixtureStatus": {
       "scheduled": "מתוכנן",
       "live": "חי",

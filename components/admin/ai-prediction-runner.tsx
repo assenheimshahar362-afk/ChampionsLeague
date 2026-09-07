@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useActionState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { AiRunProgress } from "@/components/admin/ai-run-progress";
 import {
   adminRunAiPredictions,
   type AdminAiPredictionState,
@@ -20,11 +21,16 @@ export function AiPredictionRunner() {
   );
 
   return (
-    <form action={action} className="flex flex-col items-start gap-2 sm:items-end">
+    <form action={action} className="flex w-full flex-col items-start gap-2 sm:min-w-80 sm:items-end">
       <Button type="submit" disabled={pending}>
         <Sparkles aria-hidden="true" />
         {pending ? t("runningNow") : t("runNow")}
       </Button>
+      <AiRunProgress
+        key={pending ? "running" : state.status}
+        pending={pending}
+        outcome={state.status}
+      />
       {state.status !== "idle" ? (
         <p
           role="status"

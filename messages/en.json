@@ -409,6 +409,19 @@
       "lastEstimatedAfter": "Latest measured estimate: {cost} with {model}.",
       "predictionError": "Prediction failed: {error}"
     },
+    "aiProgress": {
+      "label": "AI prediction generation progress",
+      "preparing": "Preparing the run",
+      "loadingData": "Loading fixture data",
+      "buildingPrompt": "Building context and prompt",
+      "sending": "Sending the request to the model",
+      "researching": "Researching current information",
+      "processing": "Processing and validating the response",
+      "saving": "Saving the prediction and usage cost",
+      "complete": "Prediction saved successfully",
+      "failed": "Prediction run failed",
+      "estimatedNote": "Progress is estimated; 100% appears only after the server finishes."
+    },
     "fixtureStatus": {
       "scheduled": "Scheduled",
       "live": "Live",
