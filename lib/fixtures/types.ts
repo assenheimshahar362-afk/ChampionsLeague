@@ -93,6 +93,7 @@ export type AiPrediction = {
   confidence: number;
   summary: string;
   keyFactors: string[];
+  sources: Array<{ title: string; url: string }>;
   generatedAt: string;
 };
 

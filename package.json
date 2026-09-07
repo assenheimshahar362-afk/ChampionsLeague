@@ -10,6 +10,7 @@
     "lint": "eslint",
     "test": "node --test \"lib/**/*.test.ts\"",
     "typecheck": "tsc --noEmit",
+    "db:preflight": "node --env-file=.env.local scripts/db-preflight.mjs",
     "ingest": "node scripts/ingest.mjs",
     "demo:locked-match": "node scripts/create-locked-demo-fixture.mjs",
     "import:squad-csv": "node scripts/import-squad-csv.mjs"

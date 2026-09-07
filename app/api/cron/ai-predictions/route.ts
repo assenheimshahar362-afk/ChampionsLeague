@@ -1,14 +1,17 @@
 import { generateDueAiPredictions } from "@/lib/ai-predictions/generate";
+import { aiPredictionHorizonHours } from "@/lib/ai-predictions/horizon";
 import { isAuthorisedCron, unauthorised } from "@/lib/cron/auth";
+
+export const maxDuration = 300;
 
 async function handle(request: Request): Promise<Response> {
   if (!isAuthorisedCron(request)) return unauthorised();
 
   const search = new URL(request.url).searchParams;
-  const requestedHours = Number(search.get("hours") ?? "24");
-  const horizonHours = Number.isFinite(requestedHours)
-    ? Math.min(336, Math.max(1, requestedHours))
-    : 24;
+  const hours = search.get("hours");
+  const horizonHours = aiPredictionHorizonHours(
+    hours === null ? undefined : Number(hours)
+  );
 
   try {
     const report = await generateDueAiPredictions({

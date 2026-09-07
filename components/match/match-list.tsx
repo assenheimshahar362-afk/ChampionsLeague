@@ -3,10 +3,13 @@
 import { CalendarDays, ChevronDown, MapPin } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import type { ReactNode } from "react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 
 import { AutoPredictDialog } from "@/components/match/auto-predict-dialog";
-import { MatchCard } from "@/components/match/match-card";
+import {
+  MatchCard,
+  type EditablePrediction,
+} from "@/components/match/match-card";
 import { Button } from "@/components/ui/button";
 import { roundLabelForFixtures } from "@/lib/fixtures/labels";
 import type {
@@ -38,10 +41,15 @@ import { autoPredictionForFixture } from "@/lib/predictions/auto-pick";
  * one failure a prediction game cannot afford (§10).
  */
 
-/** Long enough to absorb typing, short enough to feel saved. */
-const SAVE_DEBOUNCE_MS = 700;
-
+/** Shared feedback for the latest automatic save operation. */
 type SaveStatus = "idle" | "saving" | "saved" | "error";
+
+function hasCompleteScore(prediction: EditablePrediction | undefined): boolean {
+  return (
+    typeof prediction?.homeGoals === "number" &&
+    typeof prediction.awayGoals === "number"
+  );
+}
 
 type PlannedWindow = {
   label: "firstLeg" | "secondLeg" | "finalDate";
@@ -174,7 +182,7 @@ export function MatchList({
   const t = useTranslations("match");
   const locale = useLocale();
   const [predictions, setPredictions] =
-    useState<Record<string, Prediction>>(initialPredictions);
+    useState<Record<string, EditablePrediction>>(initialPredictions);
 
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const [errorCode, setErrorCode] = useState<PredictionErrorCode | null>(null);
@@ -182,49 +190,32 @@ export function MatchList({
   const [visibleRoundCount, setVisibleRoundCount] = useState(1);
   const nowTime = new Date(nowIso).getTime();
 
-  // One pending timer per fixture, so editing two cards in quick succession
-  // does not have the second cancel the first one's save.
-  const timers = useRef(new Map<string, ReturnType<typeof setTimeout>>());
-
-  useEffect(() => {
-    const pending = timers.current;
-    // Flushing on unmount would fire writes for a screen the user has left, so
-    // pending saves are dropped instead. The debounce is short enough that the
-    // window for losing one is small, and navigating away mid-keystroke is not
-    // a commitment to that scoreline.
-    return () => {
-      for (const timer of pending.values()) clearTimeout(timer);
-      pending.clear();
-    };
-  }, []);
+  // Only the newest response may update the shared save indicator. Next.js
+  // dispatches Server Actions sequentially, but rapid score edits can still
+  // leave an older response arriving while a newer write is queued.
+  const saveVersion = useRef(0);
 
   const persist = useCallback(
-    (fixtureId: string, run: () => Promise<{ status: string; code?: PredictionErrorCode }>) => {
-      const existing = timers.current.get(fixtureId);
-      if (existing) clearTimeout(existing);
-
+    async (run: () => Promise<{ status: string; code?: PredictionErrorCode }>) => {
+      const version = ++saveVersion.current;
       setSaveStatus("saving");
       setErrorCode(null);
       setAutoSavedCount(null);
 
-      const timer = setTimeout(async () => {
-        timers.current.delete(fixtureId);
-        try {
-          const result = await run();
-          if (result.status === "error") {
-            setSaveStatus("error");
-            setErrorCode(result.code ?? "generic");
-          } else {
-            setSaveStatus("saved");
-          }
-        } catch {
-          // A dropped connection must not look like a successful save.
+      try {
+        const result = await run();
+        if (version !== saveVersion.current) return;
+        if (result.status === "error") {
           setSaveStatus("error");
-          setErrorCode("generic");
+          setErrorCode(result.code ?? "generic");
+        } else {
+          setSaveStatus("saved");
         }
-      }, SAVE_DEBOUNCE_MS);
-
-      timers.current.set(fixtureId, timer);
+      } catch {
+        if (version !== saveVersion.current) return;
+        setSaveStatus("error");
+        setErrorCode("generic");
+      }
     },
     []
   );
@@ -246,8 +237,8 @@ export function MatchList({
 
       next[fixtureId] = {
         fixtureId,
-        homeGoals: homeGoals ?? 0,
-        awayGoals: awayGoals ?? 0,
+        homeGoals,
+        awayGoals,
       };
       return next;
     });
@@ -257,9 +248,7 @@ export function MatchList({
     // local edit only, and a reload restores the stored call.
     if (homeGoals === null || awayGoals === null) return;
 
-    persist(fixtureId, () =>
-      savePrediction({ fixtureId, homeGoals, awayGoals })
-    );
+    void persist(() => savePrediction({ fixtureId, homeGoals, awayGoals }));
   }
 
   const rounds = useMemo<DisplayRound[]>(() => {
@@ -314,19 +303,18 @@ export function MatchList({
     [fixtures, nowTime]
   );
   const missingPredictionCount = openFixtures.filter(
-    (fixture) => predictions[fixture.id] === undefined
+    (fixture) => !hasCompleteScore(predictions[fixture.id])
   ).length;
 
   async function applyAutomaticPredictions(mode: AutoPredictionMode) {
-    for (const timer of timers.current.values()) clearTimeout(timer);
-    timers.current.clear();
+    saveVersion.current += 1;
     setSaveStatus("saving");
     setErrorCode(null);
     setAutoSavedCount(null);
 
     const targets =
       mode === "missing"
-        ? openFixtures.filter((fixture) => predictions[fixture.id] === undefined)
+        ? openFixtures.filter((fixture) => !hasCompleteScore(predictions[fixture.id]))
         : openFixtures;
     const inputs = targets.map((fixture) => ({
       fixtureId: fixture.id,

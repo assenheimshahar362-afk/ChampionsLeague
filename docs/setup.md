@@ -39,6 +39,13 @@ npx supabase link --project-ref <ref>
 npx supabase db push
 ```
 
+After deployment, verify the live schema and its AI-table access boundary
+without printing any secrets or row contents:
+
+```bash
+npm run db:preflight
+```
+
 `<ref>` is the subdomain of your project URL — the `<ref>` in
 `https://<ref>.supabase.co`.
 
@@ -47,17 +54,19 @@ drops and recreates `public`, so never run it again against an existing project.
 Auth accounts are preserved, but game data and manually edited profile fields
 are erased.
 
-Confirm it worked - this should list nineteen tables:
+Confirm it worked - after both migrations this should list twenty tables:
 
 ```sql
 select table_name from information_schema.tables
 where table_schema = 'public' order by table_name;
 ```
 
-Expect `fixture_details`, `fixture_results`, `fixtures`, `game_settings`,
-`group_join_requests`, `group_members`, `groups`, `prediction_scores`, `predictions`, `profiles`,
-`provider_poll_state`, `season_outcomes`, `season_picks`,
-`season_player_candidates`, `season_team_candidates`, and `teams`.
+Expect `ai_match_predictions`, `ai_prediction_usage`, `fixture_details`,
+`fixture_recent_form`, `fixture_results`, `fixtures`, `game_settings`,
+`group_join_requests`, `group_members`, `groups`, `prediction_scores`,
+`predictions`, `profiles`, `provider_poll_state`, `season_outcomes`,
+`season_picks`, `season_player_candidates`, `season_team_candidates`,
+`team_squad_players`, and `teams`.
 
 Then regenerate the database types — this replaces the hand-written placeholder
 in `lib/supabase/database.types.ts`:
@@ -114,7 +123,8 @@ Authentication → **URL Configuration**:
 ```
 CRON_SECRET=<32+ random chars>     # openssl rand -base64 32
 OPENAI_API_KEY=<server-only API key>
-OPENAI_MODEL=gpt-5-mini            # optional
+OPENAI_MODEL=gpt-5.6-luna          # optional
+OPENAI_PREDICTION_BUDGET_USD=5     # optional lifetime safety cap
 ```
 
 `NEXT_PUBLIC_APP_URL` is optional and usually best left unset. `getOrigin()`
@@ -166,6 +176,9 @@ updated fixtures, candidate pools, and the remaining provider quota. The scorer
 pool is optional: Football-Data's free plan does not include Deep Data, so a
 Deep Data plan is required to create a fresh top-scorer candidate list.
 
+The included Vercel schedule refreshes the season daily at 03:00 UTC, before
+the 04:00 UTC AI-prediction run, so fixture changes are available to it.
+
 Do not scrape or import UEFA's website or backing feeds. Seed fixtures only
 through a provider agreement that permits the intended use.
 
@@ -185,6 +198,10 @@ The public viewer endpoint admits only one request every three seconds into the
 fixture lookup; other callers receive `429` and a `Retry-After` header. Add a
 Vercel Firewall rule when the plan supports it, because application code cannot
 prevent the initial Vercel invocation itself.
+
+Vercel Hobby allows only daily cron jobs, so it cannot run this minute-level
+poll. Use a scheduler that can send `Authorization: Bearer $CRON_SECRET`, or a
+Vercel plan that supports per-minute schedules.
 
 The match-detail page also calls `POST /api/matches/live` every 30 seconds while
 the selected game is near kickoff or active. This is a viewer-driven fallback;
@@ -210,28 +227,51 @@ the final. It accepts joint top scorers and settles every pick only once.
 Idempotent, so run it as often as you like. On a compressed replay
 (`REBASE_SCALE=0.04`) matches finish about four minutes after kickoff, so a
 schedule of every minute or two keeps the table moving.
+As with live polling, minute-level settlement requires an external scheduler or
+a Vercel plan that supports per-minute schedules.
 
 ## 9. AI match predictions
 
-`GET /api/cron/ai-predictions` creates one shared analysis for every scheduled
-fixture kicking off in the next 24 hours. Each prediction is generated from the
-fixture's stored probabilities and both teams' five most recent completed
-matches across all competitions. Those results come from Football-Data.org,
-are cached for six hours in `fixture_recent_form`, and are displayed from the
-same snapshot on the match details page. The structured prediction is cached
-separately in `ai_match_predictions`. Opening a match card never calls OpenAI.
+`GET /api/cron/ai-predictions` creates one shared analysis only for scheduled
+fixtures kicking off in the next 48 hours. It sends fixtures to OpenAI Responses
+API one at a time, requires live web search, and combines current injuries,
+suspensions, recent form, home/away performance, head-to-head evidence and
+external forecasts with the fixture's stored pre-match probabilities. The
+response contains bilingual analysis, an exact score, 1X2 percentages,
+confidence, key factors and verified clickable sources.
 
-Run the endpoint a few times per day with `Authorization: Bearer $CRON_SECRET`.
-It is idempotent and skips fixtures that already have an analysis:
+The structured prediction and its input snapshot are cached in
+`ai_match_predictions`. Opening a match page never calls OpenAI. The included
+Vercel cron runs daily at 04:00 UTC; predictions newer than 20 hours are skipped
+so duplicate deliveries remain idempotent.
+
+Each fixture uses its own Responses API call so its usage can be measured
+independently. Before the call, the cron atomically reserves `$0.05` from the
+lifetime prediction budget. The default `$5` cap therefore admits at most 100
+fixture analyses, including overlapping cron invocations. Responses API token
+usage and web-search calls are recorded as an estimated per-game cost. Failed
+calls release their reservation; reservations left by an interrupted job expire
+after ten minutes and are cleared atomically by the next budget claim. To reset
+the lifetime cap, delete completed rows from `ai_prediction_usage` after
+reviewing them.
+
+The latest stored score prediction also powers a virtual AI participant. It is
+shown automatically in the global leaderboard, every friends-group leaderboard,
+and each started fixture's group prediction table. It does not create an Auth
+account, count toward group membership or contribute to the group pot. Its
+leaderboard score is calculated only after a fixture is finished. Selecting any
+leaderboard participant reveals that participant's predictions only for fixtures
+whose kickoff time has passed.
 
 ```bash
 curl -H "Authorization: Bearer $CRON_SECRET" \
    http://localhost:3000/api/cron/ai-predictions
 ```
 
-For a manual preview of a wider window, use `?hours=168`. Add `&force=1` only
-when existing predictions intentionally need to be regenerated. The API key is
-read exclusively on the server and must never use a `NEXT_PUBLIC_` prefix.
+Use `?hours=24` to shorten a manual run to the next day. Values above 48 are
+clamped to 48 hours. Add `&force=1` when predictions inside that window
+intentionally need to be regenerated. Apply the consolidated, re-runnable
+`0002_ai_predictions.sql` migration before enabling the cron.
 
 ## Moving to season 2026/27
 

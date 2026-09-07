@@ -2,10 +2,12 @@ import {
   Activity,
   ArrowLeft,
   ArrowRightLeft,
+  BrainCircuit,
   Building2,
   CalendarDays,
   CircleDot,
   Clock,
+  ExternalLink,
   Info,
   MapPin,
   Radio,
@@ -46,6 +48,7 @@ import {
 } from "@/lib/fixtures/history";
 import {
   getAllFixtures,
+  getAiPredictions,
   getFixtureById,
   getHebrewPlayerNames,
   SchemaNotReadyError,
@@ -63,7 +66,12 @@ import type {
   ProjectedLineup,
 } from "@/lib/fixtures/projected-lineup";
 import { playersWithFormationRows } from "@/lib/fixtures/projected-lineup";
-import { isInPlay, type Fixture, type Team } from "@/lib/fixtures/types";
+import {
+  isInPlay,
+  type AiPrediction,
+  type Fixture,
+  type Team,
+} from "@/lib/fixtures/types";
 import { roundLabelFor } from "@/lib/fixtures/labels";
 import { projectedPoints } from "@/lib/scoring/engine";
 import { getUser } from "@/lib/supabase/server";
@@ -116,14 +124,16 @@ export default async function MatchDetailsPage({
 
   if (!fixture) notFound();
 
-  const [providerDetails, user, playerNames, teamSquads] = await Promise.all([
+  const [providerDetails, user, playerNames, teamSquads, aiPredictions] = await Promise.all([
     getFixtureProviderDetails(fixture),
     getUser(),
     locale === "he" && fixture.season !== undefined
       ? getHebrewPlayerNames(fixture.season)
       : Promise.resolve(null),
     getFixtureTeamSquads(fixture),
+    getAiPredictions([fixture.id], locale),
   ]);
+  const aiPrediction = aiPredictions[fixture.id] ?? null;
   const details = playerNames
     ? localizeFixtureProviderDetails(providerDetails, fixture, playerNames)
     : providerDetails;
@@ -160,7 +170,12 @@ export default async function MatchDetailsPage({
   );
   const groupPredictions =
     view === "predictions" && user
-      ? await getFixtureGroupPredictions(user.id, fixture.id, requestedGroupId)
+      ? await getFixtureGroupPredictions(
+          user.id,
+          fixture.id,
+          requestedGroupId,
+          locale
+        )
       : null;
   const projectedLineups: FixtureProjectedLineups | null =
     view === "lineup" && !officialLineupsAvailable
@@ -228,7 +243,12 @@ export default async function MatchDetailsPage({
       ) : (
         <div className="mt-4 grid items-start gap-5 lg:grid-cols-2">
             <VenueCard fixture={fixture} />
-            <ForecastCard fixture={fixture} locale={locale} />
+            {aiPrediction ? (
+              <AiMatchPrediction
+                fixture={displayFixture}
+                prediction={aiPrediction}
+              />
+            ) : null}
         </div>
       )}
     </main>
@@ -1399,46 +1419,140 @@ function DetailLine({ label, value }: { label: string; value: string }) {
   );
 }
 
-async function ForecastCard({ fixture, locale }: { fixture: Fixture; locale: string }) {
-  const t = await getTranslations("matchDetails.forecast");
-  const forecast = fixture.forecast;
-  if (!forecast || forecast.home === null || forecast.draw === null || forecast.away === null) {
-    return null;
-  }
-
-  const values = [
-    { label: fixture.homeTeam.shortName, value: forecast.home },
-    { label: t("draw"), value: forecast.draw },
-    { label: fixture.awayTeam.shortName, value: forecast.away },
+async function AiMatchPrediction({
+  fixture,
+  prediction,
+}: {
+  fixture: Fixture;
+  prediction: AiPrediction;
+}) {
+  const t = await getTranslations("matchDetails.aiPrediction");
+  const probabilities = [
+    {
+      label: fixture.homeTeam.shortName,
+      value: prediction.homeWinProbability,
+      color: fixture.homeTeam.color,
+    },
+    { label: t("draw"), value: prediction.drawProbability, color: "var(--primary)" },
+    {
+      label: fixture.awayTeam.shortName,
+      value: prediction.awayWinProbability,
+      color: fixture.awayTeam.color,
+    },
   ];
-  const format = new Intl.NumberFormat(locale, { style: "percent", maximumFractionDigits: 0 });
 
   return (
-    <SectionCard>
-      <SectionTitle
-        icon={<Activity className="size-4" aria-hidden="true" />}
-        title={t("title")}
-        subtitle={t("subtitle")}
-      />
-      <div className="mt-4 space-y-3">
-        {values.map((item) => (
-          <div key={item.label}>
-            <div className="flex items-center justify-between gap-3 text-xs">
-              <span dir="auto" className="truncate">{item.label}</span>
-              <span data-numeric className="font-semibold tabular-nums">
-                {format.format(item.value)}
+    <section className="from-primary/20 via-card/80 to-primary/10 relative min-w-0 overflow-hidden rounded-[1.75rem] border border-primary/35 bg-gradient-to-br p-4 shadow-[0_18px_60px_rgb(126_72_255/0.2)] backdrop-blur-xl sm:p-6">
+      <div aria-hidden="true" className="bg-primary/15 absolute -end-14 -top-16 size-44 rounded-full blur-3xl" />
+      <div className="relative">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <SectionTitle
+            icon={<BrainCircuit className="size-4" aria-hidden="true" />}
+            title={t("title")}
+            subtitle={t("subtitle")}
+          />
+          <span className="bg-primary/12 text-primary rounded-full border border-primary/25 px-3 py-1 text-xs font-bold">
+            {t("confidence", { value: prediction.confidence })}
+          </span>
+        </div>
+
+        <div className="mt-5 grid gap-4">
+          <div className="border-primary/20 bg-background/35 rounded-2xl border p-4 text-center shadow-inner">
+            <p className="text-muted-foreground text-[0.65rem] font-bold tracking-wide uppercase">
+              {t("projectedScore")}
+            </p>
+            <div className="mt-2 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-start gap-2">
+              <div className="min-w-0">
+                <span dir="ltr" data-numeric className="block text-4xl font-black tracking-tight">
+                  {prediction.predictedHomeGoals}
+                </span>
+                <span className="mt-2 block truncate text-xs font-semibold" dir="auto">
+                  {fixture.homeTeam.shortName}
+                </span>
+              </div>
+              <span className="text-primary text-4xl font-black" aria-hidden="true">
+                :
               </span>
-            </div>
-            <div className="bg-white/[0.06] mt-1.5 h-1.5 overflow-hidden rounded-full">
-              <span
-                className="bg-primary block h-full rounded-full"
-                style={{ width: `${item.value * 100}%` }}
-              />
+              <div className="min-w-0">
+                <span dir="ltr" data-numeric className="block text-4xl font-black tracking-tight">
+                  {prediction.predictedAwayGoals}
+                </span>
+                <span className="mt-2 block truncate text-xs font-semibold" dir="auto">
+                  {fixture.awayTeam.shortName}
+                </span>
+              </div>
             </div>
           </div>
-        ))}
+
+          <div className="grid min-w-0 grid-cols-3 gap-2 sm:gap-3">
+            {probabilities.map((item) => (
+              <div key={item.label} className="bg-background/25 min-w-0 rounded-xl border border-white/10 px-2 py-3 text-center sm:px-3">
+                <span className="block truncate text-xs font-semibold" dir="auto">
+                  {item.label}
+                </span>
+                <strong className="mt-1 block whitespace-nowrap text-xl tabular-nums sm:text-2xl">
+                  {item.value}%
+                </strong>
+                <span className="bg-black/20 mt-2 block h-2 overflow-hidden rounded-full">
+                  <span
+                    className="block h-full rounded-full"
+                    style={{ width: `${item.value}%`, backgroundColor: item.color }}
+                  />
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <p className="text-foreground/90 mt-5 text-sm leading-relaxed" dir="auto">
+          {prediction.summary}
+        </p>
+
+        <details className="border-primary/20 bg-background/20 mt-4 rounded-xl border px-4 py-3">
+          <summary className="text-primary cursor-pointer text-sm font-bold">
+            {t("howCalculated")}
+          </summary>
+          <div className="text-muted-foreground mt-3 space-y-3 text-xs leading-relaxed">
+            <p>{t("formula")}</p>
+            <ol className="list-decimal space-y-1 ps-5">
+              <li>{t("parameterPrior")}</li>
+              <li>{t("parameterForm")}</li>
+              <li>{t("parameterHome")}</li>
+              <li>{t("parameterScore")}</li>
+            </ol>
+            <ul className="border-primary/15 grid gap-1 border-t pt-3">
+              {prediction.keyFactors.map((factor) => (
+                <li key={factor} className="flex items-start gap-2" dir="auto">
+                  <span className="bg-primary mt-1.5 size-1.5 shrink-0 rounded-full" />
+                  <span>{factor}</span>
+                </li>
+              ))}
+            </ul>
+            {prediction.sources.length > 0 ? (
+              <div className="border-primary/15 border-t pt-3">
+                <p className="mb-1.5 font-bold">{t("sources")}</p>
+                <ul className="grid gap-1.5">
+                  {prediction.sources.map((source) => (
+                    <li key={source.url}>
+                      <a
+                        href={source.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-primary inline-flex max-w-full items-center gap-1 hover:underline"
+                      >
+                        <span className="truncate" dir="auto">{source.title}</span>
+                        <ExternalLink className="size-3 shrink-0" aria-hidden="true" />
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            <p>{t("disclaimer")}</p>
+          </div>
+        </details>
       </div>
-    </SectionCard>
+    </section>
   );
 }
 

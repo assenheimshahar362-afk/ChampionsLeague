@@ -1,4 +1,4 @@
-import { Banknote, LockKeyhole, Trophy, UserRound, Users } from "lucide-react";
+import { Banknote, Bot, LockKeyhole, Trophy, UserRound, Users, X } from "lucide-react";
 import Image from "next/image";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
@@ -9,9 +9,11 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Link } from "@/i18n/navigation";
 import { isLocale } from "@/i18n/routing";
 import { SchemaNotReadyError } from "@/lib/fixtures/queries";
+import { AI_PLAYER_ID } from "@/lib/leaderboard/ai-player";
 import {
   getLeaderboard,
   type LeaderboardGroup,
+  type LeaderboardPlayerHistory,
   type LeaderboardRow,
   type LeaderboardView,
 } from "@/lib/leaderboard/queries";
@@ -27,9 +29,10 @@ export default async function LeaderboardPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ group?: string }>;
+  searchParams: Promise<{ group?: string; player?: string }>;
 }) {
   const { locale } = await params;
+  const query = await searchParams;
   if (isLocale(locale)) setRequestLocale(locale);
 
   const t = await getTranslations("leaderboard");
@@ -41,10 +44,16 @@ export default async function LeaderboardPage({
     rows: [],
     currentSeason: null,
     picksRevealed: false,
+    selectedPlayer: null,
   };
   if (user) {
     try {
-      leaderboard = await getLeaderboard(user.id, (await searchParams).group);
+      leaderboard = await getLeaderboard(
+        user.id,
+        query.group,
+        query.player,
+        locale
+      );
     } catch (error) {
       if (!(error instanceof SchemaNotReadyError)) throw error;
       return <SetupNotice reason="schema" />;
@@ -111,6 +120,14 @@ export default async function LeaderboardPage({
             </div>
           ) : null}
 
+          {leaderboard.selectedPlayer ? (
+            <PlayerPredictionHistory
+              player={leaderboard.selectedPlayer}
+              selectedGroupId={leaderboard.selectedGroup?.id ?? null}
+              locale={locale}
+            />
+          ) : null}
+
           {leaderboard.rows.length === 0 ? (
             <p className="text-muted-foreground mt-8 rounded-xl border border-dashed px-4 py-8 text-center text-sm text-balance">
               {t("empty")}
@@ -147,6 +164,8 @@ export default async function LeaderboardPage({
                       key={row.userId}
                       row={row}
                       isMe={row.userId === user.id}
+                      isSelected={row.userId === leaderboard.selectedPlayer?.userId}
+                      selectedGroupId={leaderboard.selectedGroup?.id ?? null}
                       locale={locale}
                     />
                   ))}
@@ -154,6 +173,7 @@ export default async function LeaderboardPage({
               </table>
             </div>
           )}
+
         </>
       )}
     </main>
@@ -220,13 +240,24 @@ function formatAgorot(agorot: number, locale: string): string {
   }).format(agorot / 100);
 }
 
+function formatDateTime(locale: string, value: string): string {
+  return new Intl.DateTimeFormat(locale === "he" ? "he-IL" : "en-GB", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
+}
+
 async function LeaderboardTableRow({
   row,
   isMe,
+  isSelected,
+  selectedGroupId,
   locale,
 }: {
   row: LeaderboardRow;
   isMe: boolean;
+  isSelected: boolean;
+  selectedGroupId: string | null;
   locale: string;
 }) {
   const t = await getTranslations("leaderboard");
@@ -236,11 +267,22 @@ async function LeaderboardTableRow({
       className={cn(
         "transition-colors duration-150",
         // Your own row stays easy to find without overpowering the picks.
-        isMe && "bg-primary/[0.09]"
+        isMe && "bg-primary/[0.09]",
+        isSelected && "bg-primary/[0.14]"
       )}
     >
       <td className="min-w-0 px-3 py-2.5">
-        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+        <Link
+          href={{
+            pathname: "/leaderboard",
+            query: selectedGroupId
+              ? { group: selectedGroupId, player: row.userId }
+              : { player: row.userId },
+          }}
+          aria-label={t("showPredictions", { player: row.displayName })}
+          aria-current={isSelected ? "true" : undefined}
+          className="-m-1 flex min-w-0 items-center gap-2 rounded-lg p-1 outline-none focus-visible:ring-2 focus-visible:ring-ring sm:gap-3"
+        >
           <span className="flex w-5 shrink-0 justify-center sm:w-6">
             <span
               data-numeric
@@ -269,6 +311,12 @@ async function LeaderboardTableRow({
                   {t("you")}
                 </span>
               ) : null}
+              {row.userId === AI_PLAYER_ID ? (
+                <span className="text-warning ms-1 inline-flex items-center gap-0.5 text-[0.65rem] font-medium sm:ms-1.5 sm:text-xs">
+                  <Bot className="size-3" aria-hidden="true" />
+                  {t("ai")}
+                </span>
+              ) : null}
             </span>
             <span className="text-muted-foreground mt-0.5 hidden truncate text-[0.65rem] min-[390px]:block sm:text-xs">
               {t("record", {
@@ -278,7 +326,7 @@ async function LeaderboardTableRow({
               })}
             </span>
           </span>
-        </div>
+        </Link>
       </td>
 
       <td className="px-1 py-2 text-center">
@@ -304,6 +352,116 @@ async function LeaderboardTableRow({
         ) : null}
       </td>
     </tr>
+  );
+}
+
+async function PlayerPredictionHistory({
+  player,
+  selectedGroupId,
+  locale,
+}: {
+  player: LeaderboardPlayerHistory;
+  selectedGroupId: string | null;
+  locale: string;
+}) {
+  const t = await getTranslations("leaderboard");
+
+  return (
+    <section className="bg-card/55 mt-5 overflow-hidden rounded-2xl border border-white/15 shadow-[0_18px_54px_rgb(3_7_25/0.2)] backdrop-blur-xl">
+      <header className="flex items-start justify-between gap-4 border-b border-white/10 px-4 py-4 sm:px-5">
+        <div className="min-w-0">
+          <h2 className="flex items-center gap-2 text-base font-semibold">
+            {player.isAi ? (
+              <Bot className="text-warning size-4" aria-hidden="true" />
+            ) : null}
+            <span className="truncate"><bdi>{player.displayName}</bdi></span>
+          </h2>
+          <p className="text-muted-foreground mt-1 text-xs">
+            {t("historySubtitle")}
+          </p>
+        </div>
+        <Button asChild size="icon-sm" variant="ghost">
+          <Link
+            href={
+              selectedGroupId
+                ? { pathname: "/leaderboard", query: { group: selectedGroupId } }
+                : "/leaderboard"
+            }
+            aria-label={t("closeHistory")}
+          >
+            <X aria-hidden="true" />
+          </Link>
+        </Button>
+      </header>
+
+      {player.predictions.length === 0 ? (
+        <p className="text-muted-foreground px-4 py-8 text-center text-sm">
+          {t("historyEmpty")}
+        </p>
+      ) : (
+        <div className="divide-y divide-white/10">
+          {player.predictions.map((prediction) => (
+            <Link
+              key={prediction.fixtureId}
+              href={`/matches/${prediction.fixtureId}`}
+              className="grid gap-3 px-4 py-3.5 outline-none transition-colors duration-150 hover:bg-white/[0.035] focus-visible:bg-white/[0.055] sm:grid-cols-[minmax(0,1fr)_auto_auto_auto] sm:items-center sm:px-5"
+            >
+              <span className="min-w-0">
+                <span dir="auto" className="block truncate text-sm font-medium">
+                  {prediction.homeTeam} {t("versus")} {prediction.awayTeam}
+                </span>
+                <span className="text-muted-foreground mt-0.5 block text-xs">
+                  {formatDateTime(locale, prediction.kickoffAt)}
+                </span>
+              </span>
+              <HistoryValue
+                label={t("prediction")}
+                value={`${prediction.predictedHomeGoals}:${prediction.predictedAwayGoals}`}
+              />
+              <HistoryValue
+                label={t("result")}
+                value={
+                  prediction.actualHomeGoals === null ||
+                  prediction.actualAwayGoals === null
+                    ? t("awaitingResult")
+                    : `${prediction.actualHomeGoals}:${prediction.actualAwayGoals}`
+                }
+              />
+              <HistoryValue
+                label={t("points")}
+                value={prediction.points ?? "—"}
+                emphasis
+              />
+            </Link>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function HistoryValue({
+  label,
+  value,
+  emphasis = false,
+}: {
+  label: string;
+  value: string | number;
+  emphasis?: boolean;
+}) {
+  return (
+    <span className="flex items-baseline justify-between gap-3 sm:block sm:min-w-20 sm:text-center">
+      <span className="text-muted-foreground text-[0.65rem]">{label}</span>
+      <span
+        data-numeric
+        className={cn(
+          "ms-2 text-sm font-semibold tabular-nums sm:ms-0 sm:mt-0.5 sm:block",
+          emphasis && "text-primary"
+        )}
+      >
+        {value}
+      </span>
+    </span>
   );
 }
 

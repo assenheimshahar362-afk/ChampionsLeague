@@ -20,6 +20,7 @@ export async function getAdminOverview() {
     scoresResult,
     seasonPicksResult,
     resultsResult,
+    aiUsageResult,
     settings,
   ] = await Promise.all([
     db.auth.admin.listUsers({ page: 1, perPage: 1000 }),
@@ -59,6 +60,10 @@ export async function getAdminOverview() {
         "user_id, champion_awarded_points, scorer_awarded_points, settled_at"
       ),
     db.from("fixture_results").select("fixture_id, released_at"),
+    db
+      .from("ai_prediction_usage")
+      .select("*")
+      .order("created_at", { ascending: false }),
     getGameSettingsAsAdmin(),
   ]);
 
@@ -78,6 +83,7 @@ export async function getAdminOverview() {
     ["prediction scores", scoresResult],
     ["season picks", seasonPicksResult],
     ["fixture results", resultsResult],
+    ["AI prediction usage", aiUsageResult],
   ] as const) {
     if (result.error) {
       throw new Error(`Loading ${label} failed: ${result.error.message}`);
@@ -93,6 +99,7 @@ export async function getAdminOverview() {
   const scores = scoresResult.data ?? [];
   const seasonPicks = seasonPicksResult.data ?? [];
   const results = resultsResult.data ?? [];
+  const aiUsage = aiUsageResult.data ?? [];
 
   const profileById = new Map(profiles.map((row) => [row.id, row]));
   const authById = new Map(authResult.data.users.map((user) => [user.id, user]));
@@ -183,6 +190,9 @@ export async function getAdminOverview() {
         : "pending"
       : "missing",
   }));
+  const adminFixtureById = new Map(
+    adminFixtures.map((fixture) => [fixture.id, fixture])
+  );
 
   const env = serverEnv();
   const totalMatchPoints = scores.reduce(
@@ -221,6 +231,54 @@ export async function getAdminOverview() {
         fixtures
           .map((fixture) => fixture.updated_at)
           .sort((a, b) => b.localeCompare(a))[0] ?? null,
+    },
+    aiCosts: {
+      budgetLimitUsd: env.OPENAI_PREDICTION_BUDGET_USD,
+      budgetCommittedUsd:
+        aiUsage.reduce(
+          (sum, row) => sum + row.budget_charge_microusd,
+          0
+        ) / 1_000_000,
+      totalEstimatedUsd:
+        aiUsage.reduce(
+          (sum, row) => sum + (row.estimated_cost_microusd ?? 0),
+          0
+        ) / 1_000_000,
+      completedCalls: aiUsage.filter((row) => row.status === "completed").length,
+      reservedCalls: aiUsage.filter((row) => row.status === "reserved").length,
+      inputTokens: aiUsage.reduce(
+        (sum, row) => sum + (row.input_tokens ?? 0),
+        0
+      ),
+      outputTokens: aiUsage.reduce(
+        (sum, row) => sum + (row.output_tokens ?? 0),
+        0
+      ),
+      webSearchCalls: aiUsage.reduce(
+        (sum, row) => sum + (row.web_search_calls ?? 0),
+        0
+      ),
+      entries: aiUsage.map((row) => {
+        const fixture = adminFixtureById.get(row.fixture_id);
+        return {
+          id: row.id,
+          fixtureId: row.fixture_id,
+          homeTeam: fixture?.homeTeam ?? "-",
+          awayTeam: fixture?.awayTeam ?? "-",
+          kickoffAt: fixture?.kickoff_at ?? null,
+          model: row.model,
+          inputTokens: row.input_tokens ?? 0,
+          outputTokens: row.output_tokens ?? 0,
+          webSearchCalls: row.web_search_calls ?? 0,
+          estimatedCostUsd:
+            row.estimated_cost_microusd === null
+              ? null
+              : row.estimated_cost_microusd / 1_000_000,
+          reservedCostUsd: row.budget_charge_microusd / 1_000_000,
+          status: row.status,
+          createdAt: row.created_at,
+        };
+      }),
     },
     teamCandidates: (teamCandidatesResult.data ?? []).map((candidate) => ({
       ...candidate,

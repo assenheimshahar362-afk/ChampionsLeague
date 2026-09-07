@@ -1,6 +1,7 @@
 import "server-only";
 
 import { SchemaNotReadyError } from "@/lib/fixtures/queries";
+import { AI_PLAYER_ID, buildAiScoreRows } from "@/lib/leaderboard/ai-player";
 import {
   buildLeaderboard,
   memberIdsForGroup,
@@ -25,6 +26,26 @@ export type LeaderboardView = {
   rows: LeaderboardRow[];
   currentSeason: number | null;
   picksRevealed: boolean;
+  selectedPlayer: LeaderboardPlayerHistory | null;
+};
+
+export type LeaderboardPrediction = {
+  fixtureId: string;
+  kickoffAt: string;
+  homeTeam: string;
+  awayTeam: string;
+  predictedHomeGoals: number;
+  predictedAwayGoals: number;
+  actualHomeGoals: number | null;
+  actualAwayGoals: number | null;
+  points: number | null;
+};
+
+export type LeaderboardPlayerHistory = {
+  userId: string;
+  displayName: string;
+  isAi: boolean;
+  predictions: LeaderboardPrediction[];
 };
 
 type PostgrestFailure = { code?: string; message: string };
@@ -53,7 +74,9 @@ function assertResult(
  */
 export async function getLeaderboard(
   userId: string,
-  requestedGroupId?: string
+  requestedGroupId?: string,
+  requestedPlayerId?: string,
+  locale = "en"
 ): Promise<LeaderboardView> {
   const supabase = await createClient();
 
@@ -128,48 +151,95 @@ export async function getLeaderboard(
         rows: [],
         currentSeason,
         picksRevealed,
+        selectedPlayer: null,
       };
     }
   }
 
   const scoresQuery = supabase
     .from("prediction_scores")
-    .select("user_id, total_points, exact_score, correct_outcome");
+    .select("user_id, fixture_id, total_points, exact_score, correct_outcome");
   const profilesQuery = supabase
     .from("profiles")
     .select("id, display_name, avatar_url");
   const seasonPicksQuery = supabase.rpc(
     "get_visible_leaderboard_season_picks"
   );
+  const startedFixturesQuery = supabase
+    .from("fixtures")
+    .select(
+      "id, kickoff_at, status, home_team_id, away_team_id, home_goals, away_goals, home_win_points, draw_points, away_win_points"
+    )
+    .lte("kickoff_at", new Date().toISOString())
+    .order("kickoff_at", { ascending: false });
+  const aiPredictionsQuery = supabase
+    .from("ai_match_predictions")
+    .select("fixture_id, predicted_home_goals, predicted_away_goals");
+  const teamsQuery = supabase.from("teams").select("id, short_name");
 
-  const [scores, profiles, seasonPicks] = await Promise.all([
+  const [scores, profiles, seasonPicks, startedFixtures, aiPredictions, teams] =
+    await Promise.all([
     memberIds ? scoresQuery.in("user_id", memberIds) : scoresQuery,
     memberIds ? profilesQuery.in("id", memberIds) : profilesQuery,
     memberIds ? seasonPicksQuery.in("user_id", memberIds) : seasonPicksQuery,
+    startedFixturesQuery,
+    aiPredictionsQuery,
+    teamsQuery,
   ]);
 
   for (const [table, result] of [
     ["prediction_scores", scores],
     ["profiles", profiles],
     ["season_picks", seasonPicks],
+    ["fixtures", startedFixtures],
+    ["ai_match_predictions", aiPredictions],
+    ["teams", teams],
   ] as const) {
     assertResult(table, result);
   }
 
+  const aiScores = buildAiScoreRows(
+    (startedFixtures.data ?? []).map((fixture) => ({
+      fixtureId: fixture.id,
+      homeGoals: fixture.home_goals,
+      awayGoals: fixture.away_goals,
+      settled: fixture.status === "finished",
+      outcomePoints: {
+        home: fixture.home_win_points,
+        draw: fixture.draw_points,
+        away: fixture.away_win_points,
+      },
+    })),
+    (aiPredictions.data ?? []).map((prediction) => ({
+      fixtureId: prediction.fixture_id,
+      homeGoals: prediction.predicted_home_goals,
+      awayGoals: prediction.predicted_away_goals,
+    }))
+  );
+  const eligibleUserIds = memberIds ?? (profiles.data ?? []).map((profile) => profile.id);
   const rows = buildLeaderboard({
-    eligibleUserIds:
-      memberIds ?? (profiles.data ?? []).map((profile) => profile.id),
-    profiles: (profiles.data ?? []).map((profile) => ({
+    eligibleUserIds: [...eligibleUserIds, AI_PLAYER_ID],
+    profiles: [
+      ...(profiles.data ?? []).map((profile) => ({
       id: profile.id,
       displayName: profile.display_name,
       avatarUrl: profile.avatar_url,
-    })),
-    scores: (scores.data ?? []).map((score) => ({
-      userId: score.user_id,
-      totalPoints: score.total_points,
-      exactScore: score.exact_score,
-      correctOutcome: score.correct_outcome,
-    })),
+      })),
+      {
+        id: AI_PLAYER_ID,
+        displayName: locale === "he" ? "חזאי AI" : "AI Predictor",
+        avatarUrl: null,
+      },
+    ],
+    scores: [
+      ...(scores.data ?? []).map((score) => ({
+        userId: score.user_id,
+        totalPoints: score.total_points,
+        exactScore: score.exact_score,
+        correctOutcome: score.correct_outcome,
+      })),
+      ...aiScores,
+    ],
     seasonPicks: (seasonPicks.data ?? []).map((pick) => ({
       userId: pick.user_id,
       season: pick.season,
@@ -188,5 +258,99 @@ export async function getLeaderboard(
     picksRevealed,
   });
 
-  return { groups, selectedGroup, rows, currentSeason, picksRevealed };
+  const selectedRow = rows.find((row) => row.userId === requestedPlayerId);
+  let selectedPlayer: LeaderboardPlayerHistory | null = null;
+  if (selectedRow) {
+    const predictions =
+      selectedRow.userId === AI_PLAYER_ID
+        ? (aiPredictions.data ?? []).map((prediction) => ({
+            fixture_id: prediction.fixture_id,
+            home_goals: prediction.predicted_home_goals,
+            away_goals: prediction.predicted_away_goals,
+          }))
+        : await loadPlayerPredictions(supabase, selectedRow.userId);
+    const fixtureById = new Map(
+      (startedFixtures.data ?? []).map((fixture) => [fixture.id, fixture])
+    );
+    const teamById = new Map(
+      (teams.data ?? []).map((team) => [team.id, team.short_name])
+    );
+    const humanScoreByFixture = new Map(
+      (scores.data ?? [])
+        .filter((score) => score.user_id === selectedRow.userId)
+        .map((score) => [score.fixture_id, score.total_points])
+    );
+    const aiScoreByFixture = new Map(
+      (aiPredictions.data ?? []).flatMap((prediction) => {
+        const fixture = fixtureById.get(prediction.fixture_id);
+        if (!fixture || fixture.home_goals === null || fixture.away_goals === null) {
+          return [];
+        }
+        const score = buildAiScoreRows(
+          [{
+            fixtureId: fixture.id,
+            homeGoals: fixture.home_goals,
+            awayGoals: fixture.away_goals,
+            settled: fixture.status === "finished",
+            outcomePoints: {
+              home: fixture.home_win_points,
+              draw: fixture.draw_points,
+              away: fixture.away_win_points,
+            },
+          }],
+          [{
+            fixtureId: prediction.fixture_id,
+            homeGoals: prediction.predicted_home_goals,
+            awayGoals: prediction.predicted_away_goals,
+          }]
+        )[0];
+        return score ? [[prediction.fixture_id, score.totalPoints] as const] : [];
+      })
+    );
+
+    selectedPlayer = {
+      userId: selectedRow.userId,
+      displayName: selectedRow.displayName,
+      isAi: selectedRow.userId === AI_PLAYER_ID,
+      predictions: predictions.flatMap((prediction) => {
+        const fixture = fixtureById.get(prediction.fixture_id);
+        if (!fixture) return [];
+        return [{
+          fixtureId: fixture.id,
+          kickoffAt: fixture.kickoff_at,
+          homeTeam: teamById.get(fixture.home_team_id) ?? "-",
+          awayTeam: teamById.get(fixture.away_team_id) ?? "-",
+          predictedHomeGoals: prediction.home_goals,
+          predictedAwayGoals: prediction.away_goals,
+          actualHomeGoals: fixture.home_goals,
+          actualAwayGoals: fixture.away_goals,
+          points:
+            selectedRow.userId === AI_PLAYER_ID
+              ? (aiScoreByFixture.get(fixture.id) ?? null)
+              : (humanScoreByFixture.get(fixture.id) ?? null),
+        }];
+      }).sort((left, right) => right.kickoffAt.localeCompare(left.kickoffAt)),
+    };
+  }
+
+  return {
+    groups,
+    selectedGroup,
+    rows,
+    currentSeason,
+    picksRevealed,
+    selectedPlayer,
+  };
+}
+
+async function loadPlayerPredictions(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  playerId: string
+) {
+  const result = await supabase
+    .from("predictions")
+    .select("fixture_id, home_goals, away_goals")
+    .eq("user_id", playerId);
+  assertResult("predictions", result);
+  return result.data ?? [];
 }

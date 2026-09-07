@@ -18,7 +18,12 @@ const serverSchema = z.object({
   FOOTBALL_DATA_API_TOKEN: z.string().min(1).optional(),
   FOOTBALL_DATA_BASE_URL: z.url().default("https://api.football-data.org/v4"),
   OPENAI_API_KEY: z.string().min(1).optional(),
-  OPENAI_MODEL: z.string().min(1).default("gpt-5-mini"),
+  OPENAI_MODEL: z.string().min(1).default("gpt-5.6-luna"),
+  OPENAI_PREDICTION_BUDGET_USD: z.coerce
+    .number()
+    .positive()
+    .max(100)
+    .default(5),
   CRON_SECRET: z.string().min(16, "use at least 16 characters"),
   APP_ADMIN_EMAILS: z.string().default(""),
 
@@ -61,6 +66,8 @@ export function serverEnv(): ServerEnv {
     FOOTBALL_DATA_BASE_URL: process.env.FOOTBALL_DATA_BASE_URL,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
     OPENAI_MODEL: process.env.OPENAI_MODEL,
+    OPENAI_PREDICTION_BUDGET_USD:
+      process.env.OPENAI_PREDICTION_BUDGET_USD,
     CRON_SECRET: process.env.CRON_SECRET,
     APP_ADMIN_EMAILS: process.env.APP_ADMIN_EMAILS,
     FOOTBALL_DATA_SEASON: process.env.FOOTBALL_DATA_SEASON,

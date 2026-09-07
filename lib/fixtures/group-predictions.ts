@@ -1,5 +1,6 @@
 import "server-only";
 
+import { AI_PLAYER_ID } from "@/lib/leaderboard/ai-player";
 import { createClient } from "@/lib/supabase/server";
 
 export type PredictionGroup = { id: string; name: string };
@@ -22,7 +23,8 @@ export type FixtureGroupPredictions = {
 export async function getFixtureGroupPredictions(
   userId: string,
   fixtureId: string,
-  requestedGroupId?: string
+  requestedGroupId?: string,
+  locale = "en"
 ): Promise<FixtureGroupPredictions> {
   const db = await createClient();
   const { data: mine, error: mineError } = await db
@@ -63,7 +65,7 @@ export async function getFixtureGroupPredictions(
   const memberIds = (memberships ?? []).map((row) => row.user_id);
   if (memberIds.length === 0) return { groups, selectedGroup, rows: [] };
 
-  const [profiles, predictions, scores] = await Promise.all([
+  const [profiles, predictions, scores, aiPrediction] = await Promise.all([
     db
       .from("profiles")
       .select("id, display_name, avatar_url")
@@ -78,6 +80,11 @@ export async function getFixtureGroupPredictions(
       .select("user_id, total_points")
       .eq("fixture_id", fixtureId)
       .in("user_id", memberIds),
+    db
+      .from("ai_match_predictions")
+      .select("predicted_home_goals, predicted_away_goals")
+      .eq("fixture_id", fixtureId)
+      .maybeSingle(),
   ]);
 
   if (profiles.error) {
@@ -89,6 +96,9 @@ export async function getFixtureGroupPredictions(
   if (scores.error) {
     throw new Error(`Loading group prediction scores failed: ${scores.error.message}`);
   }
+  if (aiPrediction.error) {
+    throw new Error(`Loading AI group prediction failed: ${aiPrediction.error.message}`);
+  }
 
   const predictionByUser = new Map(
     (predictions.data ?? []).map((row) => [row.user_id, row])
@@ -96,7 +106,7 @@ export async function getFixtureGroupPredictions(
   const scoreByUser = new Map(
     (scores.data ?? []).map((row) => [row.user_id, row.total_points])
   );
-  const rows = (profiles.data ?? [])
+  const rows: GroupFixturePrediction[] = (profiles.data ?? [])
     .map((profile) => {
       const prediction = predictionByUser.get(profile.id);
       return {
@@ -113,6 +123,17 @@ export async function getFixtureGroupPredictions(
         (a.userId === userId ? -1 : b.userId === userId ? 1 : 0) ||
         a.nickname.localeCompare(b.nickname)
     );
+
+  if (aiPrediction.data) {
+    rows.push({
+      userId: AI_PLAYER_ID,
+      nickname: locale === "he" ? "חזאי AI" : "AI Predictor",
+      avatarUrl: null,
+      homeGoals: aiPrediction.data.predicted_home_goals,
+      awayGoals: aiPrediction.data.predicted_away_goals,
+      settledPoints: null,
+    });
+  }
 
   return { groups, selectedGroup, rows };
 }

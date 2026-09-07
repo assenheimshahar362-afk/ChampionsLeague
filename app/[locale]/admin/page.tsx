@@ -1,6 +1,7 @@
 import {
   Activity,
   CalendarClock,
+  Coins,
   Database,
   Gauge,
   Settings2,
@@ -49,6 +50,7 @@ type View =
   | "groups"
   | "fixtures"
   | "rules"
+  | "aiCosts"
   | "operations";
 
 const VIEWS: View[] = [
@@ -57,6 +59,7 @@ const VIEWS: View[] = [
   "groups",
   "fixtures",
   "rules",
+  "aiCosts",
   "operations",
 ];
 
@@ -88,6 +91,7 @@ export default async function AdminPage({
     ["groups", UserRoundCog, t("groups")],
     ["fixtures", CalendarClock, t("fixtures")],
     ["rules", Trophy, t("rules")],
+    ["aiCosts", Coins, t("aiCosts")],
     ["operations", Database, t("operations")],
   ] as const;
 
@@ -139,6 +143,7 @@ export default async function AdminPage({
           {view === "groups" ? <Groups data={data} /> : null}
           {view === "fixtures" ? <Fixtures data={data} locale={locale} /> : null}
           {view === "rules" ? <RulesAndScoring data={data} locale={locale} /> : null}
+          {view === "aiCosts" ? <AiCosts data={data} locale={locale} /> : null}
           {view === "operations" ? (
             <Operations data={data} locale={locale} />
           ) : null}
@@ -566,6 +571,81 @@ async function RulesAndScoring({ data, locale }: { data: AdminData; locale: stri
   );
 }
 
+async function AiCosts({ data, locale }: { data: AdminData; locale: string }) {
+  const t = await getTranslations("admin.aiCostAdmin");
+  const number = new Intl.NumberFormat(locale === "he" ? "he-IL" : "en-GB");
+
+  return (
+    <div className="mt-6 space-y-8">
+      <SectionIntro title={t("title")} body={t("body")} />
+
+      <section className="grid grid-cols-2 gap-x-6 gap-y-5 border-y border-white/10 py-5 lg:grid-cols-5">
+        <OperationCard
+          label={t("estimatedTotal")}
+          value={formatUsd(data.aiCosts.totalEstimatedUsd)}
+        />
+        <OperationCard
+          label={t("budget")}
+          value={t("budgetValue", {
+            used: formatUsd(data.aiCosts.budgetCommittedUsd),
+            limit: formatUsd(data.aiCosts.budgetLimitUsd),
+          })}
+        />
+        <OperationCard
+          label={t("inputTokens")}
+          value={number.format(data.aiCosts.inputTokens)}
+        />
+        <OperationCard
+          label={t("outputTokens")}
+          value={number.format(data.aiCosts.outputTokens)}
+        />
+        <OperationCard
+          label={t("webSearches")}
+          value={number.format(data.aiCosts.webSearchCalls)}
+        />
+      </section>
+
+      <section aria-label={t("entries")} className="divide-y divide-white/10 border-y border-white/10">
+        {data.aiCosts.entries.length === 0 ? (
+          <p className="text-muted-foreground py-10 text-center text-sm">
+            {t("empty")}
+          </p>
+        ) : (
+          data.aiCosts.entries.map((entry) => (
+            <article key={entry.id} className="grid gap-4 py-5 lg:grid-cols-[minmax(12rem,1.3fr)_repeat(4,minmax(7rem,0.7fr))] lg:items-center">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="truncate text-sm font-semibold" dir="auto">
+                    {entry.homeTeam} {t("versus")} {entry.awayTeam}
+                  </h3>
+                  <SmallChip>{entry.model}</SmallChip>
+                  <StatusChip
+                    active={entry.status === "completed"}
+                    activeLabel={t("completed")}
+                    inactiveLabel={t("reserved")}
+                  />
+                </div>
+                <p className="text-muted-foreground mt-1 text-xs">
+                  {formatDateTime(locale, entry.kickoffAt)} · {t("generated", {
+                    date: formatDateTime(locale, entry.createdAt),
+                  })}
+                </p>
+              </div>
+              <UsageValue label={t("input")} value={number.format(entry.inputTokens)} />
+              <UsageValue label={t("output")} value={number.format(entry.outputTokens)} />
+              <UsageValue label={t("searches")} value={number.format(entry.webSearchCalls)} />
+              <UsageValue
+                label={entry.estimatedCostUsd === null ? t("reservedCost") : t("estimatedCost")}
+                value={formatUsd(entry.estimatedCostUsd ?? entry.reservedCostUsd)}
+              />
+            </article>
+          ))
+        )}
+      </section>
+    </div>
+  );
+}
+
 async function Operations({ data, locale }: { data: AdminData; locale: string }) {
   const t = await getTranslations("admin");
 
@@ -670,6 +750,15 @@ function OperationCard({ label, value }: { label: string; value: ReactNode }) {
   );
 }
 
+function UsageValue({ label, value }: { label: string; value: ReactNode }) {
+  return (
+    <div className="flex items-baseline justify-between gap-4 lg:block">
+      <p className="text-muted-foreground text-xs">{label}</p>
+      <p data-numeric className="mt-1 text-sm font-semibold tabular-nums">{value}</p>
+    </div>
+  );
+}
+
 function CandidateList({ title, saveLabel, kind, candidates }: { title: string; saveLabel: string; kind: "team" | "player"; candidates: Array<{ id: string | number; season: number; name: string; points: number }> }) {
   return (
     <section>
@@ -712,4 +801,13 @@ function formatDateTime(locale: string, value: string | null) {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(value));
+}
+
+function formatUsd(value: number) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 3,
+    maximumFractionDigits: 4,
+  }).format(value);
 }

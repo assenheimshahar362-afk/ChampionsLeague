@@ -620,6 +620,7 @@ export type Database = {
           summary_he: string;
           key_factors_en: Json;
           key_factors_he: Json;
+          sources: Json;
           model: string;
           source_snapshot: Json;
           generated_at: string;
@@ -636,6 +637,7 @@ export type Database = {
           summary_he: string;
           key_factors_en: Json;
           key_factors_he: Json;
+          sources?: Json;
           model: string;
           source_snapshot: Json;
           generated_at?: string;
@@ -651,9 +653,51 @@ export type Database = {
           summary_he?: string;
           key_factors_en?: Json;
           key_factors_he?: Json;
+          sources?: Json;
           model?: string;
           source_snapshot?: Json;
           generated_at?: string;
+        };
+        Relationships: [];
+      };
+
+      ai_prediction_usage: {
+        Row: {
+          id: string;
+          model: string;
+          fixture_id: string;
+          budget_charge_microusd: number;
+          estimated_cost_microusd: number | null;
+          input_tokens: number | null;
+          cached_input_tokens: number | null;
+          output_tokens: number | null;
+          web_search_calls: number | null;
+          status: "reserved" | "completed";
+          created_at: string;
+          completed_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          model: string;
+          fixture_id: string;
+          budget_charge_microusd: number;
+          estimated_cost_microusd?: number | null;
+          input_tokens?: number | null;
+          cached_input_tokens?: number | null;
+          output_tokens?: number | null;
+          web_search_calls?: number | null;
+          status?: "reserved" | "completed";
+          created_at?: string;
+          completed_at?: string | null;
+        };
+        Update: {
+          estimated_cost_microusd?: number | null;
+          input_tokens?: number | null;
+          cached_input_tokens?: number | null;
+          output_tokens?: number | null;
+          web_search_calls?: number | null;
+          status?: "reserved" | "completed";
+          completed_at?: string | null;
         };
         Relationships: [];
       };
@@ -849,6 +893,15 @@ export type Database = {
     };
     Views: Record<never, never>;
     Functions: {
+      reserve_ai_prediction_budget: {
+        Args: {
+          budget_microusd: number;
+          charge_microusd: number;
+          model_name: string;
+          prediction_fixture_id: string;
+        };
+        Returns: string | null;
+      };
       claim_football_data_request: {
         Args: { request_kind?: "background" | "live" };
         Returns: number;

@@ -2,7 +2,7 @@
 
 import { BrainCircuit, ChevronDown, Info } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import type { CSSProperties, ReactNode } from "react";
+import { useState, type CSSProperties, type ReactNode } from "react";
 
 import { LockCountdown } from "@/components/match/lock-countdown";
 import { GuessChip, ScoreBox } from "@/components/match/score-box";
@@ -37,6 +37,21 @@ import { cn } from "@/lib/utils";
 
 /** How the middle column is behaving right now. */
 type Middle = "open" | "signedOut" | "played";
+
+export type EditablePrediction = {
+  fixtureId: string;
+  homeGoals: number | null;
+  awayGoals: number | null;
+};
+
+function isCompletePrediction(
+  prediction: EditablePrediction | undefined
+): prediction is Prediction {
+  return (
+    typeof prediction?.homeGoals === "number" &&
+    typeof prediction.awayGoals === "number"
+  );
+}
 
 /**
  * A club's crest, centred in its half of the row.
@@ -137,7 +152,7 @@ export function MatchCard({
   onChange,
 }: {
   fixture: Fixture;
-  prediction: Prediction | undefined;
+  prediction: EditablePrediction | undefined;
   aiPrediction?: AiPrediction;
   /** The fixture has kicked off. Authority is the RLS policy (§11). */
   locked: boolean;
@@ -150,12 +165,15 @@ export function MatchCard({
   const t = useTranslations("match");
 
   const inPlay = isInPlay(fixture);
-  const breakdown = prediction
-    ? projectedPoints(prediction, fixture)
+  const completePrediction = isCompletePrediction(prediction)
+    ? prediction
+    : undefined;
+  const breakdown = completePrediction
+    ? projectedPoints(completePrediction, fixture)
     : null;
 
   const middle: Middle = locked ? "played" : canPredict ? "open" : "signedOut";
-  const answered = prediction !== undefined && !locked;
+  const answered = completePrediction !== undefined && !locked;
 
   /*
    * The middle column, stacked: what the clock says on top, what it means
@@ -282,11 +300,11 @@ export function MatchCard({
       {/* What was called, once it can no longer be changed. Rendered only when
           it has something to say — an always-present line of grey text under
           eighteen cards is furniture, not information. */}
-      {locked && prediction ? (
+      {locked && completePrediction ? (
         <p className="text-muted-foreground mx-3 border-t py-1.5 text-center text-[11px]">
           <span dir="ltr">
             {t("youPredicted", {
-              score: `${prediction.homeGoals}–${prediction.awayGoals}`,
+              score: `${completePrediction.homeGoals}–${completePrediction.awayGoals}`,
             })}
           </span>
         </p>
@@ -307,6 +325,7 @@ function AiPredictionPanel({
   fixture: Fixture;
 }) {
   const t = useTranslations("match.aiPrediction");
+  const locale = useLocale();
   const probabilities = [
     {
       label: fixture.homeTeam.shortName,
@@ -329,12 +348,23 @@ function AiPredictionPanel({
           <span className="text-primary block text-[10px] font-bold tracking-wide uppercase">
             {t("title")}
           </span>
-          <span className="block text-sm font-bold" dir="auto">
-            {fixture.homeTeam.shortName}{" "}
+          <span
+            className="grid grid-cols-[minmax(0,1fr)_auto_auto_auto_minmax(0,1fr)] items-baseline gap-1 text-sm font-bold"
+            dir={locale}
+          >
+            <span className="truncate" dir="auto">
+              {fixture.homeTeam.shortName}
+            </span>
             <span dir="ltr" data-numeric>
-              {prediction.predictedHomeGoals}-{prediction.predictedAwayGoals}
-            </span>{" "}
-            {fixture.awayTeam.shortName}
+              {prediction.predictedHomeGoals}
+            </span>
+            <span aria-hidden="true">-</span>
+            <span dir="ltr" data-numeric>
+              {prediction.predictedAwayGoals}
+            </span>
+            <span className="truncate" dir="auto">
+              {fixture.awayTeam.shortName}
+            </span>
           </span>
         </span>
         <span className="text-muted-foreground text-[11px]">
@@ -434,36 +464,55 @@ function PredictionInputs({
   onChange,
 }: {
   fixture: Fixture;
-  prediction: Prediction | undefined;
+  prediction: EditablePrediction | undefined;
   disabled: boolean;
   onChange: (homeGoals: number | null, awayGoals: number | null) => void;
 }) {
   const t = useTranslations("match");
+  const [activeSide, setActiveSide] = useState<"home" | "away" | null>(null);
+
+  function selectScore(side: "home" | "away", score: number) {
+    const homeGoals = side === "home" ? score : (prediction?.homeGoals ?? null);
+    const awayGoals = side === "away" ? score : (prediction?.awayGoals ?? null);
+    onChange(homeGoals, awayGoals);
+
+    const otherSide = side === "home" ? "away" : "home";
+    const otherScore = side === "home" ? awayGoals : homeGoals;
+    setActiveSide(otherScore === null ? otherSide : null);
+  }
 
   const boxes = (
     <>
       <ScoreBox
         value={prediction?.homeGoals ?? null}
         disabled={disabled}
+        open={activeSide === "home"}
+        onOpenChange={(open) => setActiveSide(open ? "home" : null)}
         highlight={
-          prediction !== undefined && prediction.homeGoals > prediction.awayGoals
+          typeof prediction?.homeGoals === "number" &&
+          typeof prediction.awayGoals === "number" &&
+          prediction.homeGoals > prediction.awayGoals
         }
-        filled={prediction !== undefined}
+        filled={typeof prediction?.homeGoals === "number"}
         label={t("goalsFor", { team: fixture.homeTeam.shortName })}
         className="w-9 rounded-e-none border-e-0 sm:w-11"
-        onChange={(next) => onChange(next, prediction?.awayGoals ?? null)}
+        onSelect={(next) => selectScore("home", next)}
       />
       <GuessChip locked={disabled} label={t("guess")} />
       <ScoreBox
         value={prediction?.awayGoals ?? null}
         disabled={disabled}
+        open={activeSide === "away"}
+        onOpenChange={(open) => setActiveSide(open ? "away" : null)}
         highlight={
-          prediction !== undefined && prediction.awayGoals > prediction.homeGoals
+          typeof prediction?.homeGoals === "number" &&
+          typeof prediction.awayGoals === "number" &&
+          prediction.awayGoals > prediction.homeGoals
         }
-        filled={prediction !== undefined}
+        filled={typeof prediction?.awayGoals === "number"}
         label={t("goalsFor", { team: fixture.awayTeam.shortName })}
         className="w-9 rounded-s-none border-s-0 sm:w-11"
-        onChange={(next) => onChange(prediction?.homeGoals ?? null, next)}
+        onSelect={(next) => selectScore("away", next)}
       />
     </>
   );

@@ -395,6 +395,24 @@ export async function getAiPredictions(
   const byFixture: Record<string, AiPrediction> = {};
   for (const row of data ?? []) {
     const factors = locale === "he" ? row.key_factors_he : row.key_factors_en;
+    const sources = Array.isArray(row.sources)
+      ? row.sources.flatMap((source) => {
+          if (
+            typeof source !== "object" ||
+            source === null ||
+            Array.isArray(source) ||
+            typeof source.title !== "string" ||
+            typeof source.url !== "string"
+          ) return [];
+          try {
+            const url = new URL(source.url);
+            if (url.protocol !== "https:" && url.protocol !== "http:") return [];
+            return [{ title: source.title, url: url.toString() }];
+          } catch {
+            return [];
+          }
+        })
+      : [];
     byFixture[row.fixture_id] = {
       fixtureId: row.fixture_id,
       predictedHomeGoals: row.predicted_home_goals,
@@ -407,6 +425,7 @@ export async function getAiPredictions(
       keyFactors: Array.isArray(factors)
         ? factors.filter((factor): factor is string => typeof factor === "string")
         : [],
+      sources,
       generatedAt: row.generated_at,
     };
   }
