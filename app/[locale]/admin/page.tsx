@@ -39,12 +39,12 @@ import {
   adminUpdateAiPlayerAvatar,
   adminUpdateAiPlayerName,
   adminUpdateCandidatePoints,
-  adminUpdateFixtureKickoff,
   adminUpdateGameSettings,
   adminUpdateNickname,
 } from "@/lib/admin/actions";
 import { requireAdmin } from "@/lib/admin/auth";
 import { getAdminOverview } from "@/lib/admin/queries";
+import { roundLabelFor } from "@/lib/fixtures/labels";
 import { cn } from "@/lib/utils";
 
 type AdminData = Awaited<ReturnType<typeof getAdminOverview>>;
@@ -597,6 +597,14 @@ async function Groups({ data }: { data: AdminData }) {
 
 async function Fixtures({ data, locale }: { data: AdminData; locale: string }) {
   const t = await getTranslations("admin");
+  const matchT = await getTranslations("match");
+  const roundGroups = new Map<string, typeof data.fixtures>();
+  for (const fixture of data.fixtures) {
+    const key = `${fixture.season}:${fixture.round}`;
+    const group = roundGroups.get(key);
+    if (group) group.push(fixture);
+    else roundGroups.set(key, [fixture]);
+  }
 
   return (
     <section className="mt-6" aria-labelledby="fixtures-heading">
@@ -605,53 +613,76 @@ async function Fixtures({ data, locale }: { data: AdminData; locale: string }) {
         title={t("fixtureAdmin.title")}
         body={t("fixtureAdmin.body")}
       />
-      <div className="mt-4 max-h-[62rem] overflow-y-auto border-t border-white/10">
-        {data.fixtures.map((fixture) => {
-          return (
-            <article
-              key={fixture.id}
-              className="border-b border-white/10 p-3 last:border-0"
-            >
-              <form
-                action={adminUpdateFixtureKickoff}
-                className="grid gap-3 md:grid-cols-[minmax(0,1fr)_13rem_auto] md:items-center"
-              >
-                <input type="hidden" name="fixtureId" value={fixture.id} />
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold" dir="auto">
-                    {fixture.homeTeam} <span className="text-muted-foreground px-1">–</span> {fixture.awayTeam}
-                  </p>
-                  <p className="text-muted-foreground mt-0.5 text-xs">
-                    {fixture.round} · {formatDateTime(locale, fixture.kickoff_at)}
-                  </p>
-                  <div className="mt-1 flex flex-wrap gap-1.5">
-                    <SmallChip>{t(`fixtureStatus.${fixture.status}`)}</SmallChip>
-                    <SmallChip>{t(`resultState.${fixture.resultState}`)}</SmallChip>
-                    {fixture.home_goals !== null ? (
-                      <SmallChip>{fixture.home_goals}–{fixture.away_goals}</SmallChip>
-                    ) : null}
-                  </div>
-                </div>
-                <Input
-                  name="kickoffAt"
-                  defaultValue={fixture.kickoff_at}
-                  required
-                  dir="ltr"
-                  aria-label={t("fixtureAdmin.kickoff")}
-                />
-                <Button type="submit" size="sm">{t("fixtureAdmin.update")}</Button>
-              </form>
+      <div className="mt-5 space-y-8">
+        {[...roundGroups.entries()].map(([roundKey, fixtures]) => {
+          const first = fixtures[0]!;
+          const label = roundLabelFor(first.stage, first.round);
+          const dayGroups = new Map<string, typeof fixtures>();
+          for (const fixture of fixtures) {
+            const day = formatFixtureDay(locale, fixture.kickoff_at);
+            const group = dayGroups.get(day);
+            if (group) group.push(fixture);
+            else dayGroups.set(day, [fixture]);
+          }
 
-              {fixture.aiPredictionEligible ? (
-                <div className="mt-3 border-t border-white/10 pt-3">
-                  <AiFixturePredictionRunner
-                    fixtureId={fixture.id}
-                    currentModel={fixture.aiPredictionModel}
-                    currentEstimatedCostUsd={fixture.aiPredictionEstimatedCostUsd}
-                  />
+          return (
+            <section key={roundKey} className="space-y-4">
+              <h3 className="text-lg font-bold">
+                {matchT(`rounds.${label.key}`, label.values)}
+              </h3>
+              {[...dayGroups.entries()].map(([day, dayFixtures]) => (
+                <div key={day}>
+                  <div className="mb-2 flex">
+                    <h4 className="bg-secondary text-secondary-foreground rounded-lg px-3 py-1.5 text-sm font-semibold">
+                      {day}
+                    </h4>
+                  </div>
+                  <ul className="space-y-2.5">
+                    {dayFixtures.map((fixture) => (
+                      <li
+                        key={fixture.id}
+                        className="bg-card/55 overflow-hidden rounded-lg border border-white/15 shadow-[0_10px_28px_rgb(8_4_24/0.2)]"
+                      >
+                        <div className="from-primary/16 to-primary/5 border-primary/20 grid grid-cols-[minmax(0,1fr)_8rem_minmax(0,1fr)] items-center gap-2 border-b bg-gradient-to-b px-3 py-3 sm:px-5">
+                          <p className="truncate text-sm font-semibold" dir="auto">
+                            {fixture.homeTeam}
+                          </p>
+                          <div className="border-primary/15 flex flex-col items-center gap-1 border-x px-2 text-center">
+                            <span className="text-sm font-bold" data-numeric>
+                              {new Date(fixture.kickoff_at).toLocaleTimeString(locale, {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </span>
+                            {fixture.home_goals !== null ? (
+                              <span className="text-xs font-semibold" dir="ltr" data-numeric>
+                                {fixture.home_goals}–{fixture.away_goals}
+                              </span>
+                            ) : (
+                              <SmallChip>{t(`fixtureStatus.${fixture.status}`)}</SmallChip>
+                            )}
+                          </div>
+                          <p className="truncate text-sm font-semibold" dir="auto">
+                            {fixture.awayTeam}
+                          </p>
+                        </div>
+
+                        {fixture.aiPredictionAvailability !== "closed" ? (
+                          <div className="p-3 sm:px-5">
+                            <AiFixturePredictionRunner
+                              fixtureId={fixture.id}
+                              currentModel={fixture.aiPredictionModel}
+                              currentEstimatedCostUsd={fixture.aiPredictionEstimatedCostUsd}
+                              eligible={fixture.aiPredictionAvailability === "eligible"}
+                            />
+                          </div>
+                        ) : null}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-              ) : null}
-            </article>
+              ))}
+            </section>
           );
         })}
       </div>
@@ -949,6 +980,14 @@ function formatDateTime(locale: string, value: string | null) {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(value));
+}
+
+function formatFixtureDay(locale: string, value: string) {
+  return new Date(value).toLocaleDateString(locale, {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
 }
 
 function formatUsd(value: number) {

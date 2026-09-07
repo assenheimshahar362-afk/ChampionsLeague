@@ -253,22 +253,6 @@ export async function adminRemoveGroupMember(formData: FormData): Promise<void> 
   revalidatePath("/", "layout");
 }
 
-export async function adminUpdateFixtureKickoff(
-  formData: FormData
-): Promise<void> {
-  await adminUser();
-  const fixtureId = z.uuid().parse(formData.get("fixtureId"));
-  const kickoffAt = z.iso
-    .datetime({ offset: true })
-    .parse(formData.get("kickoffAt"));
-  const { error } = await createServiceRoleClient()
-    .from("fixtures")
-    .update({ kickoff_at: kickoffAt })
-    .eq("id", fixtureId);
-  if (error) throw new Error(`Updating fixture kickoff failed: ${error.message}`);
-  revalidatePath("/", "layout");
-}
-
 export async function adminUpdateGameSettings(formData: FormData): Promise<void> {
   const admin = await adminUser();
   const parsed = z

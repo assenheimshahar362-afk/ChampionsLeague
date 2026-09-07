@@ -6,6 +6,11 @@ import {
 } from "@/lib/admin/completeness";
 import { serverEnv } from "@/lib/env.server";
 import { groupPaymentSettingsFromRow } from "@/lib/groups/payment";
+import { aiPredictionFixtureAvailability } from "@/lib/ai-predictions/horizon";
+import {
+  currentAndFutureRoundItems,
+  currentRoundSelection,
+} from "@/lib/fixtures/schedule";
 import { getGameSettingsAsAdmin } from "@/lib/scoring/settings";
 import type { Database } from "@/lib/supabase/database.types";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
@@ -288,13 +293,12 @@ export async function getAdminOverview() {
   });
 
   const predictionWindowStart = Date.now();
-  const predictionWindowEnd = predictionWindowStart + 48 * 60 * 60_000;
   const adminFixtures = fixtures.map((fixture) => {
     const aiPrediction = aiPredictionByFixture.get(fixture.id);
     const aiUsage = latestCompletedAiUsageByFixture.get(fixture.id);
-    const kickoff = new Date(fixture.kickoff_at).getTime();
     return {
       ...fixture,
+      kickoffAt: fixture.kickoff_at,
       homeTeam: teamById.get(fixture.home_team_id)?.short_name ?? "-",
       awayTeam: teamById.get(fixture.away_team_id)?.short_name ?? "-",
       resultState: releasedByFixture.has(fixture.id)
@@ -308,15 +312,23 @@ export async function getAdminOverview() {
         aiUsage?.estimated_cost_microusd === null || aiUsage === undefined
           ? null
           : aiUsage.estimated_cost_microusd / 1_000_000,
-      aiPredictionEligible:
-        fixture.status === "scheduled" &&
-        kickoff > predictionWindowStart &&
-        kickoff <= predictionWindowEnd,
+      aiPredictionAvailability: aiPredictionFixtureAvailability(
+        fixture.status,
+        fixture.kickoff_at,
+        predictionWindowStart
+      ),
     };
   });
   const adminFixtureById = new Map(
     adminFixtures.map((fixture) => [fixture.id, fixture])
   );
+  const fixtureScheduleSelection = currentRoundSelection(
+    adminFixtures,
+    predictionWindowStart
+  );
+  const fixtureSchedule = fixtureScheduleSelection
+    ? currentAndFutureRoundItems(adminFixtures, fixtureScheduleSelection)
+    : [];
 
   const totalMatchPoints = scores.reduce(
     (sum, score) => sum + score.total_points,
@@ -347,7 +359,7 @@ export async function getAdminOverview() {
     users,
     openPredictionFixtures,
     groups: adminGroups,
-    fixtures: adminFixtures,
+    fixtures: fixtureSchedule,
     settings,
     operations: {
       season: env.FOOTBALL_DATA_SEASON,

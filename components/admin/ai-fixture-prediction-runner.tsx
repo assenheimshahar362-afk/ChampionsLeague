@@ -30,10 +30,12 @@ export function AiFixturePredictionRunner({
   fixtureId,
   currentModel,
   currentEstimatedCostUsd,
+  eligible,
 }: {
   fixtureId: string;
   currentModel: string | null;
   currentEstimatedCostUsd: number | null;
+  eligible: boolean;
 }) {
   const t = useTranslations("admin.fixtureAdmin");
   const initialModel = AI_PREDICTION_MODELS.some(
@@ -69,12 +71,20 @@ export function AiFixturePredictionRunner({
           ))}
         </select>
       </label>
-      <Button type="submit" size="sm" disabled={pending} className="self-end">
+      <Button
+        type="submit"
+        size="sm"
+        disabled={pending || !eligible}
+        className="self-end"
+      >
         <Sparkles aria-hidden="true" />
         {pending ? t("predicting") : t("predictNow")}
       </Button>
       <div className="text-muted-foreground text-[0.7rem] sm:col-span-2">
         <p>{t("estimatedBefore", { cost: formatUsd(beforeUsd) })}</p>
+        {!eligible ? (
+          <p className="text-warning mt-1">{t("availableWithinHorizon")}</p>
+        ) : null}
         {state.status === "success" ? (
           <p className="text-success mt-1" role="status">
             {t("estimatedAfter", {

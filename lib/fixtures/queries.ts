@@ -7,6 +7,7 @@ import {
   teamTranslationKey,
   type PlayerNameTranslations,
 } from "@/lib/fixtures/localization";
+import { currentAndFutureRoundItems } from "@/lib/fixtures/schedule";
 import type {
   AiPrediction,
   Fixture,
@@ -256,11 +257,7 @@ export async function getCurrentAndFutureRoundFixtures(
   const fixtures = (data ?? [])
     .map((record) => toFixture(record, teams))
     .filter((fixture) => fixture !== null);
-  const roundOrder = [...new Set(fixtures.map((fixture) => fixture.round))];
-  const selectedIndex = roundOrder.indexOf(selected.round);
-  const remainingRounds = new Set(roundOrder.slice(Math.max(0, selectedIndex)));
-
-  return fixtures.filter((fixture) => remainingRounds.has(fixture.round));
+  return currentAndFutureRoundItems(fixtures, selected);
 }
 
 /** One public fixture for the match-detail route. */
