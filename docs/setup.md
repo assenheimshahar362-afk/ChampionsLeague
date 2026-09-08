@@ -30,8 +30,8 @@ administrators before every release.
 
 ## 2. Apply the schema
 
-The schema is versioned in `supabase/migrations/`. Apply every unapplied
-migration in filename order with the Supabase CLI:
+The complete schema is defined by the single
+`supabase/migrations/0001_init.sql` bootstrap. Apply it with the Supabase CLI:
 
 ```bash
 npx supabase login
@@ -54,7 +54,7 @@ drops and recreates `public`, so never run it again against an existing project.
 Auth accounts are preserved, but game data and manually edited profile fields
 are erased.
 
-Confirm it worked - after both migrations this should list twenty tables:
+Confirm it worked — this should list twenty-one tables:
 
 ```sql
 select table_name from information_schema.tables
@@ -64,7 +64,8 @@ where table_schema = 'public' order by table_name;
 Expect `ai_match_predictions`, `ai_prediction_usage`, `fixture_details`,
 `fixture_recent_form`, `fixture_results`, `fixtures`, `game_settings`,
 `group_join_requests`, `group_members`, `groups`, `prediction_scores`,
-`predictions`, `profiles`, `provider_poll_state`, `season_outcomes`,
+`predictions`, `prediction_automation_config`, `profiles`,
+`provider_poll_state`, `season_outcomes`,
 `season_picks`, `season_player_candidates`, `season_team_candidates`,
 `team_squad_players`, and `teams`.
 
@@ -271,8 +272,8 @@ curl -H "Authorization: Bearer $CRON_SECRET" \
 
 Use `?hours=24` to shorten a manual run to the next day. Values above 48 are
 clamped to 48 hours. Add `&force=1` when predictions inside that window
-intentionally need to be regenerated. Apply the consolidated, re-runnable
-`0002_ai_predictions.sql` migration before enabling the cron.
+intentionally need to be regenerated. The required tables and functions are
+part of the single `supabase/migrations/0001_init.sql` bootstrap script.
 
 ## Moving to season 2026/27
 

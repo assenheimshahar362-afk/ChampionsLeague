@@ -47,6 +47,7 @@ begin
 end;
 $$;
 
+
 -- ================================================================== enums ==
 
 -- Mirrors the `Stage` union in lib/fixtures/types.ts. The four qualifying
@@ -408,8 +409,8 @@ create table public.ai_match_predictions (
   draw_probability        smallint not null check (draw_probability between 0 and 100),
   away_win_probability    smallint not null check (away_win_probability between 0 and 100),
   confidence              smallint not null check (confidence between 0 and 100),
-  summary_en              text not null check (char_length(trim(summary_en)) between 1 and 500),
-  summary_he              text not null check (char_length(trim(summary_he)) between 1 and 500),
+  summary_en              text not null check (char_length(trim(summary_en)) between 1 and 900),
+  summary_he              text not null check (char_length(trim(summary_he)) between 1 and 900),
   key_factors_en          jsonb not null check (
                             jsonb_typeof(key_factors_en) = 'array'
                             and jsonb_array_length(key_factors_en) = 3
@@ -420,6 +421,10 @@ create table public.ai_match_predictions (
                           ),
   model                   text not null,
   source_snapshot         jsonb not null,
+  sources                 jsonb not null default '[]'::jsonb check (
+                            jsonb_typeof(sources) = 'array'
+                            and jsonb_array_length(sources) <= 6
+                          ),
   generated_at            timestamptz not null default now(),
 
   constraint ai_match_predictions_probabilities_total check (
@@ -1060,6 +1065,7 @@ create table public.predictions (
   away_goals    smallint    not null check (away_goals between 0 and 20),
 
   is_joker      boolean     not null default false,
+  is_automatic  boolean     not null default false,
 
   -- Denormalised from public.fixtures by the trigger below. Exists only so the
   -- one-joker-per-round rule can be a unique index: an index cannot reach into
@@ -1187,6 +1193,9 @@ create table public.game_settings (
   outcome_points   smallint    not null default 1 check (outcome_points between 1 and 100),
   rules_note_en    text        not null default '' check (char_length(rules_note_en) <= 2000),
   rules_note_he    text        not null default '' check (char_length(rules_note_he) <= 2000),
+  ai_player_name   text        not null default 'AI'
+                                check (char_length(trim(ai_player_name)) between 1 and 30),
+  ai_player_avatar_url text,
   updated_by       uuid        references auth.users (id) on delete set null,
   updated_at       timestamptz not null default now(),
 
@@ -1274,6 +1283,171 @@ begin
     and f.away_goals is not null;
 end;
 $$;
+-- Atomic accounting for the lifetime OpenAI budget.
+create table public.ai_prediction_usage (
+  id uuid primary key default gen_random_uuid(),
+  model text not null,
+  fixture_id uuid not null references public.fixtures (id) on delete cascade,
+  budget_charge_microusd bigint not null check (budget_charge_microusd > 0),
+  estimated_cost_microusd bigint check (estimated_cost_microusd >= 0),
+  input_tokens integer check (input_tokens >= 0),
+  cached_input_tokens integer check (cached_input_tokens >= 0),
+  cache_write_tokens integer check (cache_write_tokens >= 0),
+  output_tokens integer check (output_tokens >= 0),
+  web_search_calls smallint check (web_search_calls >= 0),
+  status text not null default 'reserved'
+    check (status in ('reserved', 'completed')),
+  created_at timestamptz not null default now(),
+  completed_at timestamptz
+);
+
+alter table public.ai_prediction_usage enable row level security;
+revoke all on public.ai_prediction_usage from public, anon, authenticated;
+grant all on public.ai_prediction_usage to service_role;
+
+create index ai_prediction_usage_fixture_idx
+  on public.ai_prediction_usage (fixture_id);
+create index ai_prediction_usage_stale_reservations_idx
+  on public.ai_prediction_usage (created_at)
+  where status = 'reserved';
+
+create or replace function public.reserve_ai_prediction_budget(
+  budget_microusd bigint,
+  charge_microusd bigint,
+  model_name text,
+  prediction_fixture_id uuid
+)
+returns uuid
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  committed_microusd bigint;
+  reservation_id uuid;
+begin
+  if budget_microusd <= 0 or charge_microusd <= 0 then
+    raise exception 'AI prediction budget values must be positive';
+  end if;
+
+  perform pg_advisory_xact_lock(hashtextextended('ai_prediction_budget', 0));
+  delete from public.ai_prediction_usage
+  where status = 'reserved' and created_at < now() - interval '10 minutes';
+
+  select coalesce(sum(budget_charge_microusd), 0)
+    into committed_microusd
+  from public.ai_prediction_usage;
+
+  if committed_microusd + charge_microusd > budget_microusd then
+    return null;
+  end if;
+
+  insert into public.ai_prediction_usage (model, fixture_id, budget_charge_microusd)
+  values (model_name, prediction_fixture_id, charge_microusd)
+  returning id into reservation_id;
+  return reservation_id;
+end;
+$$;
+
+revoke all on function public.reserve_ai_prediction_budget(bigint, bigint, text, uuid)
+  from public, anon, authenticated;
+grant execute on function public.reserve_ai_prediction_budget(bigint, bigint, text, uuid)
+  to service_role;
+
+comment on table public.ai_prediction_usage is
+  'Conservative budget reservations and measured usage for OpenAI predictions.';
+
+-- Automatic predictions for players who missed kickoff.
+comment on column public.predictions.is_automatic is
+  'True only for a missing prediction generated by the server after kickoff.';
+
+create table public.prediction_automation_config (
+  id smallint primary key default 1 check (id = 1),
+  enabled_at timestamptz not null default now()
+);
+insert into public.prediction_automation_config (id) values (1);
+alter table public.prediction_automation_config enable row level security;
+
+create or replace function public.ensure_automatic_predictions(
+  target_fixture_ids uuid[] default null
+)
+returns integer
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  inserted_count integer;
+begin
+  with eligible_fixtures as materialized (
+    select f.id, f.kickoff_at, f.prob_home, f.prob_draw
+    from public.fixtures f
+    join public.prediction_automation_config config on config.id = 1
+    where f.kickoff_at >= config.enabled_at
+      and f.kickoff_at <= now()
+      and f.status not in ('postponed', 'cancelled')
+      and (target_fixture_ids is null or f.id = any(target_fixture_ids))
+  ), eligible as (
+    select
+      p.id as user_id,
+      f.id as fixture_id,
+      f.prob_home,
+      f.prob_draw,
+      (('x' || substr(md5(p.id::text || ':' || f.id::text || ':outcome'), 1, 8))::bit(32)::bigint
+        % 1000000)::numeric / 1000000 as outcome_seed,
+      (('x' || substr(md5(p.id::text || ':' || f.id::text || ':score'), 1, 8))::bit(32)::bigint
+        % 12)::integer as score_seed
+    from eligible_fixtures f
+    join public.profiles p on p.nickname_confirmed_at <= f.kickoff_at
+    where not exists (
+      select 1
+      from public.predictions existing
+      where existing.user_id = p.id
+        and existing.fixture_id = f.id
+    )
+  ), picked as (
+    select *, case
+      when outcome_seed < coalesce(prob_home, 0.42) then 'home'
+      when outcome_seed < coalesce(prob_home, 0.42) + coalesce(prob_draw, 0.28) then 'draw'
+      else 'away'
+    end as outcome
+    from eligible
+  )
+  insert into public.predictions (
+    user_id, fixture_id, home_goals, away_goals, is_automatic
+  )
+  select
+    user_id,
+    fixture_id,
+    case outcome
+      when 'home' then case score_seed % 4 when 0 then 1 when 1 then 2 when 2 then 2 else 3 end
+      when 'draw' then score_seed % 3
+      else case score_seed % 4 when 0 then 0 when 1 then 0 when 2 then 1 else 1 end
+    end,
+    case outcome
+      when 'home' then case score_seed % 4 when 0 then 0 when 1 then 0 when 2 then 1 else 1 end
+      when 'draw' then score_seed % 3
+      else case score_seed % 4 when 0 then 1 when 1 then 2 when 2 then 2 else 3 end
+    end,
+    true
+  from picked
+  on conflict (user_id, fixture_id) do nothing;
+
+  get diagnostics inserted_count = row_count;
+  return inserted_count;
+end;
+$$;
+
+revoke all on table public.prediction_automation_config
+  from public, anon, authenticated;
+grant select on public.prediction_automation_config to service_role;
+revoke all on function public.ensure_automatic_predictions(uuid[])
+  from public, anon, authenticated;
+grant execute on function public.ensure_automatic_predictions(uuid[])
+  to service_role;
+
+notify pgrst, 'reload schema';
+-- Commit is deferred until every bootstrap object below has been created.
 
 -- ======================================================= team squads ===
 
@@ -1898,7 +2072,8 @@ create policy "avatars: delete own"
 -- Make the new relations visible to PostgREST immediately after COMMIT.
 notify pgrst, 'reload schema';
 
-commit;
+-- The transaction continues through the extensions appended below. Keeping
+-- bootstrap atomic prevents a partially-created fresh database.
 
 -- ============================================================================
 -- GROUP PROFILES AND INVITES
@@ -2368,3 +2543,6 @@ begin
     and f.away_goals is not null;
 end;
 $$;
+
+notify pgrst, 'reload schema';
+commit;

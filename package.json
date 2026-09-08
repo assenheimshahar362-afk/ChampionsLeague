@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=20.9.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -10,6 +13,7 @@
     "lint": "eslint",
     "test": "node --test \"lib/**/*.test.ts\"",
     "typecheck": "tsc --noEmit",
+    "check": "npm run typecheck && npm run lint && npm test",
     "db:preflight": "node --env-file=.env.local scripts/db-preflight.mjs",
     "ingest": "node scripts/ingest.mjs",
     "demo:locked-match": "node scripts/create-locked-demo-fixture.mjs",
