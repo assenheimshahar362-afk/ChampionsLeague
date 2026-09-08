@@ -592,7 +592,7 @@
     "afterExtraTime": "לאחר הארכה",
     "detailsBeforeKickoff": "ההרכבים ונתוני המשחק החיים יופיעו כאן כשהספק יפרסם אותם.",
     "status": {
-      "live": "חי · דקה {minute}",
+      "live": "חי",
       "finished": "הסתיים"
     },
     "tabs": {
@@ -624,7 +624,11 @@
       "pick": "ניחוש",
       "livePoints": "נק׳ זמני",
       "finalPoints": "נקודות",
-      "you": "אני"
+      "you": "אני",
+      "exactResult": "ניחוש בול",
+      "correctResult": "כיוון נכון",
+      "wrongResult": "כיוון לא נכון",
+      "pointsResult": "{points} נקודות — {result}"
     },
     "lineups": {
       "title": "סגלים והרכבים",

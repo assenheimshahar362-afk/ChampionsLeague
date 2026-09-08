@@ -188,11 +188,8 @@ export function MatchCard({
         className="bg-live pulse-live inline-block size-1.5 rounded-full"
         aria-hidden="true"
       />
-      {/* Never colour alone (§8): the word and the minute carry it too. */}
+      {/* Never colour alone: the explicit status label carries the meaning. */}
       {t("live")}
-      <span dir="ltr" data-numeric>
-        {fixture.elapsedMinutes}&apos;
-      </span>
     </span>
   ) : fixture.status === "finished" ? (
     <span className="text-[11px] font-semibold">{t("finalScore")}</span>

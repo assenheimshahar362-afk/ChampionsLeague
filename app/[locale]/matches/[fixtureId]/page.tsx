@@ -5,6 +5,7 @@ import {
   BrainCircuit,
   Building2,
   CalendarDays,
+  CircleCheckBig,
   CircleDot,
   Clock,
   ExternalLink,
@@ -14,8 +15,10 @@ import {
   Shield,
   Star,
   Trophy,
+  TrendingUp,
   User,
   Users,
+  X,
 } from "lucide-react";
 import Image from "next/image";
 import { getTranslations, setRequestLocale } from "next-intl/server";
@@ -308,7 +311,7 @@ async function MatchHero({
           {live ? (
             <span className="border-live/40 bg-live/10 text-live inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[0.68rem] font-bold">
               <span className="bg-live pulse-live size-1.5 rounded-full" />
-              {t("status.live", { minute: fixture.elapsedMinutes ?? 0 })}
+              {t("status.live")}
             </span>
           ) : finished ? (
             <span className="bg-success/10 text-success rounded-full border border-success/25 px-2.5 py-1 text-[0.68rem] font-semibold">
@@ -474,6 +477,36 @@ async function GroupPredictions({
   const t = await getTranslations("matchDetails.predictions");
   const live = isInPlay(fixture);
   const finished = fixture.status === "finished";
+  const rankedRows = (data?.rows ?? [])
+    .map((row) => {
+      const hasPrediction =
+        row.homeGoals !== null && row.awayGoals !== null;
+      const scoring = hasPrediction
+        ? projectedPoints(
+            {
+              fixtureId: fixture.id,
+              homeGoals: row.homeGoals!,
+              awayGoals: row.awayGoals!,
+            },
+            fixture
+          )
+        : null;
+      const points = finished
+        ? (row.settledPoints ?? scoring?.totalPoints ?? null)
+        : (scoring?.totalPoints ?? null);
+
+      return { row, hasPrediction, scoring, points };
+    })
+    .sort(
+      (a, b) =>
+        (b.points ?? -1) - (a.points ?? -1) ||
+        (a.row.userId === currentUserId
+          ? -1
+          : b.row.userId === currentUserId
+            ? 1
+            : 0) ||
+        a.row.nickname.localeCompare(b.row.nickname)
+    );
 
   return (
     <section
@@ -559,22 +592,19 @@ async function GroupPredictions({
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/10">
-                {data.rows.map((row) => {
-                  const hasPrediction =
-                    row.homeGoals !== null && row.awayGoals !== null;
-                  const projected = hasPrediction
-                    ? (projectedPoints(
-                        {
-                          fixtureId: fixture.id,
-                          homeGoals: row.homeGoals!,
-                          awayGoals: row.awayGoals!,
-                        },
-                        fixture
-                      )?.totalPoints ?? 0)
-                    : null;
-                  const points = finished
-                    ? (row.settledPoints ?? projected)
-                    : projected;
+                {rankedRows.map(({ row, hasPrediction, scoring, points }) => {
+                  const resultKey = scoring?.exactScore
+                    ? "exactResult"
+                    : scoring?.correctOutcome
+                      ? "correctResult"
+                      : scoring
+                        ? "wrongResult"
+                        : null;
+                  const ResultIcon = scoring?.exactScore
+                    ? CircleCheckBig
+                    : scoring?.correctOutcome
+                      ? TrendingUp
+                      : X;
 
                   return (
                     <tr
@@ -616,15 +646,29 @@ async function GroupPredictions({
                           <span className="text-muted-foreground">—</span>
                         ) : (
                           <span
+                            aria-label={
+                              resultKey
+                                ? t("pointsResult", {
+                                    points,
+                                    result: t(resultKey),
+                                  })
+                                : undefined
+                            }
+                            title={resultKey ? t(resultKey) : undefined}
                             className={cn(
-                              "inline-flex min-w-7 justify-center rounded-full border px-2 py-0.5 text-xs font-semibold",
-                              live
-                                ? "border-live/40 text-live border-dashed"
-                                : points > 0
-                                  ? "border-success/30 bg-success/10 text-success"
-                                  : "border-white/15 bg-white/[0.04] text-muted-foreground"
+                              "inline-flex min-w-7 items-center justify-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold",
+                              scoring?.exactScore
+                                ? "border-success/30 bg-success/10 text-success"
+                                : scoring?.correctOutcome
+                                  ? "border-warning/35 bg-warning/10 text-warning"
+                                  : scoring
+                                    ? "border-destructive/35 bg-destructive/10 text-destructive"
+                                    : "border-white/15 bg-white/[0.04] text-muted-foreground"
                             )}
                           >
+                            {resultKey ? (
+                              <ResultIcon className="size-3" aria-hidden="true" />
+                            ) : null}
                             {points}
                           </span>
                         )}

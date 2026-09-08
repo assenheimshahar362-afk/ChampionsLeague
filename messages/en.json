@@ -592,7 +592,7 @@
     "afterExtraTime": "After extra time",
     "detailsBeforeKickoff": "Lineups and live match data appear here when the provider publishes them.",
     "status": {
-      "live": "LIVE · {minute}'",
+      "live": "LIVE",
       "finished": "Full time"
     },
     "tabs": {
@@ -624,7 +624,11 @@
       "pick": "Pick",
       "livePoints": "Live pts",
       "finalPoints": "Points",
-      "you": "you"
+      "you": "you",
+      "exactResult": "Exact prediction",
+      "correctResult": "Correct outcome",
+      "wrongResult": "Wrong outcome",
+      "pointsResult": "{points} points — {result}"
     },
     "lineups": {
       "title": "Squads & lineups",
