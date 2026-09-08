@@ -588,6 +588,10 @@
   },
   "matchDetails": {
     "back": "חזרה למשחקים",
+    "navigation": {
+      "previous": "המשחק הקודם",
+      "next": "המשחק הבא"
+    },
     "pageTitle": "{home} נגד {away}",
     "afterExtraTime": "לאחר הארכה",
     "detailsBeforeKickoff": "ההרכבים ונתוני המשחק החיים יופיעו כאן כשהספק יפרסם אותם.",

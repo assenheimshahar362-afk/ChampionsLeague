@@ -588,6 +588,10 @@
   },
   "matchDetails": {
     "back": "Back to matches",
+    "navigation": {
+      "previous": "Previous match",
+      "next": "Next match"
+    },
     "pageTitle": "{home} vs {away}",
     "afterExtraTime": "After extra time",
     "detailsBeforeKickoff": "Lineups and live match data appear here when the provider publishes them.",

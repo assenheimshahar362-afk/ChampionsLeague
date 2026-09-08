@@ -26,6 +26,7 @@ import { notFound } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
 
 import { LocalKickoff } from "@/components/match/local-kickoff";
+import { MatchHeroCarousel } from "@/components/match/match-hero-carousel";
 import { Scoreline } from "@/components/match/scoreline";
 import { TeamCrest } from "@/components/match/team-crest";
 import { ProfileAvatar } from "@/components/profile/profile-avatar";
@@ -163,6 +164,22 @@ export default async function MatchDetailsPage({
     : predictionsAvailable && user ? "predictions" : "details";
   const requestedTeam = Array.isArray(query.team) ? query.team[0] : query.team;
   const selectedTeam = requestedTeam === "away" ? "away" : "home";
+  const seasonFixtures = allFixtures.filter(
+    (candidate) => candidate.season === fixture.season
+  );
+  const fixtureIndex = seasonFixtures.findIndex(
+    (candidate) => candidate.id === fixture.id
+  );
+  const previousFixture =
+    fixtureIndex > 0 ? seasonFixtures[fixtureIndex - 1] : null;
+  const nextFixture =
+    fixtureIndex >= 0 && fixtureIndex < seasonFixtures.length - 1
+      ? seasonFixtures[fixtureIndex + 1]
+      : null;
+  const adjacentHref = (candidate: Fixture | null) =>
+    candidate
+      ? matchDetailsHref(candidate.id, view, requestedGroupId, selectedTeam)
+      : null;
   const officialLineupsAvailable = (["home", "away"] as const).every((side) =>
     details?.lineups.some(
       (lineup) =>
@@ -200,11 +217,21 @@ export default async function MatchDetailsPage({
         </Link>
       </Button>
 
-      <MatchHero
-        fixture={displayFixture}
-        roundLabel={tMatch(`rounds.${round.key}`, round.values)}
-        details={details}
-      />
+      <MatchHeroCarousel
+        direction={locale === "he" ? "rtl" : "ltr"}
+        previousHref={adjacentHref(previousFixture)}
+        nextHref={adjacentHref(nextFixture)}
+        previousLabel={t("navigation.previous")}
+        nextLabel={t("navigation.next")}
+        currentPosition={fixtureIndex + 1}
+        total={seasonFixtures.length}
+      >
+        <MatchHero
+          fixture={displayFixture}
+          roundLabel={tMatch(`rounds.${round.key}`, round.values)}
+          details={details}
+        />
+      </MatchHeroCarousel>
 
       <MatchDetailsTabs
         fixtureId={fixture.id}
@@ -256,6 +283,21 @@ export default async function MatchDetailsPage({
   );
 }
 
+function matchDetailsHref(
+  fixtureId: string,
+  view: MatchDetailsView,
+  groupId: string | undefined,
+  selectedTeam: "home" | "away"
+) {
+  const query = new URLSearchParams({ view });
+  if (groupId) query.set("group", groupId);
+  if (view === "lineup" && selectedTeam === "away") {
+    query.set("team", "away");
+  }
+
+  return `/matches/${encodeURIComponent(fixtureId)}?${query.toString()}`;
+}
+
 function withProviderState(
   fixture: Fixture,
   details: FixtureProviderDetails | null
@@ -291,7 +333,7 @@ async function MatchHero({
   const finished = fixture.status === "finished";
 
   return (
-    <header className="bg-card/60 relative mt-4 overflow-hidden rounded-[2rem] border border-white/15 px-4 py-6 shadow-[0_22px_70px_rgb(3_7_25/0.28)] backdrop-blur-xl sm:px-8 sm:py-8">
+    <header className="bg-card/60 relative overflow-hidden rounded-[2rem] border border-white/15 px-4 pt-6 pb-16 shadow-[0_22px_70px_rgb(3_7_25/0.28)] backdrop-blur-xl sm:px-8 sm:pt-8 sm:pb-16">
       <div
         aria-hidden="true"
         className="from-primary/20 absolute inset-x-0 top-0 h-28 bg-gradient-to-b to-transparent"
