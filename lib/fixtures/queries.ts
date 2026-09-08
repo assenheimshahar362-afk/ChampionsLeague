@@ -7,7 +7,6 @@ import {
   teamTranslationKey,
   type PlayerNameTranslations,
 } from "@/lib/fixtures/localization";
-import { currentAndFutureRoundItems } from "@/lib/fixtures/schedule";
 import type {
   AiPrediction,
   Fixture,
@@ -196,11 +195,7 @@ async function loadTeams(
 }
 
 /**
- * The nearest upcoming round followed by every later round in the same season.
- *
- * The first round stays whole even after its opening fixture has kicked off.
- * This lets the home screen reveal one complete matchday at a time without
- * bringing already-finished matchdays back into the list.
+ * All fixtures in the active season, including completed rounds.
  */
 export async function getCurrentAndFutureRoundFixtures(
   locale: string
@@ -258,11 +253,7 @@ export async function getCurrentAndFutureRoundFixtures(
   const fixtures = (data ?? [])
     .map((record) => toFixture(record, teams))
     .filter((fixture) => fixture !== null);
-  const current = fixtures.find(f =>
-    f.status === "live" || f.status === "halftime" ||
-    (new Date(f.kickoffAt).getTime() <= Date.now() &&
-      new Date(f.kickoffAt).getTime() >= Date.now() - 24 * 60 * 60_000));
-  return currentAndFutureRoundItems(fixtures, current ?? selected);
+  return fixtures;
 }
 
 /** One public fixture for the match-detail route. */

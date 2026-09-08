@@ -3,7 +3,7 @@
 import { CalendarDays, ChevronDown, MapPin } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import type { ReactNode } from "react";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { AutoPredictDialog } from "@/components/match/auto-predict-dialog";
 import { KickoffBoundaryRefresh } from "@/components/match/kickoff-boundary-refresh";
@@ -188,7 +188,9 @@ export function MatchList({
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const [errorCode, setErrorCode] = useState<PredictionErrorCode | null>(null);
   const [autoSavedCount, setAutoSavedCount] = useState<number | null>(null);
-  const [visibleRoundCount, setVisibleRoundCount] = useState(1);
+  const scrollTarget = useRef<HTMLElement | null>(null);
+  const didScroll = useRef(false);
+  const [additionalRoundCount, setAdditionalRoundCount] = useState(0);
   const nowTime = new Date(nowIso).getTime();
 
   // Only the newest response may update the shared save indicator. Next.js
@@ -283,17 +285,35 @@ export function MatchList({
     const combined = [...fixtureRounds, ...planned].sort((a, b) =>
       a.startAt.localeCompare(b.startAt)
     );
-    const upcoming = combined.filter(
-      (round) => new Date(round.endAt).getTime() >= nowTime - 24 * 60 * 60_000
-    );
-
-    // Once the whole season is over, retain its last real round instead of
-    // replacing the home screen with an empty state.
-    return upcoming.length > 0 ? upcoming : fixtureRounds.slice(-1);
+    return combined;
   }, [fixtures, nowTime]);
 
-  const visibleRounds = rounds.slice(0, visibleRoundCount);
-  const hasMoreRounds = visibleRoundCount < rounds.length;
+  const actualRounds = rounds.filter((round) => round.kind === "fixtures");
+  const targetRound = actualRounds.find((round) =>
+    round.fixtures.some((fixture) =>
+      fixture.status === "live" || fixture.status === "halftime"
+    )
+  ) ?? actualRounds.find((round) =>
+    round.fixtures.some((fixture) =>
+      fixture.status === "scheduled" && new Date(fixture.kickoffAt).getTime() >= nowTime
+    )
+  ) ?? actualRounds.at(-1);
+  const targetRoundIndex = Math.max(
+    0,
+    rounds.findIndex((round) => round.id === targetRound?.id)
+  );
+  const visibleRounds = rounds.slice(
+    0,
+    Math.min(targetRoundIndex + 1 + additionalRoundCount, rounds.length)
+  );
+  const hasMoreRounds = visibleRounds.length < rounds.length;
+
+  useEffect(() => {
+    if (didScroll.current || !scrollTarget.current) return;
+    scrollTarget.current.scrollIntoView({ behavior: "instant", block: "start" });
+    // Live refreshes must not pull the user away from the round they are reading.
+    didScroll.current = true;
+  }, [targetRound?.id]);
   const openFixtures = useMemo(
     () =>
       fixtures.filter(
@@ -377,7 +397,11 @@ export function MatchList({
           let enterIndex = 0;
 
           return (
-            <section key={round.id} className="enter-fade space-y-4">
+            <section
+              key={round.id}
+              ref={round.id === targetRound?.id ? scrollTarget : undefined}
+              className="enter-fade scroll-mt-24 space-y-4"
+            >
               {label ? (
                 <RoundHeading>
                   {t(`rounds.${label.key}`, label.values)}
@@ -466,9 +490,7 @@ export function MatchList({
             variant="outline"
             aria-controls="fixture-rounds"
             className="border-primary/30 bg-primary/[0.08] text-primary min-w-44 rounded-full shadow-[0_8px_24px_rgb(0_0_0/0.12)]"
-            onClick={() =>
-              setVisibleRoundCount((count) => Math.min(count + 1, rounds.length))
-            }
+            onClick={() => setAdditionalRoundCount((count) => count + 1)}
           >
             {t("loadMoreRound")}
             <ChevronDown className="size-4" aria-hidden="true" />
@@ -481,6 +503,7 @@ export function MatchList({
           </p>
         </div>
       ) : null}
+
     </div>
   );
 }
