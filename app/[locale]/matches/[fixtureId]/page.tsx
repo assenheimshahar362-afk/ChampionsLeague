@@ -23,6 +23,7 @@ import { notFound } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
 
 import { LocalKickoff } from "@/components/match/local-kickoff";
+import { Scoreline } from "@/components/match/scoreline";
 import { TeamCrest } from "@/components/match/team-crest";
 import { ProfileAvatar } from "@/components/profile/profile-avatar";
 import { SetupNotice } from "@/components/setup-notice";
@@ -322,15 +323,12 @@ async function MatchHero({
           <div className="flex min-w-20 flex-col items-center justify-center">
             {live || finished ? (
               <>
-                <span
-                  dir="ltr"
-                  data-numeric
-                  className="text-4xl leading-none font-bold tracking-tight tabular-nums sm:text-5xl"
-                >
-                  {fixture.homeGoals ?? "–"}
-                  <span className="text-muted-foreground mx-2 font-light">:</span>
-                  {fixture.awayGoals ?? "–"}
-                </span>
+                <Scoreline
+                  home={fixture.homeGoals ?? "–"}
+                  away={fixture.awayGoals ?? "–"}
+                  className="text-4xl leading-none font-bold tracking-tight sm:text-5xl"
+                  separatorClassName="text-muted-foreground mx-2 font-light"
+                />
                 {fixture.wentToExtraTime ? (
                   <span className="text-muted-foreground mt-2 text-[0.65rem]">
                     {t("afterExtraTime")}
@@ -605,8 +603,13 @@ async function GroupPredictions({
                           </span>
                         </span>
                       </td>
-                      <td dir="ltr" data-numeric className="px-3 py-2.5 text-center font-bold">
-                        {hasPrediction ? `${row.homeGoals}:${row.awayGoals}` : "—"}
+                      <td className="px-3 py-2.5 text-center font-bold">
+                        {hasPrediction ? (
+                          <Scoreline
+                            home={row.homeGoals!}
+                            away={row.awayGoals!}
+                          />
+                        ) : "—"}
                       </td>
                       <td className="px-3 py-2.5 text-center">
                         {points === null ? (

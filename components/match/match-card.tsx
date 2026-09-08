@@ -7,6 +7,7 @@ import { useState, type CSSProperties, type ReactNode } from "react";
 import { LockCountdown } from "@/components/match/lock-countdown";
 import { LocalKickoff } from "@/components/match/local-kickoff";
 import { GuessChip, ScoreBox } from "@/components/match/score-box";
+import { Scoreline } from "@/components/match/scoreline";
 import { TeamCrest } from "@/components/match/team-crest";
 import { Link } from "@/i18n/navigation";
 import type {
@@ -274,9 +275,17 @@ export function MatchCard({
               <FinalScore fixture={fixture} />
               <div className="mt-2 border-t border-primary/20 pt-2">
                 <span className="text-muted-foreground block text-[10px]">{t("yourPrediction")}</span>
-                <span dir="ltr" className="block text-base font-semibold tabular-nums">
-                  {completePrediction ? `${completePrediction.homeGoals} – ${completePrediction.awayGoals}` : "—"}
-                </span>
+                {completePrediction ? (
+                  <Scoreline
+                    home={completePrediction.homeGoals}
+                    away={completePrediction.awayGoals}
+                    separator="–"
+                    className="text-base font-semibold"
+                    separatorClassName="mx-1"
+                  />
+                ) : (
+                  <span className="block text-base font-semibold">—</span>
+                )}
               </div>
             </div>
           ) : (
@@ -314,11 +323,13 @@ export function MatchCard({
           eighteen cards is furniture, not information. */}
       {locked && completePrediction ? (
         <p className="text-muted-foreground mx-3 border-t py-1.5 text-center text-[11px]">
-          <span dir="ltr">
-            {t("youPredicted", {
-              score: `${completePrediction.homeGoals}–${completePrediction.awayGoals}`,
-            })}
-          </span>
+          <span>{t("youPredicted", { score: "" })}</span>
+          <Scoreline
+            home={completePrediction.homeGoals}
+            away={completePrediction.awayGoals}
+            separator="–"
+            className="ms-1"
+          />
         </p>
       ) : null}
 
@@ -567,15 +578,13 @@ function PredictionInputs({
 /** The real scoreline, once the fixture has one. */
 function FinalScore({ fixture }: { fixture: Fixture }) {
   return (
-    <span
-      data-numeric
-      dir="ltr"
-      className="block pt-1.5 text-2xl font-bold tabular-nums"
-    >
-      {fixture.homeGoals ?? "–"}
-      <span className="text-muted-foreground mx-1 font-normal">-</span>
-      {fixture.awayGoals ?? "–"}
-    </span>
+    <Scoreline
+      home={fixture.homeGoals ?? "–"}
+      away={fixture.awayGoals ?? "–"}
+      separator="-"
+      className="pt-1.5 text-2xl font-bold"
+      separatorClassName="text-muted-foreground mx-1 font-normal"
+    />
   );
 }
 
