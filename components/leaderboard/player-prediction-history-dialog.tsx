@@ -2,11 +2,12 @@
 
 import { Bot, LoaderCircle, X } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { Dialog as DialogPrimitive } from "radix-ui";
 
 import { ProfileAvatar } from "@/components/profile/profile-avatar";
+import { Scoreline } from "@/components/match/scoreline";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { loadLeaderboardPlayerHistory } from "@/lib/leaderboard/actions";
@@ -236,8 +237,29 @@ function HistoryContent({ player, locale }: { player: LeaderboardPlayerHistory; 
             {formatCompactDateTime(locale, prediction.kickoffAt)}
           </time>
           <span className="col-span-2 grid grid-cols-3 gap-1 rounded-lg bg-white/[0.025] px-1.5 py-1 sm:contents">
-            <HistoryValue label={t("prediction")} value={`${prediction.predictedHomeGoals}:${prediction.predictedAwayGoals}`} />
-            <HistoryValue label={t("result")} value={prediction.actualHomeGoals === null || prediction.actualAwayGoals === null ? t("awaitingResult") : `${prediction.actualHomeGoals}:${prediction.actualAwayGoals}`} />
+            <HistoryValue
+              label={t("prediction")}
+              value={
+                <Scoreline
+                  home={prediction.predictedHomeGoals}
+                  away={prediction.predictedAwayGoals}
+                />
+              }
+            />
+            <HistoryValue
+              label={t("result")}
+              value={
+                prediction.actualHomeGoals === null ||
+                prediction.actualAwayGoals === null ? (
+                  t("awaitingResult")
+                ) : (
+                  <Scoreline
+                    home={prediction.actualHomeGoals}
+                    away={prediction.actualAwayGoals}
+                  />
+                )
+              }
+            />
             <HistoryValue
               label={t("points")}
               value={prediction.points ?? "—"}
@@ -332,7 +354,7 @@ function HistoryValue({
   tone = null,
 }: {
   label: string;
-  value: string | number;
+  value: ReactNode;
   tone?: HistoryResultTone | null;
 }) {
   return (
@@ -340,7 +362,6 @@ function HistoryValue({
       <span className="text-muted-foreground shrink-0 text-[0.58rem] sm:text-[0.65rem]">{label}</span>
       <span
         data-numeric
-        dir={typeof value === "string" && /^\d+:\d+$/.test(value) ? "ltr" : undefined}
         className={cn(
           "truncate text-xs font-semibold tabular-nums sm:mt-0.5 sm:block sm:text-sm",
           tone === "exact"
