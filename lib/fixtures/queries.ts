@@ -18,6 +18,7 @@ import type {
   FixtureRecord,
   TeamRecord,
 } from "@/lib/supabase/database.types";
+import { ensureAutomaticPredictions } from "@/lib/predictions/automatic-fallback.server";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
 
@@ -353,6 +354,7 @@ export async function getHebrewPlayerNames(
 export async function getMyPredictions(
   userId: string
 ): Promise<Record<string, Prediction>> {
+  await ensureAutomaticPredictions();
   const supabase = await createClient();
 
   const { data, error } = await supabase

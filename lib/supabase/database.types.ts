@@ -821,6 +821,7 @@ export type Database = {
           home_goals: number;
           away_goals: number;
           is_joker: boolean;
+          is_automatic: boolean;
           fixture_round: string;
           created_at: string;
           updated_at: string;
@@ -832,6 +833,7 @@ export type Database = {
           home_goals: number;
           away_goals: number;
           is_joker?: boolean;
+          is_automatic?: boolean;
           /** Set by the predictions_set_round trigger; never sent by clients. */
           fixture_round?: string;
           created_at?: string;
@@ -844,6 +846,7 @@ export type Database = {
           home_goals?: number;
           away_goals?: number;
           is_joker?: boolean;
+          is_automatic?: boolean;
           fixture_round?: string;
           created_at?: string;
           updated_at?: string;
@@ -902,6 +905,10 @@ export type Database = {
     };
     Views: Record<never, never>;
     Functions: {
+      ensure_automatic_predictions: {
+        Args: { target_fixture_ids?: string[] | null };
+        Returns: number;
+      };
       reserve_ai_prediction_budget: {
         Args: {
           budget_microusd: number;

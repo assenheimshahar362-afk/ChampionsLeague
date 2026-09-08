@@ -27,6 +27,7 @@ const tables = [
   "group_members",
   "groups",
   "prediction_scores",
+  "prediction_automation_config",
   "predictions",
   "profiles",
   "provider_poll_state",
@@ -81,6 +82,12 @@ const { error: rpcProbeError } = await service.rpc(
 const rpcAvailable =
   rpcProbeError?.message?.includes("AI prediction budget values must be positive") ??
   false;
+const { data: automaticPredictionProbe, error: automaticPredictionProbeError } =
+  await service.rpc("ensure_automatic_predictions", {
+    target_fixture_ids: [],
+  });
+const automaticPredictionRpcAvailable =
+  !automaticPredictionProbeError && automaticPredictionProbe === 0;
 const usageHiddenFromAnonymous =
   anonymousUsageError?.code === "42501" ||
   (!anonymousUsageError &&
@@ -103,6 +110,8 @@ console.log(
       anonymousUsageErrorCode: anonymousUsageError?.code ?? null,
       budgetRpcAvailable: rpcAvailable,
       budgetRpcProbeCode: rpcProbeError?.code ?? null,
+      automaticPredictionRpcAvailable,
+      automaticPredictionRpcProbeCode: automaticPredictionProbeError?.code ?? null,
     },
     null,
     2
@@ -116,6 +125,7 @@ if (
   staleError ||
   (staleReservations ?? 0) > 0 ||
   !rpcAvailable ||
+  !automaticPredictionRpcAvailable ||
   !usageHiddenFromAnonymous
 ) {
   process.exitCode = 1;

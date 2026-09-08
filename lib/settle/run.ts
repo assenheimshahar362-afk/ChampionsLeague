@@ -2,6 +2,7 @@ import "server-only";
 
 import { serverEnv } from "@/lib/env.server";
 import { normaliseScale } from "@/lib/fixtures/rebase";
+import { ensureAutomaticPredictions } from "@/lib/predictions/automatic-fallback.server";
 import { scorePrediction } from "@/lib/scoring/engine";
 import { seasonPickAward } from "@/lib/season-picks/outcomes";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
@@ -143,6 +144,11 @@ export async function settleDueFixtures(
       await markReleased(db, result.fixture_id);
       continue;
     }
+
+    // The same idempotent backfill also runs from page requests. Repeating it
+    // here guarantees absent players receive a prediction before this fixture
+    // is scored even when nobody had the site open at kickoff.
+    await ensureAutomaticPredictions([result.fixture_id]);
 
     const { data: predictions, error: predictionError } = await db
       .from("predictions")

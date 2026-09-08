@@ -1,6 +1,7 @@
 import "server-only";
 
 import { AI_PLAYER_ID } from "@/lib/leaderboard/ai-player";
+import { ensureAutomaticPredictions } from "@/lib/predictions/automatic-fallback.server";
 import { getGameSettings } from "@/lib/scoring/settings";
 import { createClient } from "@/lib/supabase/server";
 
@@ -26,6 +27,7 @@ export async function getFixtureGroupPredictions(
   fixtureId: string,
   requestedGroupId?: string
 ): Promise<FixtureGroupPredictions> {
+  await ensureAutomaticPredictions([fixtureId]);
   const db = await createClient();
   const { data: mine, error: mineError } = await db
     .from("group_members")

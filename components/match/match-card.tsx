@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useState, type CSSProperties, type ReactNode } from "react";
 
 import { LockCountdown } from "@/components/match/lock-countdown";
+import { LocalKickoff } from "@/components/match/local-kickoff";
 import { GuessChip, ScoreBox } from "@/components/match/score-box";
 import { TeamCrest } from "@/components/match/team-crest";
 import { Link } from "@/i18n/navigation";
@@ -568,27 +569,9 @@ function FinalScore({ fixture }: { fixture: Fixture }) {
 }
 
 function KickoffTime({ iso }: { iso: string }) {
-  const locale = useLocale();
-
-  // Formatted in the app's locale but the *device's* timezone, which the server
-  // cannot know — hence the suppressed warning. Storage is always UTC.
   return (
-    <time
-      dateTime={iso}
-      suppressHydrationWarning
-      data-numeric
-      className="text-xs font-bold"
-    >
-      {new Date(iso).toLocaleTimeString(locale, {
-        hour: "2-digit",
-        minute: "2-digit",
-        // 24-hour in both languages. Left to the locale, `en` renders
-        // "02:00 PM", which is half again as wide and wrapped the band onto two
-        // lines. It is also the wrong convention here: this is a European
-        // competition read by an Israeli audience, and both use a 24-hour clock
-        // for kickoffs.
-        hourCycle: "h23",
-      })}
-    </time>
+    <span className="text-xs font-bold">
+      <LocalKickoff iso={iso} dateStyle="time" />
+    </span>
   );
 }

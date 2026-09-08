@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import { useCallback, useMemo, useRef, useState } from "react";
 
 import { AutoPredictDialog } from "@/components/match/auto-predict-dialog";
+import { KickoffBoundaryRefresh } from "@/components/match/kickoff-boundary-refresh";
 import {
   MatchCard,
   type EditablePrediction,
@@ -348,6 +349,7 @@ export function MatchList({
 
   return (
     <div className="space-y-5">
+      <KickoffBoundaryRefresh kickoffAt={openFixtures[0]?.kickoffAt} />
       {canPredict ? (
         <div className="flex justify-center">
           <AutoPredictDialog
@@ -405,7 +407,10 @@ export function MatchList({
                           fixture={fixture}
                           prediction={predictions[fixture.id]}
                           aiPrediction={aiPredictions[fixture.id]}
-                          locked={fixture.status !== "scheduled"}
+                          locked={
+                            fixture.status !== "scheduled" ||
+                            new Date(fixture.kickoffAt).getTime() <= nowTime
+                          }
                           canPredict={canPredict}
                           enterIndex={firstIndex + index}
                           onChange={(home, away) =>
