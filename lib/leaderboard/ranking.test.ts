@@ -6,6 +6,7 @@ import {
   memberIdsForGroup,
   type GroupMembership,
 } from "./ranking.ts";
+import { AI_PLAYER_ID } from "./ai-player.ts";
 
 const memberships: GroupMembership[] = [
   { groupId: "family", userId: "me" },
@@ -131,6 +132,35 @@ test("season-pick points use the same group scope as match points", () => {
   assert.equal(shared?.points, 20);
   assert.equal(shared?.seasonBonus, 20);
   assert.equal(rows.some((row) => row.userId === "colleague"), false);
+});
+
+test("AI season-pick awards are added to its leaderboard total", () => {
+  const rows = buildLeaderboard({
+    eligibleUserIds: [AI_PLAYER_ID],
+    profiles: [{ id: AI_PLAYER_ID, displayName: "AI", avatarUrl: null }],
+    scores: [],
+    seasonPicks: [{
+      userId: AI_PLAYER_ID,
+      season: 2026,
+      championAwardedPoints: 7,
+      scorerAwardedPoints: 5,
+      settledAt: "2027-05-29T20:00:00.000Z",
+      championNameEn: "Arsenal",
+      championNameHe: "ארסנל",
+      championLogoUrl: null,
+      scorerNameEn: "Kylian Mbappe",
+      scorerNameHe: "קיליאן אמבפה",
+      scorerPhotoUrl: null,
+    }],
+    viewerUserId: "viewer",
+    currentSeason: 2026,
+    picksRevealed: true,
+  });
+
+  assert.equal(rows[0]?.points, 12);
+  assert.equal(rows[0]?.seasonBonus, 12);
+  assert.equal(rows[0]?.seasonPick?.championNameEn, "Arsenal");
+  assert.equal(rows[0]?.seasonPick?.scorerNameEn, "Kylian Mbappe");
 });
 
 test("other participants' season picks stay hidden before first kickoff", () => {

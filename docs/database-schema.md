@@ -1,11 +1,7 @@
 # Database schema
 
-This is the effective schema created by the single `0001_init.sql` bootstrap.
-
-For a new Supabase project, run only
-`supabase/migrations/0001_init.sql`; it is the complete destructive bootstrap.
-Migrations `0002` through `0005` are retained only for upgrading databases that
-had already recorded an older version of `0001`.
+This is the effective schema created by `0001_init.sql` plus the subsequent
+non-destructive upgrade migrations. Apply migrations in filename order.
 
 ```mermaid
 classDiagram
@@ -179,6 +175,13 @@ class season_picks {
   smallint scorer_awarded_points
   timestamptz settled_at
 }
+class ai_season_picks {
+  integer season PK
+  integer champion_candidate_id FK
+  integer top_scorer_candidate_id FK
+  smallint champion_pick_points
+  smallint scorer_pick_points
+}
 class season_outcomes {
   integer season PK
   uuid champion_team_id FK
@@ -253,6 +256,8 @@ teams "1" --> "0..*" season_outcomes : champion
 auth_users "1" --> "0..*" season_picks : submits
 season_team_candidates "1" --> "0..*" season_picks : champion_pick
 season_player_candidates "1" --> "0..*" season_picks : scorer_pick
+season_team_candidates "1" --> "0..*" ai_season_picks : ai_champion_pick
+season_player_candidates "1" --> "0..*" ai_season_picks : ai_scorer_pick
 auth_users "1" --> "0..*" game_settings : updates
 ```
 
@@ -263,7 +268,7 @@ auth_users "1" --> "0..*" game_settings : updates
 - A fixture references `teams` twice: once as home and once as away. Its research, hidden result, details, and AI prediction are optional one-to-one child rows keyed by `fixture_id`.
 - `predictions` enforces one row per `(user_id, fixture_id)`. `fixture_round` is deliberately denormalized for the one-joker-per-user-per-round unique index.
 - `prediction_scores.prediction_id` makes settlement one-to-one with a prediction; its copied `user_id` and `fixture_id` support fast leaderboard aggregation.
-- `season_picks` references both candidate tables with composite foreign keys `(season, candidate_id)`, preventing candidates from another season being selected.
+- `season_picks` and `ai_season_picks` reference both candidate tables with composite foreign keys `(season, candidate_id)`, preventing candidates from another season being selected. The AI row snapshots its published points and is exposed only after picks lock.
 - `prediction_automation_config`, `game_settings`, and `provider_poll_state` are operational singleton/state tables and therefore have no parent relation.
 - `fixture_results`, `ai_prediction_usage`, `prediction_automation_config`, and `provider_poll_state` are service-only under RLS. Client-visible data is controlled by the policies in `0001_init.sql`.
 - Foreign keys to users generally cascade on user deletion; optional audit references such as `reviewed_by` and `updated_by` become `NULL`. Fixture-owned rows cascade when a fixture is deleted.
@@ -272,4 +277,4 @@ auth_users "1" --> "0..*" game_settings : updates
 
 `auth.users -> profiles -> predictions -> prediction_scores` is the player scoring path.  
 `teams -> fixtures -> fixture_results -> predictions/prediction_scores` is the match settlement path.  
-`season_*_candidates -> season_picks -> season_outcomes` is the tournament-long picks path.
+`season_*_candidates -> season_picks/ai_season_picks -> season_outcomes` is the tournament-long picks path.

@@ -467,6 +467,34 @@ export type Database = {
         Relationships: [];
       };
 
+      ai_season_picks: {
+        Row: {
+          season: number;
+          champion_candidate_id: number;
+          top_scorer_candidate_id: number;
+          champion_pick_points: number;
+          scorer_pick_points: number;
+          created_at: string;
+        };
+        Insert: {
+          season: number;
+          champion_candidate_id: number;
+          top_scorer_candidate_id: number;
+          champion_pick_points: number;
+          scorer_pick_points: number;
+          created_at?: string;
+        };
+        Update: {
+          season?: number;
+          champion_candidate_id?: number;
+          top_scorer_candidate_id?: number;
+          champion_pick_points?: number;
+          scorer_pick_points?: number;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+
       season_outcomes: {
         Row: {
           season: number;
@@ -945,6 +973,21 @@ export type Database = {
         Args: Record<never, never>;
         Returns: {
           user_id: string;
+          season: number;
+          champion_awarded_points: number;
+          scorer_awarded_points: number;
+          settled_at: string | null;
+          champion_name_en: string;
+          champion_name_he: string;
+          champion_logo_url: string | null;
+          scorer_name_en: string;
+          scorer_name_he: string;
+          scorer_photo_url: string | null;
+        }[];
+      };
+      get_visible_ai_season_picks: {
+        Args: Record<never, never>;
+        Returns: {
           season: number;
           champion_awarded_points: number;
           scorer_awarded_points: number;

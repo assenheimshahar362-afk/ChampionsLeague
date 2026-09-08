@@ -170,6 +170,7 @@ export async function getLeaderboard(
   const seasonPicksQuery = supabase.rpc(
     "get_visible_leaderboard_season_picks"
   );
+  const aiSeasonPicksQuery = supabase.rpc("get_visible_ai_season_picks");
   const startedFixturesQuery = supabase
     .from("fixtures")
     .select(
@@ -182,11 +183,12 @@ export async function getLeaderboard(
     .select("fixture_id, predicted_home_goals, predicted_away_goals");
   const teamsQuery = supabase.from("teams").select("id, short_name");
 
-  const [scores, profiles, seasonPicks, startedFixtures, aiPredictions, teams] =
+  const [scores, profiles, seasonPicks, aiSeasonPicks, startedFixtures, aiPredictions, teams] =
     await Promise.all([
     memberIds ? scoresQuery.in("user_id", memberIds) : scoresQuery,
     memberIds ? profilesQuery.in("id", memberIds) : profilesQuery,
     memberIds ? seasonPicksQuery.in("user_id", memberIds) : seasonPicksQuery,
+    aiSeasonPicksQuery,
     startedFixturesQuery,
     aiPredictionsQuery,
     teamsQuery,
@@ -196,6 +198,7 @@ export async function getLeaderboard(
     ["prediction_scores", scores],
     ["profiles", profiles],
     ["season_picks", seasonPicks],
+    ["AI season picks", aiSeasonPicks],
     ["fixtures", startedFixtures],
     ["ai_match_predictions", aiPredictions],
     ["teams", teams],
@@ -259,19 +262,34 @@ export async function getLeaderboard(
       ...aiScores,
       ...provisionalScores,
     ],
-    seasonPicks: (seasonPicks.data ?? []).map((pick) => ({
-      userId: pick.user_id,
-      season: pick.season,
-      championAwardedPoints: pick.champion_awarded_points,
-      scorerAwardedPoints: pick.scorer_awarded_points,
-      settledAt: pick.settled_at,
-      championNameEn: pick.champion_name_en,
-      championNameHe: pick.champion_name_he,
-      championLogoUrl: pick.champion_logo_url,
-      scorerNameEn: pick.scorer_name_en,
-      scorerNameHe: pick.scorer_name_he,
-      scorerPhotoUrl: pick.scorer_photo_url,
-    })),
+    seasonPicks: [
+      ...(seasonPicks.data ?? []).map((pick) => ({
+        userId: pick.user_id,
+        season: pick.season,
+        championAwardedPoints: pick.champion_awarded_points,
+        scorerAwardedPoints: pick.scorer_awarded_points,
+        settledAt: pick.settled_at,
+        championNameEn: pick.champion_name_en,
+        championNameHe: pick.champion_name_he,
+        championLogoUrl: pick.champion_logo_url,
+        scorerNameEn: pick.scorer_name_en,
+        scorerNameHe: pick.scorer_name_he,
+        scorerPhotoUrl: pick.scorer_photo_url,
+      })),
+      ...(aiSeasonPicks.data ?? []).map((pick) => ({
+        userId: AI_PLAYER_ID,
+        season: pick.season,
+        championAwardedPoints: pick.champion_awarded_points,
+        scorerAwardedPoints: pick.scorer_awarded_points,
+        settledAt: pick.settled_at,
+        championNameEn: pick.champion_name_en,
+        championNameHe: pick.champion_name_he,
+        championLogoUrl: pick.champion_logo_url,
+        scorerNameEn: pick.scorer_name_en,
+        scorerNameHe: pick.scorer_name_he,
+        scorerPhotoUrl: pick.scorer_photo_url,
+      })),
+    ],
     viewerUserId: userId,
     currentSeason,
     picksRevealed,
