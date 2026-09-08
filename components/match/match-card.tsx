@@ -260,9 +260,8 @@ export function MatchCard({
       <div
         className={cn(
           "ease-tint relative flex items-center gap-1 px-2 py-2 transition-colors duration-200 sm:gap-3 sm:px-5 sm:py-3",
-          // Safe to round the bottom unconditionally with the tint: `answered`
-          // implies the fixture is still open, which implies there is no
-          // "you predicted" footer under this, which makes the body last.
+          // An answered fixture is still open, so the body is the last visible
+          // section unless an AI analysis follows it.
           answered && "bg-primary/[0.05] rounded-b-lg"
         )}
       >
@@ -271,7 +270,9 @@ export function MatchCard({
         <div className="flex w-[116px] shrink-0 flex-col items-center justify-center gap-2 sm:w-[132px]">
           {middle === "played" ? (
             <div className="w-full rounded-xl border border-primary/25 bg-primary/10 px-2 py-2 text-center">
-              <span className="text-muted-foreground text-[10px]">{t("actualScore")}</span>
+              <span className="text-muted-foreground block text-[10px]">
+                {t("actualScore")}
+              </span>
               <FinalScore fixture={fixture} />
               <div className="mt-2 border-t border-primary/20 pt-2">
                 <span className="text-muted-foreground block text-[10px]">{t("yourPrediction")}</span>
@@ -318,21 +319,6 @@ export function MatchCard({
         <TeamSide team={fixture.awayTeam} />
       </div>
 
-      {/* What was called, once it can no longer be changed. Rendered only when
-          it has something to say — an always-present line of grey text under
-          eighteen cards is furniture, not information. */}
-      {locked && completePrediction ? (
-        <p className="text-muted-foreground mx-3 border-t py-1.5 text-center text-[11px]">
-          <span>{t("youPredicted", { score: "" })}</span>
-          <Scoreline
-            home={completePrediction.homeGoals}
-            away={completePrediction.awayGoals}
-            separator="–"
-            className="ms-1"
-          />
-        </p>
-      ) : null}
-
       {aiPrediction ? (
         <AiPredictionPanel prediction={aiPrediction} fixture={fixture} />
       ) : null}
@@ -372,20 +358,21 @@ function AiPredictionPanel({
             {t("title")}
           </span>
           <span
-            className="grid grid-cols-[minmax(0,1fr)_auto_auto_auto_minmax(0,1fr)] items-baseline gap-1 text-sm font-bold"
+            className="grid grid-cols-[minmax(0,1fr)_3.5rem_minmax(0,1fr)] items-baseline gap-1 text-sm font-bold"
             dir={locale}
           >
-            <span className="truncate" dir="auto">
+            <span className="truncate text-center" dir="auto">
               {fixture.homeTeam.shortName}
             </span>
-            <span dir="ltr" data-numeric>
-              {prediction.predictedHomeGoals}
+            <span className="justify-self-center" dir="ltr">
+              <Scoreline
+                home={prediction.predictedHomeGoals}
+                away={prediction.predictedAwayGoals}
+                separator="-"
+                separatorClassName="mx-1"
+              />
             </span>
-            <span aria-hidden="true">-</span>
-            <span dir="ltr" data-numeric>
-              {prediction.predictedAwayGoals}
-            </span>
-            <span className="truncate" dir="auto">
+            <span className="truncate text-center" dir="auto">
               {fixture.awayTeam.shortName}
             </span>
           </span>
@@ -582,8 +569,8 @@ function FinalScore({ fixture }: { fixture: Fixture }) {
       home={fixture.homeGoals ?? "–"}
       away={fixture.awayGoals ?? "–"}
       separator="-"
-      className="pt-1.5 text-2xl font-bold"
-      separatorClassName="text-muted-foreground mx-1 font-normal"
+      className="pt-1 text-base font-semibold"
+      separatorClassName="text-muted-foreground mx-1"
     />
   );
 }

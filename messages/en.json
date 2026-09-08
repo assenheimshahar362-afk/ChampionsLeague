@@ -517,7 +517,6 @@
     "locksIn": "Locks in",
     "goalsFor": "{team} goals",
     "guess": "Pick",
-    "youPredicted": "You: {score}",
     "noPrediction": "No prediction",
     "lockedNote": "Locked at kickoff — predictions are now visible to your group",
     "signedOutNote": "Sign in to make your picks and join a group.",

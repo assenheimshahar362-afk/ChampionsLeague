@@ -479,10 +479,10 @@ async function GroupPredictions({
     <section
       id="group-predictions"
       className={cn(
-        "mt-4 rounded-2xl border p-4 sm:p-5",
+        "bg-card/55 mt-4 rounded-2xl border p-4 shadow-[0_12px_36px_rgb(3_7_25/0.2)] backdrop-blur-xl sm:p-5",
         live
-          ? "border-live/30 bg-live/[0.055] shadow-[0_0_28px_rgb(245_90_120/0.08)]"
-          : "bg-card/55 border-white/15 shadow-[0_18px_50px_rgb(3_7_25/0.2)]"
+          ? "border-live/30 shadow-[0_0_28px_rgb(245_90_120/0.08)]"
+          : "border-white/15"
       )}
     >
       <SectionTitle
