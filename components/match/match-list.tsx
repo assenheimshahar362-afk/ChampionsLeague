@@ -284,7 +284,7 @@ export function MatchList({
       a.startAt.localeCompare(b.startAt)
     );
     const upcoming = combined.filter(
-      (round) => new Date(round.endAt).getTime() >= nowTime
+      (round) => new Date(round.endAt).getTime() >= nowTime - 24 * 60 * 60_000
     );
 
     // Once the whole season is over, retain its last real round instead of
@@ -405,7 +405,11 @@ export function MatchList({
                         <MatchCard
                           key={fixture.id}
                           fixture={fixture}
-                          prediction={predictions[fixture.id]}
+                          prediction={
+                            new Date(fixture.kickoffAt).getTime() <= nowTime
+                              ? initialPredictions[fixture.id]
+                              : predictions[fixture.id]
+                          }
                           aiPrediction={aiPredictions[fixture.id]}
                           locked={
                             fixture.status !== "scheduled" ||

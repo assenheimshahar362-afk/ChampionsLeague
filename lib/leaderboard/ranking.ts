@@ -44,6 +44,7 @@ type ScoreRow = {
   totalPoints: number;
   exactScore: boolean;
   correctOutcome: boolean;
+  provisional?: boolean;
 };
 
 type SeasonPickRow = {
@@ -135,6 +136,7 @@ export function buildLeaderboard({
     if (!tally) continue;
 
     tally.points += row.totalPoints;
+    if (row.provisional) continue;
     tally.settled += 1;
     if (row.exactScore) tally.exact += 1;
     if (row.correctOutcome) tally.correct += 1;

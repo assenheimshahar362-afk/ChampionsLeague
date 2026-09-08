@@ -8,9 +8,9 @@ export function isLivePollCandidate(
   now: number = Date.now()
 ): boolean {
   if (fixture.status === "live" || fixture.status === "halftime") return true;
-  if (fixture.status !== "scheduled" && fixture.status !== "postponed") {
+  if (fixture.status !== "scheduled" && fixture.status !== "postponed" && fixture.status !== "finished") {
     return false;
   }
   const distance = now - new Date(fixture.kickoffAt).getTime();
-  return distance >= -LIVE_POLL_LEAD_MS && distance <= LIVE_POLL_TAIL_MS;
+  return distance >= -LIVE_POLL_LEAD_MS && distance <= 24 * 60 * 60_000;
 }

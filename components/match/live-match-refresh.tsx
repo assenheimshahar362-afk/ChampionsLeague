@@ -17,7 +17,7 @@ export function LiveMatchRefresh({ enabled }: { enabled: boolean }) {
       if (document.visibilityState !== "visible" || refreshing) return;
       refreshing = true;
       try {
-        await fetch("/api/matches/live", { method: "POST", cache: "no-store" });
+        await fetch("/api/matches/live", { method: "POST", cache: "no-store", signal: AbortSignal.timeout(20000) });
       } catch {
         // A later interval or online event retries transient network failures.
       } finally {

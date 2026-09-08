@@ -117,6 +117,7 @@ export async function footballDataGet<T>(
             : {}),
         },
         cache: "no-store",
+        signal: AbortSignal.timeout(15000),
       });
     } catch (cause) {
       throw new FootballDataError(

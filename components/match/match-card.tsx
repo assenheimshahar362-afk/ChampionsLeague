@@ -193,8 +193,10 @@ export function MatchCard({
         {fixture.elapsedMinutes}&apos;
       </span>
     </span>
-  ) : locked ? (
+  ) : fixture.status === "finished" ? (
     <span className="text-[11px] font-semibold">{t("finalScore")}</span>
+  ) : locked ? (
+    <span className="text-[11px] font-semibold">{t("waitingForUpdate")}</span>
   ) : (
     <span className="inline-flex items-baseline gap-1">
       {/* The label is worth its meaning but not its width: under a fixture,
@@ -267,7 +269,16 @@ export function MatchCard({
 
         <div className="flex w-[116px] shrink-0 flex-col items-center justify-center gap-2 sm:w-[132px]">
           {middle === "played" ? (
-            <FinalScore fixture={fixture} />
+            <div className="w-full rounded-xl border border-primary/25 bg-primary/10 px-2 py-2 text-center">
+              <span className="text-muted-foreground text-[10px]">{t("actualScore")}</span>
+              <FinalScore fixture={fixture} />
+              <div className="mt-2 border-t border-primary/20 pt-2">
+                <span className="text-muted-foreground block text-[10px]">{t("yourPrediction")}</span>
+                <span dir="ltr" className="block text-base font-semibold tabular-nums">
+                  {completePrediction ? `${completePrediction.homeGoals} – ${completePrediction.awayGoals}` : "—"}
+                </span>
+              </div>
+            </div>
           ) : (
             <PredictionInputs
               fixture={fixture}
@@ -559,7 +570,7 @@ function FinalScore({ fixture }: { fixture: Fixture }) {
     <span
       data-numeric
       dir="ltr"
-      className="pt-1.5 text-2xl font-bold tabular-nums"
+      className="block pt-1.5 text-2xl font-bold tabular-nums"
     >
       {fixture.homeGoals ?? "–"}
       <span className="text-muted-foreground mx-1 font-normal">-</span>

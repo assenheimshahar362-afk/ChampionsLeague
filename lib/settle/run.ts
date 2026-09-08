@@ -59,7 +59,7 @@ export async function settleDueFixtures(
   const db = createServiceRoleClient();
 
   const matchMinutes = effectiveMatchMinutes();
-  const finishedBefore = new Date(Date.now() - matchMinutes * 60_000);
+  const finishedBefore = new Date(Date.now() - (serverEnv().REBASE_ENABLED ? matchMinutes * 60_000 : 0));
 
   const report: SettleReport = {
     dryRun,

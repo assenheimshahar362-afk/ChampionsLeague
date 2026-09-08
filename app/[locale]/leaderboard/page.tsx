@@ -113,6 +113,11 @@ export default async function LeaderboardPage({
             </div>
           ) : null}
 
+          <p className="text-muted-foreground mt-4 text-xs">
+            {locale === "he"
+              ? "בזמן משחק הניקוד והדירוג כוללים נקודות זמניות לפי התוצאה הנוכחית. הניקוד סופי רק בסיום."
+              : "During matches, points and ranks include provisional points based on the current score. Points become final at full time."}
+          </p>
           {leaderboard.rows.length === 0 ? (
             <p className="text-muted-foreground mt-8 rounded-xl border border-dashed px-4 py-8 text-center text-sm text-balance">
               {t("empty")}

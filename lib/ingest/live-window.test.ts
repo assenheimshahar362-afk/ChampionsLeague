@@ -33,13 +33,13 @@ describe("live poll window", () => {
     );
   });
 
-  it("stops after a match is finished", () => {
+  it("rechecks recent finished matches to recover interrupted writes", () => {
     assert.equal(
       isLivePollCandidate(
         { status: "finished", kickoffAt: "2026-09-16T19:00:00Z" },
         NOW
       ),
-      false
+      true
     );
   });
 });

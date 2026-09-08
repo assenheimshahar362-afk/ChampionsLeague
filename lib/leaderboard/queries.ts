@@ -1,4 +1,6 @@
 import "server-only";
+import { liveScoreRows } from "@/lib/leaderboard/live-scores";
+import { ensureAutomaticPredictions } from "@/lib/predictions/automatic-fallback.server";
 
 import { SchemaNotReadyError } from "@/lib/fixtures/queries";
 import { AI_PLAYER_ID, buildAiScoreRows } from "@/lib/leaderboard/ai-player";
@@ -79,6 +81,7 @@ export async function getLeaderboard(
   requestedGroupId?: string,
   requestedPlayerId?: string
 ): Promise<LeaderboardView> {
+  await ensureAutomaticPredictions();
   const supabase = await createClient();
 
   const [mine, pickStateResult, gameSettings] = await Promise.all([
@@ -219,6 +222,19 @@ export async function getLeaderboard(
     }))
   );
   const eligibleUserIds = memberIds ?? (profiles.data ?? []).map((profile) => profile.id);
+  const liveFixtures = (startedFixtures.data ?? []).filter(f => f.status === "live" || f.status === "halftime");
+  const liveIds = liveFixtures.map(f => f.id);
+  const livePredictions = liveIds.length
+    ? await supabase.from("predictions").select("user_id, fixture_id, home_goals, away_goals").in("fixture_id", liveIds)
+    : { data: [], error: null };
+  assertResult("predictions", livePredictions);
+  const provisionalScores = liveScoreRows(liveFixtures, [
+    ...(livePredictions.data ?? []),
+    ...(aiPredictions.data ?? []).map(p => ({
+      user_id: AI_PLAYER_ID, fixture_id: p.fixture_id,
+      home_goals: p.predicted_home_goals, away_goals: p.predicted_away_goals,
+    })),
+  ]);
   const rows = buildLeaderboard({
     eligibleUserIds: [...eligibleUserIds, AI_PLAYER_ID],
     profiles: [
@@ -241,6 +257,7 @@ export async function getLeaderboard(
         correctOutcome: score.correct_outcome,
       })),
       ...aiScores,
+      ...provisionalScores,
     ],
     seasonPicks: (seasonPicks.data ?? []).map((pick) => ({
       userId: pick.user_id,

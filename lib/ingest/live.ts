@@ -45,10 +45,14 @@ export async function pollLiveMatches(): Promise<LivePollReport> {
   if (env.REBASE_ENABLED) return report;
 
   const db = createServiceRoleClient();
+  // Retry outstanding settlements even when the provider has no active games.
+  const recovered = await settleDueFixtures();
+  report.settledFixtures = recovered.fixturesReleased;
   const { data: possible, error: candidateError } = await db
     .from("fixtures")
     .select("id, football_data_id, kickoff_at, status")
-    .in("status", ["scheduled", "live", "halftime", "postponed"])
+    .in("status", ["scheduled", "live", "halftime", "postponed", "finished"])
+    .gte("kickoff_at", new Date(Date.now() - 24 * 60 * 60_000).toISOString())
     .not("football_data_id", "is", null);
   if (candidateError) {
     throw new Error(`Finding live-poll candidates failed: ${candidateError.message}`);
@@ -139,6 +143,13 @@ export async function pollLiveMatches(): Promise<LivePollReport> {
       const result = toFixtureResultRow(match);
       const score = predictionScore(match);
       if (score.home !== null && score.away !== null) {
+        const previous = await db.from("fixture_results")
+          .select("home_goals, away_goals, status, released_at")
+          .eq("fixture_id", local.id).maybeSingle();
+        if (previous.error) throw new Error(previous.error.message);
+        const changed = previous.data &&
+          (previous.data.home_goals !== score.home || previous.data.away_goals !== score.away ||
+            previous.data.status !== result.status);
         const { error: resultError } = await db.from("fixture_results").upsert({
           fixture_id: local.id,
           status: result.status,
@@ -146,6 +157,7 @@ export async function pollLiveMatches(): Promise<LivePollReport> {
           away_goals: score.away,
           went_to_extra_time: result.went_to_extra_time,
           elapsed_minutes: result.elapsed_minutes,
+          ...(changed ? { released_at: null } : {}),
         });
         if (resultError) {
           throw new Error(`Storing result ${match.id} failed: ${resultError.message}`);
@@ -157,7 +169,7 @@ export async function pollLiveMatches(): Promise<LivePollReport> {
 
   if (report.resultsStored > 0) {
     const settlement = await settleDueFixtures();
-    report.settledFixtures = settlement.fixturesReleased;
+    report.settledFixtures += settlement.fixturesReleased;
   }
   return report;
 }

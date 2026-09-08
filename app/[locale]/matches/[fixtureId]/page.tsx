@@ -22,7 +22,6 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
 
-import { LiveMatchRefresh } from "@/components/match/live-match-refresh";
 import { LocalKickoff } from "@/components/match/local-kickoff";
 import { TeamCrest } from "@/components/match/team-crest";
 import { ProfileAvatar } from "@/components/profile/profile-avatar";
@@ -75,7 +74,7 @@ import {
 import { roundLabelFor } from "@/lib/fixtures/labels";
 import { projectedPoints } from "@/lib/scoring/engine";
 import { getUser } from "@/lib/supabase/server";
-import { isLivePollCandidate } from "@/lib/ingest/live-window";
+import { getRequestTimestamp } from "@/lib/request-time";
 import {
   getFixtureTeamSquads,
   type SquadPlayer,
@@ -140,8 +139,8 @@ export default async function MatchDetailsPage({
   const displayFixture = withProviderState(fixture, details);
   const live = isInPlay(displayFixture);
   const finished = displayFixture.status === "finished";
-  const predictionsAvailable = live || finished;
-  const pollLiveData = shouldPollLiveData(displayFixture);
+  const requestTime = await getRequestTimestamp();
+  const predictionsAvailable = live || finished || new Date(fixture.kickoffAt).getTime() <= requestTime;
   const query = await searchParams;
   const requestedGroup = query.group;
   const requestedGroupId = Array.isArray(requestedGroup)
@@ -157,7 +156,7 @@ export default async function MatchDetailsPage({
   ];
   const view = availableViews.includes(requestedView as MatchDetailsView)
     ? (requestedView as MatchDetailsView)
-    : "details";
+    : predictionsAvailable && user ? "predictions" : "details";
   const requestedTeam = Array.isArray(query.team) ? query.team[0] : query.team;
   const selectedTeam = requestedTeam === "away" ? "away" : "home";
   const officialLineupsAvailable = (["home", "away"] as const).every((side) =>
@@ -189,7 +188,6 @@ export default async function MatchDetailsPage({
 
   return (
     <main className="mx-auto w-full max-w-5xl flex-1 px-4 pb-20">
-      <LiveMatchRefresh enabled={pollLiveData} />
 
       <Button asChild variant="ghost" size="sm" className="mt-5 -ms-2">
         <Link href="/#matches">
@@ -252,13 +250,6 @@ export default async function MatchDetailsPage({
       )}
     </main>
   );
-}
-
-function shouldPollLiveData(fixture: Fixture): boolean {
-  return isLivePollCandidate({
-    status: fixture.status,
-    kickoffAt: fixture.kickoffAt,
-  });
 }
 
 function withProviderState(

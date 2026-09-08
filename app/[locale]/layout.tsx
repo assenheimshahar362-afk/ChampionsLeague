@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Rubik } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
+import { LiveMatchRefresh } from "@/components/match/live-match-refresh";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
@@ -144,6 +145,7 @@ export default async function LocaleLayout({
           dangerouslySetInnerHTML={{ __html: ACCESSIBILITY_INIT_SCRIPT }}
         />
         <NextIntlClientProvider>
+          <LiveMatchRefresh enabled />
           <SkipLink label={accessibility("skipToContent")} />
           <AppBackground />
           <SiteHeader />

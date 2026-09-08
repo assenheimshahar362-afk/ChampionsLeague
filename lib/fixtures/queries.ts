@@ -258,7 +258,11 @@ export async function getCurrentAndFutureRoundFixtures(
   const fixtures = (data ?? [])
     .map((record) => toFixture(record, teams))
     .filter((fixture) => fixture !== null);
-  return currentAndFutureRoundItems(fixtures, selected);
+  const current = fixtures.find(f =>
+    f.status === "live" || f.status === "halftime" ||
+    (new Date(f.kickoffAt).getTime() <= Date.now() &&
+      new Date(f.kickoffAt).getTime() >= Date.now() - 24 * 60 * 60_000));
+  return currentAndFutureRoundItems(fixtures, current ?? selected);
 }
 
 /** One public fixture for the match-detail route. */
