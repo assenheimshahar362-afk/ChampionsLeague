@@ -3,6 +3,7 @@ import { liveScoreRows } from "@/lib/leaderboard/live-scores";
 import { ensureAutomaticPredictions } from "@/lib/predictions/automatic-fallback.server";
 
 import { SchemaNotReadyError } from "@/lib/fixtures/queries";
+import { teamTranslationKey } from "@/lib/fixtures/localization";
 import { AI_PLAYER_ID, buildAiScoreRows } from "@/lib/leaderboard/ai-player";
 import {
   buildLeaderboard,
@@ -35,13 +36,19 @@ export type LeaderboardView = {
 export type LeaderboardPrediction = {
   fixtureId: string;
   kickoffAt: string;
-  homeTeam: string;
-  awayTeam: string;
+  homeTeam: LeaderboardTeam;
+  awayTeam: LeaderboardTeam;
   predictedHomeGoals: number;
   predictedAwayGoals: number;
   actualHomeGoals: number | null;
   actualAwayGoals: number | null;
   points: number | null;
+};
+
+export type LeaderboardTeam = {
+  nameEn: string;
+  nameHe: string;
+  logoUrl: string | null;
 };
 
 export type LeaderboardPlayerHistory = {
@@ -181,9 +188,14 @@ export async function getLeaderboard(
   const aiPredictionsQuery = supabase
     .from("ai_match_predictions")
     .select("fixture_id, predicted_home_goals, predicted_away_goals");
-  const teamsQuery = supabase.from("teams").select("id, short_name");
+  const teamsQuery = supabase
+    .from("teams")
+    .select("id, name, short_name, logo_url");
+  const teamTranslationsQuery = supabase
+    .from("season_team_candidates")
+    .select("team_id, name_en, name_he");
 
-  const [scores, profiles, seasonPicks, aiSeasonPicks, startedFixtures, aiPredictions, teams] =
+  const [scores, profiles, seasonPicks, aiSeasonPicks, startedFixtures, aiPredictions, teams, teamTranslations] =
     await Promise.all([
     memberIds ? scoresQuery.in("user_id", memberIds) : scoresQuery,
     memberIds ? profilesQuery.in("id", memberIds) : profilesQuery,
@@ -192,6 +204,7 @@ export async function getLeaderboard(
     startedFixturesQuery,
     aiPredictionsQuery,
     teamsQuery,
+    teamTranslationsQuery,
   ]);
 
   for (const [table, result] of [
@@ -202,6 +215,7 @@ export async function getLeaderboard(
     ["fixtures", startedFixtures],
     ["ai_match_predictions", aiPredictions],
     ["teams", teams],
+    ["season_team_candidates", teamTranslations],
   ] as const) {
     assertResult(table, result);
   }
@@ -309,8 +323,34 @@ export async function getLeaderboard(
     const fixtureById = new Map(
       (startedFixtures.data ?? []).map((fixture) => [fixture.id, fixture])
     );
+    const hebrewNameByTeamId = new Map(
+      (teamTranslations.data ?? []).flatMap((team) =>
+        team.team_id ? [[team.team_id, team.name_he] as const] : []
+      )
+    );
+    const hebrewNameByEnglishKey = new Map(
+      (teamTranslations.data ?? []).map((team) => [
+        teamTranslationKey(team.name_en),
+        team.name_he,
+      ])
+    );
     const teamById = new Map(
-      (teams.data ?? []).map((team) => [team.id, team.short_name])
+      (teams.data ?? []).map((team) => {
+        const englishKeys = [team.name, team.short_name].map(teamTranslationKey);
+        return [
+          team.id,
+          {
+            nameEn: team.short_name,
+            nameHe:
+              hebrewNameByTeamId.get(team.id) ??
+              englishKeys
+                .map((key) => hebrewNameByEnglishKey.get(key))
+                .find((name) => name !== undefined) ??
+              team.short_name,
+            logoUrl: team.logo_url,
+          },
+        ] as const;
+      })
     );
     const humanScoreByFixture = new Map(
       (scores.data ?? [])
@@ -344,6 +384,11 @@ export async function getLeaderboard(
         return score ? [[prediction.fixture_id, score.totalPoints] as const] : [];
       })
     );
+    const liveScoreByFixture = new Map(
+      provisionalScores
+        .filter((score) => score.userId === selectedRow.userId)
+        .map((score) => [score.fixtureId, score.totalPoints])
+    );
 
     selectedPlayer = {
       userId: selectedRow.userId,
@@ -356,18 +401,28 @@ export async function getLeaderboard(
         return [{
           fixtureId: fixture.id,
           kickoffAt: fixture.kickoff_at,
-          homeTeam: teamById.get(fixture.home_team_id) ?? "-",
-          awayTeam: teamById.get(fixture.away_team_id) ?? "-",
+          homeTeam: teamById.get(fixture.home_team_id) ?? {
+            nameEn: "-",
+            nameHe: "-",
+            logoUrl: null,
+          },
+          awayTeam: teamById.get(fixture.away_team_id) ?? {
+            nameEn: "-",
+            nameHe: "-",
+            logoUrl: null,
+          },
           predictedHomeGoals: prediction.home_goals,
           predictedAwayGoals: prediction.away_goals,
           actualHomeGoals: fixture.home_goals,
           actualAwayGoals: fixture.away_goals,
           points:
-            selectedRow.userId === AI_PLAYER_ID
-              ? (aiScoreByFixture.get(fixture.id) ?? null)
-              : (humanScoreByFixture.get(fixture.id) ?? null),
+            (selectedRow.userId === AI_PLAYER_ID
+              ? aiScoreByFixture.get(fixture.id)
+              : humanScoreByFixture.get(fixture.id)) ??
+            liveScoreByFixture.get(fixture.id) ??
+            null,
         }];
-      }).sort((left, right) => right.kickoffAt.localeCompare(left.kickoffAt)),
+      }).sort((left, right) => left.kickoffAt.localeCompare(right.kickoffAt)),
     };
   }
 

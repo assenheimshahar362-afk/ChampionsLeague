@@ -7,7 +7,9 @@ const fixture = { id: "match", status: "live", home_goals: 0, away_goals: 0,
   home_win_points: 3, draw_points: 4, away_win_points: 5 };
 const prediction = { user_id: "player", fixture_id: "match", home_goals: 1, away_goals: 0 };
 test("live points follow goals and stop contributing after full time", () => {
-  assert.equal(liveScoreRows([fixture], [prediction])[0].totalPoints, 0);
+  const levelScore = liveScoreRows([fixture], [prediction])[0];
+  assert.equal(levelScore.fixtureId, "match");
+  assert.equal(levelScore.totalPoints, 0);
   assert.equal(liveScoreRows([{ ...fixture, home_goals: 1 }], [prediction])[0].totalPoints, 6);
   assert.equal(liveScoreRows([{ ...fixture, home_goals: 2 }], [prediction])[0].totalPoints, 3);
   assert.deepEqual(liveScoreRows([{ ...fixture, status: "finished" }], [prediction]), []);

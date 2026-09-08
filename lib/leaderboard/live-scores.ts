@@ -17,7 +17,7 @@ export function liveScoreRows(
       { homeGoals: f.home_goals, awayGoals: f.away_goals },
       { home: f.home_win_points, draw: f.draw_points, away: f.away_win_points }
     );
-    return [{ userId: p.user_id, totalPoints: score.totalPoints,
+    return [{ userId: p.user_id, fixtureId: p.fixture_id, totalPoints: score.totalPoints,
       exactScore: score.exactScore, correctOutcome: score.correctOutcome, provisional: true }];
   });
 }

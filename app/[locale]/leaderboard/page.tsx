@@ -258,6 +258,7 @@ function LeaderboardTableRow({
             exact: row.exact,
             correct: row.correct,
             settled: row.settled,
+            points: row.points,
           }}
           isMe={isMe}
           selectedGroupId={selectedGroupId}

@@ -1,6 +1,7 @@
 "use client";
 
 import { Bot, LoaderCircle, X } from "lucide-react";
+import Image from "next/image";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Dialog as DialogPrimitive } from "radix-ui";
@@ -10,7 +11,11 @@ import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { loadLeaderboardPlayerHistory } from "@/lib/leaderboard/actions";
 import { AI_PLAYER_ID } from "@/lib/leaderboard/ai-player";
-import type { LeaderboardPlayerHistory } from "@/lib/leaderboard/queries";
+import type {
+  LeaderboardPrediction,
+  LeaderboardPlayerHistory,
+  LeaderboardTeam,
+} from "@/lib/leaderboard/queries";
 import { cn } from "@/lib/utils";
 
 type PlayerSummary = {
@@ -21,6 +26,7 @@ type PlayerSummary = {
   exact: number;
   correct: number;
   settled: number;
+  points: number;
 };
 
 type LoadState =
@@ -43,6 +49,14 @@ export function PlayerPredictionHistoryDialog({
   const [open, setOpen] = useState(false);
   const [loadState, setLoadState] = useState<LoadState>({ status: "idle" });
   const isAi = playerSummary.userId === AI_PLAYER_ID;
+  const directionCount = Math.max(
+    0,
+    playerSummary.correct - playerSummary.exact
+  );
+  const wrongCount = Math.max(
+    0,
+    playerSummary.settled - playerSummary.correct
+  );
 
   async function loadHistory() {
     setLoadState({ status: "loading" });
@@ -93,7 +107,7 @@ export function PlayerPredictionHistoryDialog({
                 </span>
               ) : null}
             </span>
-            <span className="text-muted-foreground mt-0.5 hidden truncate text-[0.65rem] min-[390px]:block sm:text-xs">
+            <span className="text-muted-foreground mt-0.5 hidden truncate text-xs sm:block">
               {t("record", { exact: playerSummary.exact, correct: playerSummary.correct, settled: playerSummary.settled })}
             </span>
           </span>
@@ -109,11 +123,36 @@ export function PlayerPredictionHistoryDialog({
                 <ProfileAvatar avatarUrl={playerSummary.avatarUrl} seed={playerSummary.userId} alt={playerSummary.displayName} sizes="80px" />
               </span>
               <div className="min-w-0">
-                <DialogPrimitive.Title className="flex items-center gap-2 text-lg font-bold sm:text-xl">
+                <DialogPrimitive.Title className="flex min-w-0 items-center gap-2 text-lg font-bold sm:text-xl">
                   {isAi ? <Bot className="text-warning size-4 shrink-0" aria-hidden="true" /> : null}
                   <span className="truncate"><bdi>{playerSummary.displayName}</bdi></span>
+                  <span
+                    aria-hidden="true"
+                    className="text-muted-foreground shrink-0 font-normal"
+                  >
+                    –
+                  </span>
+                  <span
+                    data-numeric
+                    title={t("totalPoints", { points: playerSummary.points })}
+                    aria-label={t("totalPoints", { points: playerSummary.points })}
+                    className="text-primary shrink-0 font-extrabold tabular-nums"
+                  >
+                    {playerSummary.points}
+                  </span>
                 </DialogPrimitive.Title>
-                <DialogPrimitive.Description className="text-muted-foreground mt-1 text-sm">
+                <div className="mt-1 flex flex-wrap gap-x-2 gap-y-0.5 text-[0.65rem] font-semibold sm:text-xs">
+                  <span className="text-success">
+                    {t("exactCount", { count: playerSummary.exact })}
+                  </span>
+                  <span className="text-warning">
+                    {t("directionCount", { count: directionCount })}
+                  </span>
+                  <span className="text-destructive">
+                    {t("wrongCount", { count: wrongCount })}
+                  </span>
+                </div>
+                <DialogPrimitive.Description className="text-muted-foreground mt-1 text-xs sm:text-sm">
                   {t("historySubtitle")}
                 </DialogPrimitive.Description>
               </div>
@@ -173,29 +212,161 @@ function HistoryContent({ player, locale }: { player: LeaderboardPlayerHistory; 
   return (
     <div className="divide-y divide-white/10">
       {player.predictions.map((prediction) => (
-        <Link key={prediction.fixtureId} href={`/matches/${prediction.fixtureId}`} className="grid gap-3 px-4 py-3.5 outline-none transition-colors duration-150 hover:bg-white/[0.035] focus-visible:bg-white/[0.055] sm:grid-cols-[minmax(0,1fr)_auto_auto_auto] sm:items-center sm:px-5">
+        <Link
+          key={prediction.fixtureId}
+          href={`/matches/${prediction.fixtureId}`}
+          className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-1.5 px-3 py-2.5 outline-none transition-colors duration-150 hover:bg-white/[0.035] focus-visible:bg-white/[0.055] sm:grid-cols-[minmax(0,1fr)_auto_auto_auto] sm:gap-3 sm:px-5 sm:py-3.5"
+        >
           <span className="min-w-0">
-            <span dir="auto" className="block truncate text-sm font-medium">{prediction.homeTeam} {t("versus")} {prediction.awayTeam}</span>
-            <span className="text-muted-foreground mt-0.5 block text-xs">{formatDateTime(locale, prediction.kickoffAt)}</span>
+            <HistoryMatchup
+              homeTeam={prediction.homeTeam}
+              awayTeam={prediction.awayTeam}
+              locale={locale}
+              versus={t("versus")}
+            />
+            <span className="text-muted-foreground mt-0.5 hidden text-xs sm:block">
+              {formatDateTime(locale, prediction.kickoffAt)}
+            </span>
           </span>
-          <HistoryValue label={t("prediction")} value={`${prediction.predictedHomeGoals}:${prediction.predictedAwayGoals}`} />
-          <HistoryValue label={t("result")} value={prediction.actualHomeGoals === null || prediction.actualAwayGoals === null ? t("awaitingResult") : `${prediction.actualHomeGoals}:${prediction.actualAwayGoals}`} />
-          <HistoryValue label={t("points")} value={prediction.points ?? "—"} emphasis />
+          <time
+            dateTime={prediction.kickoffAt}
+            dir="ltr"
+            className="text-muted-foreground shrink-0 text-[0.6rem] tabular-nums sm:hidden"
+          >
+            {formatCompactDateTime(locale, prediction.kickoffAt)}
+          </time>
+          <span className="col-span-2 grid grid-cols-3 gap-1 rounded-lg bg-white/[0.025] px-1.5 py-1 sm:contents">
+            <HistoryValue label={t("prediction")} value={`${prediction.predictedHomeGoals}:${prediction.predictedAwayGoals}`} />
+            <HistoryValue label={t("result")} value={prediction.actualHomeGoals === null || prediction.actualAwayGoals === null ? t("awaitingResult") : `${prediction.actualHomeGoals}:${prediction.actualAwayGoals}`} />
+            <HistoryValue
+              label={t("points")}
+              value={prediction.points ?? "—"}
+              tone={predictionResultTone(prediction)}
+            />
+          </span>
         </Link>
       ))}
     </div>
   );
 }
 
-function HistoryValue({ label, value, emphasis = false }: { label: string; value: string | number; emphasis?: boolean }) {
+function HistoryMatchup({
+  homeTeam,
+  awayTeam,
+  locale,
+  versus,
+}: {
+  homeTeam: LeaderboardTeam;
+  awayTeam: LeaderboardTeam;
+  locale: string;
+  versus: string;
+}) {
   return (
-    <span className="flex items-baseline justify-between gap-3 sm:block sm:min-w-20 sm:text-center">
-      <span className="text-muted-foreground text-[0.65rem]">{label}</span>
-      <span data-numeric dir={typeof value === "string" && /^\d+:\d+$/.test(value) ? "ltr" : undefined} className={cn("ms-2 text-sm font-semibold tabular-nums sm:ms-0 sm:mt-0.5 sm:block", emphasis && "text-primary")}>{value}</span>
+    <span
+      dir={locale === "he" ? "rtl" : "ltr"}
+      className="flex min-w-0 items-center justify-start gap-1 text-xs font-medium sm:text-sm"
+    >
+      <HistoryTeam team={homeTeam} locale={locale} />
+      <span className="text-muted-foreground shrink-0 text-[0.65rem] leading-none">
+        {versus}
+      </span>
+      <HistoryTeam team={awayTeam} locale={locale} />
+    </span>
+  );
+}
+
+function HistoryTeam({ team, locale }: { team: LeaderboardTeam; locale: string }) {
+  const name = locale === "he" ? team.nameHe : team.nameEn;
+
+  return (
+    <span className="flex min-w-0 max-w-[calc(50%_-_0.75rem)] items-center gap-1">
+      <span className="bg-muted relative size-5 shrink-0 overflow-hidden rounded-full border border-white/10">
+        {team.logoUrl ? (
+          <Image
+            src={team.logoUrl}
+            alt=""
+            fill
+            sizes="20px"
+            className="object-contain p-0.5"
+            unoptimized
+          />
+        ) : null}
+      </span>
+      <span dir="auto" className="truncate">
+        <bdi>{name}</bdi>
+      </span>
+    </span>
+  );
+}
+
+type HistoryResultTone = "exact" | "direction" | "wrong";
+
+function predictionResultTone(
+  prediction: LeaderboardPrediction
+): HistoryResultTone | null {
+  if (
+    prediction.points === null ||
+    prediction.actualHomeGoals === null ||
+    prediction.actualAwayGoals === null
+  ) {
+    return null;
+  }
+
+  if (
+    prediction.predictedHomeGoals === prediction.actualHomeGoals &&
+    prediction.predictedAwayGoals === prediction.actualAwayGoals
+  ) {
+    return "exact";
+  }
+
+  return Math.sign(
+    prediction.predictedHomeGoals - prediction.predictedAwayGoals
+  ) === Math.sign(prediction.actualHomeGoals - prediction.actualAwayGoals)
+    ? "direction"
+    : "wrong";
+}
+
+function HistoryValue({
+  label,
+  value,
+  tone = null,
+}: {
+  label: string;
+  value: string | number;
+  tone?: HistoryResultTone | null;
+}) {
+  return (
+    <span className="flex min-w-0 items-baseline justify-center gap-1 sm:block sm:min-w-20 sm:text-center">
+      <span className="text-muted-foreground shrink-0 text-[0.58rem] sm:text-[0.65rem]">{label}</span>
+      <span
+        data-numeric
+        dir={typeof value === "string" && /^\d+:\d+$/.test(value) ? "ltr" : undefined}
+        className={cn(
+          "truncate text-xs font-semibold tabular-nums sm:mt-0.5 sm:block sm:text-sm",
+          tone === "exact"
+            ? "text-success"
+            : tone === "direction"
+              ? "text-warning"
+              : tone === "wrong"
+                ? "text-destructive"
+                : "text-muted-foreground"
+        )}
+      >
+        {value}
+      </span>
     </span>
   );
 }
 
 function formatDateTime(locale: string, value: string): string {
   return new Intl.DateTimeFormat(locale === "he" ? "he-IL" : "en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
+}
+
+function formatCompactDateTime(locale: string, value: string): string {
+  return new Intl.DateTimeFormat(locale === "he" ? "he-IL" : "en-GB", {
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(value));
 }
