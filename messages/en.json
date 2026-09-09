@@ -763,6 +763,8 @@
     "participant": "Player",
     "championPick": "Champion",
     "scorerPick": "Top scorer",
+    "seasonPicksSummary": "Season picks",
+    "expectedPoints": "{points} expected points",
     "points": "points",
     "you": "you",
     "ai": "AI",

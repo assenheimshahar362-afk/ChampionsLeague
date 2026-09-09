@@ -259,6 +259,7 @@ function LeaderboardTableRow({
             correct: row.correct,
             settled: row.settled,
             points: row.points,
+            seasonPick: row.seasonPick,
           }}
           isMe={isMe}
           selectedGroupId={selectedGroupId}

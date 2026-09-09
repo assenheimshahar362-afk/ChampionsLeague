@@ -14,7 +14,10 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { getGameSettings } from "@/lib/scoring/settings";
 
-export type { LeaderboardRow } from "@/lib/leaderboard/ranking";
+export type {
+  LeaderboardRow,
+  LeaderboardSeasonPick,
+} from "@/lib/leaderboard/ranking";
 
 export type LeaderboardGroup = {
   id: string;
@@ -193,9 +196,12 @@ export async function getLeaderboard(
     .select("id, name, short_name, logo_url");
   const teamTranslationsQuery = supabase
     .from("season_team_candidates")
-    .select("team_id, name_en, name_he");
+    .select("season, team_id, name_en, name_he, pick_points");
+  const playerCandidatesQuery = supabase
+    .from("season_player_candidates")
+    .select("season, name_en, pick_points");
 
-  const [scores, profiles, seasonPicks, aiSeasonPicks, startedFixtures, aiPredictions, teams, teamTranslations] =
+  const [scores, profiles, seasonPicks, aiSeasonPicks, startedFixtures, aiPredictions, teams, teamTranslations, playerCandidates] =
     await Promise.all([
     memberIds ? scoresQuery.in("user_id", memberIds) : scoresQuery,
     memberIds ? profilesQuery.in("id", memberIds) : profilesQuery,
@@ -205,6 +211,7 @@ export async function getLeaderboard(
     aiPredictionsQuery,
     teamsQuery,
     teamTranslationsQuery,
+    playerCandidatesQuery,
   ]);
 
   for (const [table, result] of [
@@ -216,6 +223,7 @@ export async function getLeaderboard(
     ["ai_match_predictions", aiPredictions],
     ["teams", teams],
     ["season_team_candidates", teamTranslations],
+    ["season_player_candidates", playerCandidates],
   ] as const) {
     assertResult(table, result);
   }
@@ -252,6 +260,18 @@ export async function getLeaderboard(
       home_goals: p.predicted_home_goals, away_goals: p.predicted_away_goals,
     })),
   ]);
+  const teamPickPoints = new Map(
+    (teamTranslations.data ?? []).map((candidate) => [
+      seasonCandidateKey(candidate.season, candidate.name_en),
+      candidate.pick_points,
+    ])
+  );
+  const playerPickPoints = new Map(
+    (playerCandidates.data ?? []).map((candidate) => [
+      seasonCandidateKey(candidate.season, candidate.name_en),
+      candidate.pick_points,
+    ])
+  );
   const rows = buildLeaderboard({
     eligibleUserIds: [...eligibleUserIds, AI_PLAYER_ID],
     profiles: [
@@ -286,9 +306,19 @@ export async function getLeaderboard(
         championNameEn: pick.champion_name_en,
         championNameHe: pick.champion_name_he,
         championLogoUrl: pick.champion_logo_url,
+        championPotentialPoints: requiredCandidatePoints(
+          teamPickPoints,
+          pick.season,
+          pick.champion_name_en
+        ),
         scorerNameEn: pick.scorer_name_en,
         scorerNameHe: pick.scorer_name_he,
         scorerPhotoUrl: pick.scorer_photo_url,
+        scorerPotentialPoints: requiredCandidatePoints(
+          playerPickPoints,
+          pick.season,
+          pick.scorer_name_en
+        ),
       })),
       ...(aiSeasonPicks.data ?? []).map((pick) => ({
         userId: AI_PLAYER_ID,
@@ -299,9 +329,19 @@ export async function getLeaderboard(
         championNameEn: pick.champion_name_en,
         championNameHe: pick.champion_name_he,
         championLogoUrl: pick.champion_logo_url,
+        championPotentialPoints: requiredCandidatePoints(
+          teamPickPoints,
+          pick.season,
+          pick.champion_name_en
+        ),
         scorerNameEn: pick.scorer_name_en,
         scorerNameHe: pick.scorer_name_he,
         scorerPhotoUrl: pick.scorer_photo_url,
+        scorerPotentialPoints: requiredCandidatePoints(
+          playerPickPoints,
+          pick.season,
+          pick.scorer_name_en
+        ),
       })),
     ],
     viewerUserId: userId,
@@ -434,6 +474,22 @@ export async function getLeaderboard(
     picksRevealed,
     selectedPlayer,
   };
+}
+
+function seasonCandidateKey(season: number, name: string): string {
+  return `${season}:${name}`;
+}
+
+function requiredCandidatePoints(
+  pointsByCandidate: Map<string, number>,
+  season: number,
+  name: string
+): number {
+  const points = pointsByCandidate.get(seasonCandidateKey(season, name));
+  if (points === undefined) {
+    throw new Error(`Missing season-pick points for ${name} in ${season}`);
+  }
+  return points;
 }
 
 async function loadPlayerPredictions(

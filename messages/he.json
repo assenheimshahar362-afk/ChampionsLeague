@@ -763,6 +763,8 @@
     "participant": "משתתף",
     "championPick": "אלופה",
     "scorerPick": "מלך שערים",
+    "seasonPicksSummary": "בחירות העונה",
+    "expectedPoints": "{points} נקודות צפויות",
     "points": "נקודות",
     "you": "אתם",
     "ai": "AI",

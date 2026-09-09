@@ -20,9 +20,11 @@ const pickVisual = {
   championNameEn: "Barcelona",
   championNameHe: "ברצלונה",
   championLogoUrl: "https://example.test/barcelona.svg",
+  championPotentialPoints: 8,
   scorerNameEn: "Robert Lewandowski",
   scorerNameHe: "רוברט לבנדובסקי",
   scorerPhotoUrl: "https://example.test/lewandowski.png",
+  scorerPotentialPoints: 21,
 };
 
 test("single-group scope contains only that group's members", () => {
@@ -148,9 +150,11 @@ test("AI season-pick awards are added to its leaderboard total", () => {
       championNameEn: "Arsenal",
       championNameHe: "ארסנל",
       championLogoUrl: null,
+      championPotentialPoints: 7,
       scorerNameEn: "Kylian Mbappe",
       scorerNameHe: "קיליאן אמבפה",
       scorerPhotoUrl: null,
+      scorerPotentialPoints: 5,
     }],
     viewerUserId: "viewer",
     currentSeason: 2026,
@@ -160,7 +164,9 @@ test("AI season-pick awards are added to its leaderboard total", () => {
   assert.equal(rows[0]?.points, 12);
   assert.equal(rows[0]?.seasonBonus, 12);
   assert.equal(rows[0]?.seasonPick?.championNameEn, "Arsenal");
+  assert.equal(rows[0]?.seasonPick?.championPotentialPoints, 7);
   assert.equal(rows[0]?.seasonPick?.scorerNameEn, "Kylian Mbappe");
+  assert.equal(rows[0]?.seasonPick?.scorerPotentialPoints, 5);
 });
 
 test("other participants' season picks stay hidden before first kickoff", () => {

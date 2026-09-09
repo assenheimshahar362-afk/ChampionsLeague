@@ -1,6 +1,6 @@
 "use client";
 
-import { Bot, LoaderCircle, X } from "lucide-react";
+import { Bot, LoaderCircle, Trophy, UserRound, X } from "lucide-react";
 import Image from "next/image";
 import { useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
@@ -15,6 +15,7 @@ import { AI_PLAYER_ID } from "@/lib/leaderboard/ai-player";
 import type {
   LeaderboardPrediction,
   LeaderboardPlayerHistory,
+  LeaderboardSeasonPick,
   LeaderboardTeam,
 } from "@/lib/leaderboard/queries";
 import { cn } from "@/lib/utils";
@@ -28,6 +29,7 @@ type PlayerSummary = {
   correct: number;
   settled: number;
   points: number;
+  seasonPick: LeaderboardSeasonPick | null;
 };
 
 type LoadState =
@@ -166,6 +168,10 @@ export function PlayerPredictionHistoryDialog({
             </DialogPrimitive.Close>
           </header>
 
+          {playerSummary.seasonPick ? (
+            <SeasonPickSummary pick={playerSummary.seasonPick} locale={locale} />
+          ) : null}
+
           {loadState.status === "success" ? (
             <HistoryContent player={loadState.player} locale={locale} />
           ) : loadState.status === "error" ? (
@@ -181,6 +187,94 @@ export function PlayerPredictionHistoryDialog({
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>
     </DialogPrimitive.Root>
+  );
+}
+
+function SeasonPickSummary({
+  pick,
+  locale,
+}: {
+  pick: LeaderboardSeasonPick;
+  locale: string;
+}) {
+  const t = useTranslations("leaderboard");
+
+  return (
+    <div
+      className="grid grid-cols-2 gap-2 border-b border-white/10 px-4 py-3 sm:px-5"
+      aria-label={t("seasonPicksSummary")}
+    >
+      <SeasonPickCard
+        label={t("championPick")}
+        name={locale === "he" ? pick.championNameHe : pick.championNameEn}
+        imageUrl={pick.championLogoUrl}
+        points={pick.championPotentialPoints}
+        fallback={<Trophy className="text-muted-foreground size-4" aria-hidden="true" />}
+        rounded="rounded-lg"
+      />
+      <SeasonPickCard
+        label={t("scorerPick")}
+        name={locale === "he" ? pick.scorerNameHe : pick.scorerNameEn}
+        imageUrl={pick.scorerPhotoUrl}
+        points={pick.scorerPotentialPoints}
+        fallback={<UserRound className="text-muted-foreground size-4" aria-hidden="true" />}
+        rounded="rounded-full"
+      />
+    </div>
+  );
+}
+
+function SeasonPickCard({
+  label,
+  name,
+  imageUrl,
+  points,
+  fallback,
+  rounded,
+}: {
+  label: string;
+  name: string;
+  imageUrl: string | null;
+  points: number;
+  fallback: ReactNode;
+  rounded: "rounded-lg" | "rounded-full";
+}) {
+  const t = useTranslations("leaderboard");
+
+  return (
+    <div className="flex min-w-0 items-center gap-2.5 rounded-xl border border-white/10 bg-white/[0.035] p-2.5">
+      <span
+        className={cn(
+          "bg-muted relative flex size-9 shrink-0 items-center justify-center overflow-hidden border border-white/10",
+          rounded
+        )}
+      >
+        {imageUrl ? (
+          <Image
+            src={imageUrl}
+            alt=""
+            fill
+            sizes="36px"
+            className={rounded === "rounded-full" ? "object-cover" : "object-contain p-1"}
+            unoptimized
+          />
+        ) : fallback}
+      </span>
+      <span className="min-w-0">
+        <span className="text-muted-foreground block text-[0.62rem] font-medium sm:text-xs">
+          {label}
+        </span>
+        <span dir="auto" className="block truncate text-xs font-semibold sm:text-sm">
+          <bdi>{name}</bdi>
+        </span>
+        <span
+          data-numeric
+          className="text-primary block text-[0.65rem] font-semibold tabular-nums sm:text-xs"
+        >
+          {t("expectedPoints", { points })}
+        </span>
+      </span>
+    </div>
   );
 }
 

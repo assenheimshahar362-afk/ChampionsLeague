@@ -23,9 +23,11 @@ export type LeaderboardSeasonPick = {
   championNameEn: string;
   championNameHe: string;
   championLogoUrl: string | null;
+  championPotentialPoints: number;
   scorerNameEn: string;
   scorerNameHe: string;
   scorerPhotoUrl: string | null;
+  scorerPotentialPoints: number;
 };
 
 export type GroupMembership = {
@@ -56,9 +58,11 @@ type SeasonPickRow = {
   championNameEn: string;
   championNameHe: string;
   championLogoUrl: string | null;
+  championPotentialPoints: number;
   scorerNameEn: string;
   scorerNameHe: string;
   scorerPhotoUrl: string | null;
+  scorerPotentialPoints: number;
 };
 
 /**
@@ -156,9 +160,11 @@ export function buildLeaderboard({
         championNameEn: row.championNameEn,
         championNameHe: row.championNameHe,
         championLogoUrl: row.championLogoUrl,
+        championPotentialPoints: row.championPotentialPoints,
         scorerNameEn: row.scorerNameEn,
         scorerNameHe: row.scorerNameHe,
         scorerPhotoUrl: row.scorerPhotoUrl,
+        scorerPotentialPoints: row.scorerPotentialPoints,
       };
       tally.seasonPickState = "visible";
     }
