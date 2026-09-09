@@ -332,6 +332,7 @@ function AiPredictionPanel({
 }) {
   const t = useTranslations("match.aiPrediction");
   const locale = useLocale();
+  const direction = locale === "he" ? "rtl" : "ltr";
   const probabilities = [
     {
       label: fixture.homeTeam.shortName,
@@ -356,12 +357,12 @@ function AiPredictionPanel({
           </span>
           <span
             className="grid grid-cols-[minmax(0,1fr)_3.5rem_minmax(0,1fr)] items-baseline gap-1 text-sm font-bold"
-            dir={locale}
+            dir={direction}
           >
             <span className="truncate text-center" dir="auto">
               {fixture.homeTeam.shortName}
             </span>
-            <span className="justify-self-center" dir="ltr">
+            <span className="justify-self-center">
               <Scoreline
                 home={prediction.predictedHomeGoals}
                 away={prediction.predictedAwayGoals}
