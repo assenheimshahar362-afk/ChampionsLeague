@@ -1,12 +1,18 @@
 import "server-only";
 
-import { connection } from "next/server";
+import { cacheLife, cacheTag } from "next/cache";
 
 import {
   normalizePersonName,
   teamTranslationKey,
   type PlayerNameTranslations,
 } from "@/lib/fixtures/localization";
+import { CACHE_TAGS } from "@/lib/cache-tags";
+import {
+  initialHomeRoundItems,
+  nextRoundItems,
+  type FixtureRoundSelection,
+} from "@/lib/fixtures/schedule";
 import type {
   AiPrediction,
   Fixture,
@@ -29,9 +35,9 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role";
  * trivial, and it keeps this layer independent of the `Relationships` metadata
  * that the hand-written `database.types.ts` placeholder does not carry.
  *
- * Everything here runs under the caller's RLS context: `fixtures` and `teams`
- * are world-readable, so a signed-out visitor gets the full matchday, while
- * `predictions` returns only what that user is allowed to see.
+ * Public catalogue data is read with the server-only client so it can be
+ * shared safely across visitors. User predictions still run under the
+ * caller's RLS context and are never placed in the shared cache.
  */
 
 /**
@@ -131,13 +137,25 @@ async function loadTeams(
   season: number,
   locale: string
 ): Promise<Map<string, Team>> {
-  const supabase = await createClient();
+  const teams = await loadLocalizedTeams(season, locale);
+  return new Map(teams.map((team) => [team.id, team]));
+}
+
+async function loadLocalizedTeams(
+  season: number,
+  locale: string
+): Promise<Team[]> {
+  "use cache: remote";
+  cacheLife({ stale: 300, revalidate: 3600, expire: 86400 });
+  cacheTag(CACHE_TAGS.teams);
+
+  const supabase = createServiceRoleClient();
   const teamsRequest = supabase.from("teams").select("*");
 
   // Candidate catalogues are intentionally not exposed to signed-out users.
   // Read the public-facing name and market probability fields on the server,
   // then pass plain values to the rendered client components.
-  const translationsRequest = createServiceRoleClient()
+  const translationsRequest = supabase
     .from("season_team_candidates")
     .select("team_id, name_en, name_he, implied_probability")
     .eq("season", season);
@@ -172,8 +190,7 @@ async function loadTeams(
     probabilityByEnglishKey.set(englishKey, translation.implied_probability);
   }
 
-  return new Map(
-    (teamsResult.data ?? []).map((team) => {
+  return (teamsResult.data ?? []).map((team) => {
       const englishKeys = [team.name, team.short_name].map(teamTranslationKey);
       const localizedName = locale === "he"
         ? nameByTeamId.get(team.id) ??
@@ -186,74 +203,40 @@ async function loadTeams(
           .find((value) => value !== undefined) ??
         null;
 
-      return [
-        team.id,
-        toTeam(team, localizedName, marketProbability),
-      ] as const;
-    })
-  );
+      return toTeam(team, localizedName, marketProbability);
+    });
 }
 
-/**
- * All fixtures in the active season, including completed rounds.
- */
-export async function getCurrentAndFutureRoundFixtures(
-  locale: string
-): Promise<Fixture[]> {
-  // The round changes as fixtures kick off, so this query must use the clock
-  // from the incoming request rather than the prerendering pass.
-  await connection();
+async function getLatestSeason(): Promise<number | null> {
+  "use cache: remote";
+  cacheLife({ stale: 30, revalidate: 60, expire: 300 });
+  cacheTag(CACHE_TAGS.fixtures);
 
-  const supabase = await createClient();
-
-  const nowIso = new Date().toISOString();
-
-  // The soonest fixture that has not kicked off decides the round on show.
-  const { data: upcoming, error: upcomingError } = await supabase
+  const { data, error } = await createServiceRoleClient()
     .from("fixtures")
-    .select("season, round")
-    .gt("kickoff_at", nowIso)
-    .order("kickoff_at", { ascending: true })
+    .select("season")
+    .order("season", { ascending: false })
     .limit(1);
 
-  if (upcomingError) {
-    fail("fixtures", "Finding the current round", upcomingError);
-  }
+  if (error) fail("fixtures", "Finding the latest season", error);
+  return data?.[0]?.season ?? null;
+}
 
-  // Season over: fall back to the last round played, so the page still shows
-  // something rather than going blank.
-  let selected = upcoming?.[0] ?? null;
+async function loadSeasonFixtureRecords(
+  season: number
+): Promise<FixtureRecord[]> {
+  "use cache: remote";
+  cacheLife({ stale: 30, revalidate: 60, expire: 300 });
+  cacheTag(CACHE_TAGS.fixtures);
 
-  if (!selected) {
-    const { data: last, error: lastError } = await supabase
-      .from("fixtures")
-      .select("season, round")
-      .order("kickoff_at", { ascending: false })
-      .limit(1);
+  const { data, error } = await createServiceRoleClient()
+    .from("fixtures")
+    .select("*")
+    .eq("season", season)
+    .order("kickoff_at", { ascending: true });
 
-    if (lastError) {
-      fail("fixtures", "Finding the last round", lastError);
-    }
-    selected = last?.[0] ?? null;
-  }
-
-  if (!selected) return [];
-
-  const [teams, { data, error }] = await Promise.all([
-    loadTeams(selected.season, locale),
-    supabase
-      .from("fixtures")
-      .select("*")
-      .eq("season", selected.season)
-      .order("kickoff_at", { ascending: true }),
-  ]);
-
-  if (error) fail("fixtures", "Loading the remaining season", error);
-
-  const fixtures = (data ?? [])
-    .map((record) => toFixture(record, teams))
-    .filter((fixture) => fixture !== null);
-  return fixtures;
+  if (error) fail("fixtures", "Loading fixtures", error);
+  return data ?? [];
 }
 
 /** One public fixture for the match-detail route. */
@@ -282,32 +265,38 @@ export async function getFixtureById(
 
 /** Every fixture in the latest season, oldest first. Used by standings/history. */
 export async function getAllFixtures(locale: string): Promise<Fixture[]> {
-  const supabase = await createClient();
+  const season = await getLatestSeason();
+  if (season === null) return [];
 
-  const latestResult = await supabase
-    .from("fixtures")
-    .select("season")
-    .order("season", { ascending: false })
-    .limit(1);
-
-  if (latestResult.error) fail("fixtures", "Finding the latest season", latestResult.error);
-  const season = latestResult.data?.[0]?.season;
-  if (season === undefined) return [];
-
-  const [teams, { data, error }] = await Promise.all([
+  const [teams, data] = await Promise.all([
     loadTeams(season, locale),
-    supabase
-      .from("fixtures")
-      .select("*")
-      .eq("season", season)
-      .order("kickoff_at", { ascending: true }),
+    loadSeasonFixtureRecords(season),
   ]);
 
-  if (error) fail("fixtures", "Loading fixtures", error);
-
-  return (data ?? [])
+  return data
     .map((record) => toFixture(record, teams))
     .filter((f) => f !== null);
+}
+
+export async function getInitialHomeFixtureWindow(
+  locale: string,
+  nowMs: number
+) {
+  const allFixtures = await getAllFixtures(locale);
+  const initial = initialHomeRoundItems(allFixtures, nowMs);
+  return {
+    fixtures: initial.items,
+    remainingRoundCount: initial.remainingRoundCount,
+    availableStages: [...new Set(allFixtures.map((fixture) => fixture.stage))],
+  };
+}
+
+export async function getHomeFixtureRoundAfter(
+  locale: string,
+  cursor: FixtureRoundSelection
+) {
+  const allFixtures = await getAllFixtures(locale);
+  return nextRoundItems(allFixtures, cursor);
 }
 
 /** Hebrew player names keyed both by provider id and normalized English name. */
@@ -378,11 +367,23 @@ export async function getAiPredictions(
 ): Promise<Record<string, AiPrediction>> {
   if (fixtureIds.length === 0) return {};
 
-  const supabase = await createClient();
-  const { data, error } = await supabase
+  const allPredictions = await getCachedAiPredictions(locale);
+  const requested = new Set(fixtureIds);
+  return Object.fromEntries(
+    Object.entries(allPredictions).filter(([fixtureId]) => requested.has(fixtureId))
+  );
+}
+
+async function getCachedAiPredictions(
+  locale: string
+): Promise<Record<string, AiPrediction>> {
+  "use cache: remote";
+  cacheLife({ stale: 300, revalidate: 3600, expire: 86400 });
+  cacheTag(CACHE_TAGS.aiPredictions);
+
+  const { data, error } = await createServiceRoleClient()
     .from("ai_match_predictions")
-    .select("*")
-    .in("fixture_id", fixtureIds);
+    .select("*");
 
   if (error) fail("ai_match_predictions", "Loading AI predictions", error);
 

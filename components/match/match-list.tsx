@@ -7,11 +7,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { AutoPredictDialog } from "@/components/match/auto-predict-dialog";
 import { KickoffBoundaryRefresh } from "@/components/match/kickoff-boundary-refresh";
+import { LiveMatchRefresh } from "@/components/match/live-match-refresh";
 import {
   MatchCard,
   type EditablePrediction,
 } from "@/components/match/match-card";
 import { Button } from "@/components/ui/button";
+import { loadNextFixtureRound } from "@/lib/fixtures/actions";
 import { roundLabelForFixtures } from "@/lib/fixtures/labels";
 import type {
   AiPrediction,
@@ -167,6 +169,8 @@ export function MatchList({
   fixtures,
   initialPredictions = {},
   aiPredictions = {},
+  remainingRoundCount: initialRemainingRoundCount = 0,
+  availableStages = [],
   canPredict,
   nowIso,
 }: {
@@ -175,6 +179,10 @@ export function MatchList({
   initialPredictions?: Record<string, Prediction>;
   /** One shared, cached analysis per fixture. */
   aiPredictions?: Record<string, AiPrediction>;
+  /** Actual database rounds not included in the initial response. */
+  remainingRoundCount?: number;
+  /** Stages present in the full season, including rounds not loaded yet. */
+  availableStages?: Stage[];
   /** Signed-out visitors see the list and the inputs, but cannot fill them. */
   canPredict: boolean;
   /** The request clock, fixed so the server and client agree on the next round. */
@@ -184,11 +192,19 @@ export function MatchList({
   const locale = useLocale();
   const [predictions, setPredictions] =
     useState<Record<string, EditablePrediction>>(initialPredictions);
+  const [loadedFixtures, setLoadedFixtures] = useState(fixtures);
+  const [loadedAiPredictions, setLoadedAiPredictions] = useState(aiPredictions);
+  const [remainingRoundCount, setRemainingRoundCount] = useState(
+    initialRemainingRoundCount
+  );
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [loadMoreFailed, setLoadMoreFailed] = useState(false);
 
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const [errorCode, setErrorCode] = useState<PredictionErrorCode | null>(null);
   const [autoSavedCount, setAutoSavedCount] = useState<number | null>(null);
-  const scrollTarget = useRef<HTMLElement | null>(null);
+  const fixtureScrollTarget = useRef<HTMLLIElement | null>(null);
+  const roundScrollTarget = useRef<HTMLElement | null>(null);
   const didScroll = useRef(false);
   const [additionalRoundCount, setAdditionalRoundCount] = useState(0);
   const nowTime = new Date(nowIso).getTime();
@@ -256,7 +272,7 @@ export function MatchList({
 
   const rounds = useMemo<DisplayRound[]>(() => {
     const map = new Map<string, Fixture[]>();
-    for (const fixture of fixtures) {
+    for (const fixture of loadedFixtures) {
       const key = `${fixture.season ?? "season"}:${fixture.round}`;
       const bucket = map.get(key);
       if (bucket) bucket.push(fixture);
@@ -272,8 +288,8 @@ export function MatchList({
         endAt: roundFixtures.at(-1)!.kickoffAt,
       })
     );
-    const season = fixtures[0]?.season;
-    const actualStages = new Set(fixtureRounds.map((round) => round.fixtures[0]!.stage));
+    const season = loadedFixtures[0]?.season;
+    const actualStages = new Set(availableStages);
     const planned =
       season === 2026
         ? KNOCKOUT_CALENDAR_2026.filter(
@@ -286,7 +302,7 @@ export function MatchList({
       a.startAt.localeCompare(b.startAt)
     );
     return combined;
-  }, [fixtures, nowTime]);
+  }, [availableStages, loadedFixtures, nowTime]);
 
   const actualRounds = rounds.filter((round) => round.kind === "fixtures");
   const targetRound = actualRounds.find((round) =>
@@ -306,26 +322,38 @@ export function MatchList({
     0,
     Math.min(targetRoundIndex + 1 + additionalRoundCount, rounds.length)
   );
-  const hasMoreRounds = visibleRounds.length < rounds.length;
+  const hasMoreRounds =
+    remainingRoundCount > 0 || visibleRounds.length < rounds.length;
+  const totalRoundCount = rounds.length + remainingRoundCount;
 
-  useEffect(() => {
-    if (didScroll.current || !scrollTarget.current) return;
-    scrollTarget.current.scrollIntoView({ behavior: "instant", block: "start" });
-    // Live refreshes must not pull the user away from the round they are reading.
-    didScroll.current = true;
-  }, [targetRound?.id]);
   const openFixtures = useMemo(
     () =>
-      fixtures.filter(
+      loadedFixtures.filter(
         (fixture) =>
           fixture.status === "scheduled" &&
           new Date(fixture.kickoffAt).getTime() > nowTime
       ),
-    [fixtures, nowTime]
+    [loadedFixtures, nowTime]
   );
+  const firstUpcomingFixtureId = openFixtures[0]?.id;
+
+  useEffect(() => {
+    const target = firstUpcomingFixtureId
+      ? fixtureScrollTarget.current
+      : roundScrollTarget.current;
+    if (didScroll.current || !target) return;
+    target.scrollIntoView({ behavior: "instant", block: "start" });
+    // Live refreshes must not pull the user away from the round they are reading.
+    didScroll.current = true;
+  }, [firstUpcomingFixtureId, targetRound?.id]);
   const missingPredictionCount = openFixtures.filter(
     (fixture) => !hasCompleteScore(predictions[fixture.id])
   ).length;
+  const liveRefreshFixtures = useMemo(
+    () =>
+      loadedFixtures.map(({ kickoffAt, status }) => ({ kickoffAt, status })),
+    [loadedFixtures]
+  );
 
   async function applyAutomaticPredictions(mode: AutoPredictionMode) {
     saveVersion.current += 1;
@@ -367,8 +395,56 @@ export function MatchList({
     }
   }
 
+  async function loadMoreRound() {
+    if (loadingMore) return;
+
+    if (remainingRoundCount === 0) {
+      setAdditionalRoundCount((count) => count + 1);
+      return;
+    }
+
+    const lastActualRound = actualRounds.at(-1);
+    const cursorFixture = lastActualRound?.fixtures[0];
+    if (!cursorFixture || cursorFixture.season === undefined) return;
+
+    setLoadingMore(true);
+    setLoadMoreFailed(false);
+    try {
+      const result = await loadNextFixtureRound({
+        locale,
+        cursor: {
+          season: cursorFixture.season,
+          round: cursorFixture.round,
+        },
+      });
+      if (result.fixtures.length === 0) {
+        setRemainingRoundCount(0);
+        return;
+      }
+
+      setLoadedFixtures((current) => {
+        const byId = new Map(current.map((fixture) => [fixture.id, fixture]));
+        for (const fixture of result.fixtures) byId.set(fixture.id, fixture);
+        return [...byId.values()].sort((left, right) =>
+          left.kickoffAt.localeCompare(right.kickoffAt)
+        );
+      });
+      setLoadedAiPredictions((current) => ({
+        ...current,
+        ...result.aiPredictions,
+      }));
+      setRemainingRoundCount(result.remainingRoundCount);
+      setAdditionalRoundCount((count) => count + 1);
+    } catch {
+      setLoadMoreFailed(true);
+    } finally {
+      setLoadingMore(false);
+    }
+  }
+
   return (
     <div className="space-y-5">
+      <LiveMatchRefresh fixtures={liveRefreshFixtures} />
       <KickoffBoundaryRefresh kickoffAt={openFixtures[0]?.kickoffAt} />
       {canPredict ? (
         <div className="flex justify-center">
@@ -399,7 +475,11 @@ export function MatchList({
           return (
             <section
               key={round.id}
-              ref={round.id === targetRound?.id ? scrollTarget : undefined}
+              ref={
+                !firstUpcomingFixtureId && round.id === targetRound?.id
+                  ? roundScrollTarget
+                  : undefined
+              }
               className="enter-fade scroll-mt-24 space-y-4"
             >
               {label ? (
@@ -434,13 +514,18 @@ export function MatchList({
                               ? initialPredictions[fixture.id]
                               : predictions[fixture.id]
                           }
-                          aiPrediction={aiPredictions[fixture.id]}
+                          aiPrediction={loadedAiPredictions[fixture.id]}
                           locked={
                             fixture.status !== "scheduled" ||
                             new Date(fixture.kickoffAt).getTime() <= nowTime
                           }
                           canPredict={canPredict}
                           enterIndex={firstIndex + index}
+                          scrollRef={
+                            fixture.id === firstUpcomingFixtureId
+                              ? fixtureScrollTarget
+                              : undefined
+                          }
                           onChange={(home, away) =>
                             setScore(fixture.id, home, away)
                           }
@@ -490,17 +575,23 @@ export function MatchList({
             variant="outline"
             aria-controls="fixture-rounds"
             className="border-primary/30 bg-primary/[0.08] text-primary min-w-44 rounded-full shadow-[0_8px_24px_rgb(0_0_0/0.12)]"
-            onClick={() => setAdditionalRoundCount((count) => count + 1)}
+            disabled={loadingMore}
+            onClick={loadMoreRound}
           >
-            {t("loadMoreRound")}
+            {loadingMore ? t("loadingMoreRound") : t("loadMoreRound")}
             <ChevronDown className="size-4" aria-hidden="true" />
           </Button>
           <p className="text-muted-foreground text-[11px]">
             {t("roundProgress", {
               shown: visibleRounds.length,
-              total: rounds.length,
+              total: totalRoundCount,
             })}
           </p>
+          {loadMoreFailed ? (
+            <p role="alert" className="text-destructive text-xs">
+              {t("loadMoreError")}
+            </p>
+          ) : null}
         </div>
       ) : null}
 

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Rubik } from "next/font/google";
+import Script from "next/script";
 import { NextIntlClientProvider } from "next-intl";
-import { LiveMatchRefresh } from "@/components/match/live-match-refresh";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
@@ -26,10 +26,9 @@ const geistMono = Geist_Mono({ variable: "--font-app-mono", subsets: ["latin"] }
    geometric-grotesque character, so the two locales look like one product. */
 const rubik = Rubik({ variable: "--font-app-sans", subsets: ["hebrew", "latin"] });
 
-// Runs synchronously at the start of <body>, before the visible document is
-// parsed, so saved accessibility preferences apply without a first-paint flash.
-// A native inline script is intentional here: the outer app/layout.tsx is a
-// passthrough and therefore cannot safely order a next/script instance.
+// Runs before hydration so saved accessibility preferences apply without a
+// first-paint flash. Next's Script component also avoids React trying to insert
+// an executable native script again during client-side layout rendering.
 const ACCESSIBILITY_INIT_SCRIPT = `
 (function () {
   try {
@@ -140,15 +139,17 @@ export default async function LocaleLayout({
       {/* The tab bar is fixed, so the page has to reserve its height or the
           footer's last line sits underneath it. Phones only, matching the bar. */}
       <body className="flex min-h-full flex-col pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0">
-        <script
+        <Script
           id="accessibility-preferences"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{ __html: ACCESSIBILITY_INIT_SCRIPT }}
         />
         <NextIntlClientProvider>
-          <LiveMatchRefresh enabled />
           <SkipLink label={accessibility("skipToContent")} />
           <AppBackground />
-          <SiteHeader />
+          <Suspense fallback={<SiteHeaderFallback />}>
+            <SiteHeader />
+          </Suspense>
           <div
             id="main-content"
             tabIndex={-1}
@@ -174,5 +175,20 @@ function BottomNavFallback() {
       aria-hidden="true"
       className="bg-background/85 fixed inset-x-0 bottom-0 z-40 h-14 border-t border-white/10 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden"
     />
+  );
+}
+
+function SiteHeaderFallback() {
+  return (
+    <header
+      aria-hidden="true"
+      className="bg-background/80 sticky top-0 z-40 border-b backdrop-blur-md"
+    >
+      <div className="mx-auto flex h-14 w-full max-w-5xl items-center gap-3 px-4 motion-safe:animate-pulse">
+        <span className="bg-muted size-7 shrink-0 rounded-md" />
+        <span className="bg-muted h-4 w-20 rounded" />
+        <span className="bg-muted ms-auto h-8 w-44 rounded-md" />
+      </div>
+    </header>
   );
 }

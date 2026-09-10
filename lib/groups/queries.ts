@@ -119,16 +119,53 @@ export async function getMyGroups(
 
   const profileById = new Map((profiles ?? []).map((row) => [row.id, row]));
   const myRoleByGroup = new Map(mine.map((row) => [row.group_id, row.role]));
-  const canSeeAnyEmail = isAdminEmail(userEmail) || mine.some((row) => row.role === "manager");
-  const emailById = new Map<string, string | null>();
+  const administrator = isAdminEmail(userEmail);
+  const canSeeAnyEmail = administrator || mine.some((row) => row.role === "manager");
+  const emailByGroupAndUser = new Map<string, string | null>();
 
   if (canSeeAnyEmail) {
-    await Promise.all(
-      memberIds.map(async (id) => {
-        const { data } = await service.auth.admin.getUserById(id);
-        emailById.set(id, data.user?.email ?? null);
-      })
-    );
+    const fallbackToAuth = async () => {
+      const emailById = new Map<string, string | null>();
+      await Promise.all(
+        memberIds.map(async (id) => {
+          const { data } = await service.auth.admin.getUserById(id);
+          emailById.set(id, data.user?.email ?? null);
+        })
+      );
+      for (const member of members ?? []) {
+        emailByGroupAndUser.set(
+          `${member.group_id}:${member.user_id}`,
+          emailById.get(member.user_id) ?? null
+        );
+      }
+      for (const request of requests ?? []) {
+        emailByGroupAndUser.set(
+          `${request.group_id}:${request.user_id}`,
+          emailById.get(request.user_id) ?? null
+        );
+      }
+    };
+
+    if (administrator) {
+      await fallbackToAuth();
+    } else {
+      const { data: emailRows, error: emailError } = await db.rpc(
+        "get_my_group_member_emails",
+        { target_group_ids: managerGroupIds }
+      );
+      if (emailError?.code === "PGRST202" || emailError?.code === "42883") {
+        await fallbackToAuth();
+      } else if (emailError) {
+        throw new Error(`Loading group member emails failed: ${emailError.message}`);
+      } else {
+        for (const row of emailRows ?? []) {
+          emailByGroupAndUser.set(
+            `${row.group_id}:${row.user_id}`,
+            row.email
+          );
+        }
+      }
+    }
   }
 
   return (groups ?? []).map((group) => {
@@ -151,7 +188,9 @@ export async function getMyGroups(
                 userId: row.user_id,
                 nickname: profile.display_name,
                 role: row.role,
-                email: canSeeEmail ? emailById.get(row.user_id) ?? null : null,
+                email: canSeeEmail
+                  ? emailByGroupAndUser.get(`${group.id}:${row.user_id}`) ?? null
+                  : null,
               }]
             : [];
         })
@@ -169,7 +208,10 @@ export async function getMyGroups(
                   id: request.id,
                   userId: request.user_id,
                   nickname: profile.display_name,
-                  email: emailById.get(request.user_id) ?? null,
+                  email:
+                    emailByGroupAndUser.get(
+                      `${group.id}:${request.user_id}`
+                    ) ?? null,
                   requestedAt: request.requested_at,
                 },
               ]

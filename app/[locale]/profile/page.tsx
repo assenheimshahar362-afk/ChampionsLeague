@@ -10,26 +10,15 @@ import { ProfileNicknameDialog } from "@/components/profile/profile-nickname-dia
 import { ProfileSeasonPicksSection } from "@/components/profile/season-picks-section";
 import { SetupNotice } from "@/components/setup-notice";
 import { isLocale } from "@/i18n/routing";
-import {
-  SchemaNotReadyError,
-  getMyPredictions,
-  getMyScores,
-  type SettledScore,
-} from "@/lib/fixtures/queries";
-import type { Prediction } from "@/lib/fixtures/types";
+import { SchemaNotReadyError } from "@/lib/fixtures/queries";
 import { getMyGroups, type GroupView } from "@/lib/groups/queries";
 import {
-  getPersonalProfile,
-  getSeasonPickOverview,
-  type PersonalProfile,
-  type SeasonPickOverview,
+  getPersonalProfileOverview,
 } from "@/lib/profile/queries";
 import { getRequestTimestamp } from "@/lib/request-time";
 import { getUser } from "@/lib/supabase/server";
 
 import styles from "./profile.module.css";
-
-export const instant = false;
 
 type ProfilePageProps = {
   params: Promise<{ locale: string }>;
@@ -54,21 +43,10 @@ async function ProfileContent({
   const user = await getUser();
   if (!user) redirect(`/${locale}/sign-in?next=/${locale}/profile`);
 
-  let profile: PersonalProfile | null;
-  let groups: GroupView[];
-  let predictions: Record<string, Prediction>;
-  let scores: Record<string, SettledScore>;
-  let seasonPick: SeasonPickOverview | null;
+  let overview;
 
   try {
-    [profile, groups, predictions, scores, seasonPick] =
-      await Promise.all([
-        getPersonalProfile(user.id),
-        getMyGroups(user.id, user.email),
-        getMyPredictions(user.id),
-        getMyScores(user.id),
-        getSeasonPickOverview(user.id, now),
-      ]);
+    overview = await getPersonalProfileOverview(user.id, now);
   } catch (error) {
     if (error instanceof SchemaNotReadyError) {
       return <SetupNotice reason="schema" />;
@@ -76,19 +54,16 @@ async function ProfileContent({
     throw error;
   }
 
+  const profile = overview.profile;
   if (!profile?.nicknameConfirmedAt) {
     redirect(`/${locale}/onboarding?next=/${locale}/profile`);
   }
 
   const t = await getTranslations("profile");
-  const matchPoints = Object.values(scores).reduce(
-    (sum, score) => sum + score.totalPoints,
-    0
-  );
-  const seasonPoints = seasonPick
-    ? seasonPick.championAwardedPoints + seasonPick.scorerAwardedPoints
+  const seasonPoints = overview.seasonPick
+    ? overview.seasonPick.championAwardedPoints +
+      overview.seasonPick.scorerAwardedPoints
     : 0;
-  const predictionCount = Object.keys(predictions).length;
   const joinedAt = new Intl.DateTimeFormat(locale === "he" ? "he-IL" : "en-GB", {
     dateStyle: "medium",
   }).format(new Date(profile.createdAt));
@@ -121,11 +96,14 @@ async function ProfileContent({
             </div>
 
             <dl className={`${styles.heroStats} grid grid-cols-3 overflow-hidden rounded-2xl`}>
-              <QuickStat label={t("stats.groups")} value={groups.length} />
-              <QuickStat label={t("stats.predictions")} value={predictionCount} />
+              <QuickStat label={t("stats.groups")} value={overview.groupCount} />
+              <QuickStat
+                label={t("stats.predictions")}
+                value={overview.predictionCount}
+              />
               <QuickStat
                 label={t("stats.points")}
-                value={matchPoints + seasonPoints}
+                value={overview.matchPoints + seasonPoints}
               />
             </dl>
           </div>
@@ -133,14 +111,19 @@ async function ProfileContent({
 
         <div className="border-t border-foreground/10 px-5 py-6 sm:px-7 sm:py-7">
           <ProfileSeasonPicksSection
-            pick={seasonPick}
+            pick={overview.seasonPick}
             returnTo={`/${locale}/profile#season-picks`}
             locale={locale}
           />
         </div>
 
         <div className="border-t border-foreground/10 px-5 py-6 sm:px-7 sm:py-7">
-          <ProfileGroupsSection groups={groups} userId={user.id} />
+          <Suspense fallback={<ProfileGroupsFallback />}>
+            <ProfileGroupsContent
+              userId={user.id}
+              userEmail={user.email}
+            />
+          </Suspense>
         </div>
 
         <footer id="account" className="border-t border-foreground/10 px-5 py-4 sm:px-7">
@@ -161,6 +144,40 @@ async function ProfileContent({
         </footer>
       </div>
     </main>
+  );
+}
+
+async function ProfileGroupsContent({
+  userId,
+  userEmail,
+}: {
+  userId: string;
+  userEmail: string | null | undefined;
+}) {
+  let groups: GroupView[];
+  try {
+    groups = await getMyGroups(userId, userEmail);
+  } catch (error) {
+    if (error instanceof SchemaNotReadyError) {
+      return <SetupNotice reason="schema" />;
+    }
+    throw error;
+  }
+  return <ProfileGroupsSection groups={groups} userId={userId} />;
+}
+
+function ProfileGroupsFallback() {
+  return (
+    <section aria-hidden="true" className="motion-safe:animate-pulse">
+      <div className="flex items-center gap-3">
+        <span className="bg-muted size-8 rounded-lg" />
+        <div className="space-y-2">
+          <span className="bg-muted block h-5 w-28 rounded" />
+          <span className="bg-muted block h-3 w-52 max-w-full rounded" />
+        </div>
+      </div>
+      <div className="bg-muted/60 mt-4 h-28 rounded-2xl" />
+    </section>
   );
 }
 

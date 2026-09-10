@@ -20,6 +20,10 @@ async function handle(request: Request): Promise<Response> {
 
   try {
     const report = await ingestSeason({ dryRun });
+    if (!dryRun) {
+      revalidateTag(CACHE_TAGS.fixtures, { expire: 0 });
+      revalidateTag(CACHE_TAGS.teams, { expire: 0 });
+    }
     return Response.json({ ok: true, report });
   } catch (error) {
     // A plan/quota rejection is the expected failure here (the free tier only
@@ -50,3 +54,6 @@ export async function GET(request: Request): Promise<Response> {
 export async function POST(request: Request): Promise<Response> {
   return handle(request);
 }
+import { revalidateTag } from "next/cache";
+
+import { CACHE_TAGS } from "@/lib/cache-tags";

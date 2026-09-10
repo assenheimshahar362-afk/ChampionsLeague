@@ -1,6 +1,9 @@
+import { revalidateTag } from "next/cache";
+
 import { generateDueAiPredictions } from "@/lib/ai-predictions/generate";
 import { aiPredictionHorizonHours } from "@/lib/ai-predictions/horizon";
 import { isAuthorisedCron, unauthorised } from "@/lib/cron/auth";
+import { CACHE_TAGS } from "@/lib/cache-tags";
 
 export const maxDuration = 300;
 
@@ -18,6 +21,9 @@ async function handle(request: Request): Promise<Response> {
       horizonHours,
       force: search.get("force") === "1",
     });
+    if (report.generated > 0) {
+      revalidateTag(CACHE_TAGS.aiPredictions, { expire: 0 });
+    }
     return Response.json({ ok: report.failures.length === 0, report });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

@@ -1,6 +1,10 @@
 import "server-only";
 
-import { SchemaNotReadyError } from "@/lib/fixtures/queries";
+import {
+  SchemaNotReadyError,
+  getMyPredictions,
+  getMyScores,
+} from "@/lib/fixtures/queries";
 import { createClient } from "@/lib/supabase/server";
 
 function isMissingTable(error: { code?: string }): boolean {
@@ -50,6 +54,127 @@ export type SeasonPickOverview = {
   scorerAwardedPoints: number;
   settledAt: string | null;
 };
+
+export type PersonalProfileOverview = {
+  profile: PersonalProfile | null;
+  predictionCount: number;
+  matchPoints: number;
+  groupCount: number;
+  seasonPick: SeasonPickOverview | null;
+};
+
+function isMissingProfileOverviewRpc(error: { code?: string }): boolean {
+  return error.code === "PGRST202" || error.code === "42883";
+}
+
+/** One round trip for every value needed above the profile's groups section. */
+export async function getPersonalProfileOverview(
+  userId: string,
+  now: number
+): Promise<PersonalProfileOverview> {
+  const db = await createClient();
+  const { data, error } = await db
+    .rpc("get_my_profile_overview", {
+      request_now: new Date(now).toISOString(),
+    })
+    .maybeSingle();
+
+  // Keep local development usable until migration 0008 has been applied.
+  if (error && isMissingProfileOverviewRpc(error)) {
+    const [profile, predictions, scores, seasonPick, memberships] =
+      await Promise.all([
+        getPersonalProfile(userId),
+        getMyPredictions(userId),
+        getMyScores(userId),
+        getSeasonPickOverview(userId, now),
+        db
+          .from("group_members")
+          .select("group_id", { count: "exact", head: true })
+          .eq("user_id", userId),
+      ]);
+    if (memberships.error) {
+      throw new Error(
+        `Loading profile group count failed: ${memberships.error.message}`
+      );
+    }
+    return {
+      profile,
+      predictionCount: Object.keys(predictions).length,
+      matchPoints: Object.values(scores).reduce(
+        (sum, score) => sum + score.totalPoints,
+        0
+      ),
+      groupCount: memberships.count ?? 0,
+      seasonPick,
+    };
+  }
+
+  if (error) {
+    if (isMissingTable(error)) throw new SchemaNotReadyError("profiles");
+    throw new Error(`Loading profile overview failed: ${error.message}`);
+  }
+  if (!data) {
+    return {
+      profile: null,
+      predictionCount: 0,
+      matchPoints: 0,
+      groupCount: 0,
+      seasonPick: null,
+    };
+  }
+
+  let seasonPick: SeasonPickOverview | null = null;
+  if (data.pick_season !== null) {
+    if (
+      data.champion_candidate_id === null ||
+      data.champion_name_en === null ||
+      data.champion_name_he === null ||
+      data.scorer_candidate_id === null ||
+      data.scorer_name_en === null ||
+      data.scorer_name_he === null ||
+      data.scorer_team_name_en === null ||
+      data.scorer_team_name_he === null
+    ) {
+      throw new Error("The saved season-pick candidate no longer exists.");
+    }
+    seasonPick = {
+      season: data.pick_season,
+      locked: data.pick_locked,
+      champion: {
+        candidateId: data.champion_candidate_id,
+        nameEn: data.champion_name_en,
+        nameHe: data.champion_name_he,
+        logoUrl: data.champion_logo_url,
+      },
+      topScorer: {
+        candidateId: data.scorer_candidate_id,
+        nameEn: data.scorer_name_en,
+        nameHe: data.scorer_name_he,
+        photoUrl: data.scorer_photo_url,
+        teamNameEn: data.scorer_team_name_en,
+        teamNameHe: data.scorer_team_name_he,
+      },
+      championPotentialPoints: data.champion_pick_points ?? 0,
+      scorerPotentialPoints: data.scorer_pick_points ?? 0,
+      championAwardedPoints: data.champion_awarded_points ?? 0,
+      scorerAwardedPoints: data.scorer_awarded_points ?? 0,
+      settledAt: data.pick_settled_at,
+    };
+  }
+
+  return {
+    profile: {
+      displayName: data.display_name,
+      avatarUrl: data.avatar_url,
+      nicknameConfirmedAt: data.nickname_confirmed_at,
+      createdAt: data.profile_created_at,
+    },
+    predictionCount: data.prediction_count,
+    matchPoints: data.match_points,
+    groupCount: data.group_count,
+    seasonPick,
+  };
+}
 
 /** Compact identity used by the global header. */
 export async function getNavigationProfile(

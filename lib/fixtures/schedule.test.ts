@@ -4,6 +4,8 @@ import { describe, it } from "node:test";
 import {
   currentAndFutureRoundItems,
   currentRoundSelection,
+  initialHomeRoundItems,
+  nextRoundItems,
 } from "./schedule.ts";
 
 const fixtures = [
@@ -35,5 +37,46 @@ describe("home fixture schedule order", () => {
       currentRoundSelection(fixtures, Date.parse("2027-09-07T12:00:00Z")),
       { season: 2026, round: "Round 3" }
     );
+  });
+
+  it("loads played rounds and the nearest upcoming round in full", () => {
+    const selection = initialHomeRoundItems(
+      fixtures,
+      Date.parse("2026-09-07T12:00:00Z")
+    );
+
+    assert.deepEqual(
+      selection.items.map((fixture) => fixture.id),
+      ["r1", "r2-early", "r2-late"]
+    );
+    assert.deepEqual(selection.selected, { season: 2026, round: "Round 2" });
+    assert.equal(selection.remainingRoundCount, 1);
+  });
+
+  it("prefers an active round over the next scheduled round", () => {
+    const activeFixtures = fixtures.map((fixture) =>
+      fixture.id === "r2-late" ? { ...fixture, status: "live" } : fixture
+    );
+
+    assert.deepEqual(
+      currentRoundSelection(
+        activeFixtures,
+        Date.parse("2026-09-10T12:00:00Z")
+      ),
+      { season: 2026, round: "Round 2" }
+    );
+  });
+
+  it("loads one complete later round at a time", () => {
+    const next = nextRoundItems(fixtures, {
+      season: 2026,
+      round: "Round 2",
+    });
+
+    assert.deepEqual(
+      next.items.map((fixture) => fixture.id),
+      ["r3"]
+    );
+    assert.equal(next.remainingRoundCount, 0);
   });
 });

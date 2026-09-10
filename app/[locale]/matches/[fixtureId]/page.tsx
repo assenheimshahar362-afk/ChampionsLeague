@@ -26,6 +26,7 @@ import { notFound } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
 
 import { LocalKickoff } from "@/components/match/local-kickoff";
+import { LiveMatchRefresh } from "@/components/match/live-match-refresh";
 import { MatchHeroCarousel } from "@/components/match/match-hero-carousel";
 import { Scoreline } from "@/components/match/scoreline";
 import { TeamCrest } from "@/components/match/team-crest";
@@ -209,6 +210,11 @@ export default async function MatchDetailsPage({
 
   return (
     <main className="mx-auto w-full max-w-5xl flex-1 px-4 pb-20">
+      <LiveMatchRefresh
+        fixtures={[
+          { kickoffAt: displayFixture.kickoffAt, status: displayFixture.status },
+        ]}
+      />
 
       <Button asChild variant="ghost" size="sm" className="mt-5 -ms-2">
         <Link href="/#matches">

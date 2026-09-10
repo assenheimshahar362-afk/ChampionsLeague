@@ -537,6 +537,8 @@
     "saving": "שומר…",
     "saved": "נשמר",
     "loadMoreRound": "טען עוד מחזור",
+    "loadingMoreRound": "טוען מחזור…",
+    "loadMoreError": "לא הצלחנו לטעון את המחזור הבא. נסו שוב.",
     "roundProgress": "מוצג {shown} מתוך {total}",
     "knockoutCalendar": {
       "published": "לוח רשמי",

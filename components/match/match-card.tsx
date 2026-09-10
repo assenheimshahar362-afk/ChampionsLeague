@@ -2,7 +2,12 @@
 
 import { BrainCircuit, ChevronDown, Info } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { useState, type CSSProperties, type ReactNode } from "react";
+import {
+  useState,
+  type CSSProperties,
+  type ReactNode,
+  type Ref,
+} from "react";
 
 import { LockCountdown } from "@/components/match/lock-countdown";
 import { LocalKickoff } from "@/components/match/local-kickoff";
@@ -151,6 +156,7 @@ export function MatchCard({
   locked,
   canPredict,
   enterIndex,
+  scrollRef,
   onChange,
 }: {
   fixture: Fixture;
@@ -162,6 +168,7 @@ export function MatchCard({
   canPredict: boolean;
   /** Position in the matchday, counted across days — drives the stagger. */
   enterIndex: number;
+  scrollRef?: Ref<HTMLLIElement>;
   onChange: (homeGoals: number | null, awayGoals: number | null) => void;
 }) {
   const t = useTranslations("match");
@@ -222,6 +229,7 @@ export function MatchCard({
 
   return (
     <li
+      ref={scrollRef}
       // The stagger index is data, not a class: eighteen generated delay
       // classes would be eighteen rules for one number.
       style={{ "--enter-index": enterIndex } as CSSProperties}
@@ -229,7 +237,7 @@ export function MatchCard({
         // No `overflow-hidden`: the `before:` glow ring is inset -1px and
         // would be clipped away by it. Nothing here needs clipping — every
         // background is painted by an element carrying its own radius.
-        "enter-rise bg-card/55 relative isolate rounded-lg border border-white/15 backdrop-blur-xl",
+        "enter-rise bg-card/55 relative isolate scroll-mt-24 rounded-lg border border-white/15 backdrop-blur-xl",
         "shadow-[0_10px_28px_rgb(8_4_24/0.28),0_0_18px_oklch(0.72_0.16_303/0.12)]",
         "before:pointer-events-none before:absolute before:inset-[-1px] before:-z-10 before:rounded-[9px] before:border before:border-primary/25 before:blur-[2px]",
         "ease-tint transition-colors duration-200",

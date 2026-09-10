@@ -3,6 +3,7 @@ import { Goal, ListOrdered } from "lucide-react";
 import { Suspense } from "react";
 
 import { TeamCrest } from "@/components/match/team-crest";
+import { LiveMatchRefresh } from "@/components/match/live-match-refresh";
 import { SetupNotice } from "@/components/setup-notice";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
@@ -28,21 +29,37 @@ import { cn } from "@/lib/utils";
  * the provider — see lib/standings/table.ts for why that distinction is the
  * whole point on a replayed season.
  */
-export default async function StandingsPage({
+export default function StandingsPage({
   params,
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
   searchParams: Promise<{ view?: string }>;
 }) {
-  const { locale } = await params;
+  return (
+    <main className="mx-auto w-full max-w-2xl flex-1 px-4 pb-16">
+      <Suspense fallback={<StandingsPageFallback />}>
+        <StandingsRouteContent params={params} searchParams={searchParams} />
+      </Suspense>
+    </main>
+  );
+}
+
+async function StandingsRouteContent({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ view?: string }>;
+}) {
+  const [{ locale }, query] = await Promise.all([params, searchParams]);
   if (isLocale(locale)) setRequestLocale(locale);
 
   const t = await getTranslations("standings");
-  const view = (await searchParams).view === "scorers" ? "scorers" : "table";
+  const view = query.view === "scorers" ? "scorers" : "table";
 
   return (
-    <main className="mx-auto w-full max-w-2xl flex-1 px-4 pb-16">
+    <>
       <PageHeader
         className="mt-8"
         title={t("title")}
@@ -63,7 +80,7 @@ export default async function StandingsPage({
           <StandingsContent locale={locale} />
         )}
       </Suspense>
-    </main>
+    </>
   );
 }
 
@@ -132,6 +149,12 @@ async function StandingsContent({ locale }: { locale: string }) {
 
   return (
     <>
+      <LiveMatchRefresh
+        fixtures={fixtures.map(({ kickoffAt, status }) => ({
+          kickoffAt,
+          status,
+        }))}
+      />
       {table.length === 0 ? (
         <p className="text-muted-foreground mt-8 rounded-xl border border-dashed px-4 py-8 text-center text-sm text-balance">
           {t("empty")}
@@ -387,6 +410,22 @@ function ScorersFallback() {
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+function StandingsPageFallback() {
+  return (
+    <div className="motion-safe:animate-pulse" aria-hidden="true">
+      <div className="mt-8 space-y-3">
+        <div className="bg-muted mx-auto h-8 w-44 rounded-lg" />
+        <div className="bg-muted mx-auto h-4 w-64 max-w-full rounded" />
+      </div>
+      <div className="bg-card/45 mt-6 grid grid-cols-2 gap-1 rounded-xl border border-white/15 p-1">
+        <div className="bg-muted h-10 rounded-lg" />
+        <div className="bg-muted h-10 rounded-lg" />
+      </div>
+      <StandingsFallback />
     </div>
   );
 }

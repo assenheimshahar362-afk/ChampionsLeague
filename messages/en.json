@@ -537,6 +537,8 @@
     "saving": "Saving…",
     "saved": "Saved",
     "loadMoreRound": "Load another round",
+    "loadingMoreRound": "Loading round…",
+    "loadMoreError": "The next round could not be loaded. Please try again.",
     "roundProgress": "Showing {shown} of {total}",
     "knockoutCalendar": {
       "published": "Official calendar",

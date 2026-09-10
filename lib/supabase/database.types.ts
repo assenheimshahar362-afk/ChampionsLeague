@@ -933,6 +933,43 @@ export type Database = {
     };
     Views: Record<never, never>;
     Functions: {
+      get_my_profile_overview: {
+        Args: { request_now?: string };
+        Returns: {
+          display_name: string;
+          avatar_url: string | null;
+          nickname_confirmed_at: string | null;
+          profile_created_at: string;
+          prediction_count: number;
+          match_points: number;
+          group_count: number;
+          pick_season: number | null;
+          pick_locked: boolean;
+          champion_candidate_id: number | null;
+          champion_name_en: string | null;
+          champion_name_he: string | null;
+          champion_logo_url: string | null;
+          scorer_candidate_id: number | null;
+          scorer_name_en: string | null;
+          scorer_name_he: string | null;
+          scorer_photo_url: string | null;
+          scorer_team_name_en: string | null;
+          scorer_team_name_he: string | null;
+          champion_pick_points: number | null;
+          scorer_pick_points: number | null;
+          champion_awarded_points: number | null;
+          scorer_awarded_points: number | null;
+          pick_settled_at: string | null;
+        }[];
+      };
+      get_my_group_member_emails: {
+        Args: { target_group_ids: string[] };
+        Returns: {
+          group_id: string;
+          user_id: string;
+          email: string | null;
+        }[];
+      };
       ensure_automatic_predictions: {
         Args: { target_fixture_ids?: string[] | null };
         Returns: number;

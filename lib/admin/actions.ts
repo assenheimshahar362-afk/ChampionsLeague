@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 
 import { isAdminEmail } from "@/lib/admin/auth";
@@ -10,6 +10,7 @@ import {
 } from "@/lib/ai-predictions/cost";
 import { generateDueAiPredictions } from "@/lib/ai-predictions/generate";
 import { AI_PREDICTION_HORIZON_HOURS } from "@/lib/ai-predictions/horizon";
+import { CACHE_TAGS } from "@/lib/cache-tags";
 import { settleDueFixtures } from "@/lib/settle/run";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
@@ -306,6 +307,9 @@ export async function adminRunAiPredictions(
       horizonHours: AI_PREDICTION_HORIZON_HOURS,
       scope,
     });
+    if (report.generated > 0) {
+      revalidateTag(CACHE_TAGS.aiPredictions, { expire: 0 });
+    }
     revalidatePath("/", "layout");
     return {
       status: report.failures.length === 0 ? "success" : "error",
@@ -345,6 +349,9 @@ export async function adminRunAiFixturePrediction(
       scope: "horizon-or-upcoming-round",
       force: true,
     });
+    if (report.generated > 0) {
+      revalidateTag(CACHE_TAGS.aiPredictions, { expire: 0 });
+    }
     revalidatePath("/", "layout");
 
     if (report.generated === 1 && report.failures.length === 0) {

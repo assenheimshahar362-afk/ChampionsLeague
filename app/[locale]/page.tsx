@@ -9,10 +9,15 @@ import { isLocale } from "@/i18n/routing";
 import {
   SchemaNotReadyError,
   getAiPredictions,
-  getCurrentAndFutureRoundFixtures,
+  getInitialHomeFixtureWindow,
   getMyPredictions,
 } from "@/lib/fixtures/queries";
-import type { AiPrediction, Fixture, Prediction } from "@/lib/fixtures/types";
+import type {
+  AiPrediction,
+  Fixture,
+  Prediction,
+  Stage,
+} from "@/lib/fixtures/types";
 import { getUser } from "@/lib/supabase/server";
 
 /**
@@ -54,14 +59,20 @@ async function MatchdayContent({ locale }: { locale: string }) {
   const nowIso = new Date().toISOString();
   const user = await getUser();
   let fixtures: Fixture[] = [];
+  let remainingRoundCount = 0;
+  let availableStages: Stage[] = [];
   let predictions: Record<string, Prediction> = {};
   let aiPredictions: Record<string, AiPrediction> = {};
 
   try {
-    [fixtures, predictions] = await Promise.all([
-      getCurrentAndFutureRoundFixtures(locale),
+    const [fixtureWindow, loadedPredictions] = await Promise.all([
+      getInitialHomeFixtureWindow(locale, new Date(nowIso).getTime()),
       user ? getMyPredictions(user.id) : Promise.resolve({}),
     ]);
+    fixtures = fixtureWindow.fixtures;
+    remainingRoundCount = fixtureWindow.remainingRoundCount;
+    availableStages = fixtureWindow.availableStages;
+    predictions = loadedPredictions;
     aiPredictions = await getAiPredictions(
       fixtures.map((fixture) => fixture.id),
       locale
@@ -81,9 +92,12 @@ async function MatchdayContent({ locale }: { locale: string }) {
   return (
     <div id="matches" className="scroll-mt-20">
       <MatchList
+        key={nowIso}
         fixtures={fixtures}
         initialPredictions={predictions}
         aiPredictions={aiPredictions}
+        remainingRoundCount={remainingRoundCount}
+        availableStages={availableStages}
         canPredict={Boolean(user)}
         nowIso={nowIso}
       />

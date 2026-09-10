@@ -27,6 +27,13 @@ export async function POST(): Promise<Response> {
     }
 
     const report = await pollLiveMatches();
+    if (
+      report.fixturesUpdated > 0 ||
+      report.resultsStored > 0 ||
+      report.settledFixtures > 0
+    ) {
+      revalidateTag(CACHE_TAGS.fixtures, { expire: 0 });
+    }
     return Response.json(
       { ok: true, report },
       { headers: { "Cache-Control": "no-store" } }
@@ -40,3 +47,6 @@ export async function POST(): Promise<Response> {
     );
   }
 }
+import { revalidateTag } from "next/cache";
+
+import { CACHE_TAGS } from "@/lib/cache-tags";
