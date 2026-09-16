@@ -175,6 +175,8 @@
         <a href="#request">Request lifecycle</a>
         <a href="#prediction">Prediction lifecycle</a>
         <a href="#live">Live data &amp; settlement</a>
+        <a href="#groups-prizes">Groups &amp; prizes</a>
+        <a href="#golden-boot">Golden Boot data</a>
         <a href="#ai">AI pipeline</a>
         <a href="#database">Database domains</a>
         <a href="#security">Security model</a>
@@ -302,8 +304,36 @@ docs/                    Operations, schema and this guide</pre>
         <div class="callout"><strong>Scoring uses regulation time.</strong> Provider aggregate goals may include extra time. Ingestion stores the provider’s full-time pair used by the game and treats extra time as display-only.</div>
       </section>
 
+      <section id="groups-prizes" data-search-section>
+        <div class="kicker">07 · Groups and prize distribution</div>
+        <h2>Each paid group owns one complete prize split</h2>
+        <p class="section-intro">Entry fees and payouts are group configuration. The application records and displays the arrangement but never receives or transfers money.</p>
+        <div class="grid">
+          <article class="card"><h3>Manager workflow</h3><p>A group manager edits the entry fee, external Bit or PayBox links, payment note and ordered prize shares in the profile group-management area. <code>lib/groups/actions.ts</code> authorizes the manager and validates every submitted value.</p></article>
+          <article class="card"><h3>Database invariant</h3><p><code>groups_prize_distribution_matches_fee</code> requires an empty array for a free group. A paid group must define one to ten positive whole percentages totaling exactly 100.</p></article>
+          <article class="card"><h3>Displayed pot</h3><p>The group leaderboard calculates the pot from approved member count × entry fee and turns the percentages into exact agorot amounts. Rounding preserves the complete pot.</p></article>
+          <article class="card"><h3>Responsive presentation</h3><p>The leaderboard keeps the prize summary compact on phones by rendering winner shares in a three-column grid; desktop retains the expanded card treatment.</p></article>
+        </div>
+      </section>
+
+      <section id="golden-boot" data-search-section>
+        <div class="kicker">08 · Golden Boot data</div>
+        <h2>The full scorer race is separate from the pick market</h2>
+        <div class="flow">
+          <div class="step"><b>Provider ingest</b><span>Football-Data returns the current complete scorer list.</span></div>
+          <div class="step"><b>Full-feed store</b><span><code>competition_scorers</code> upserts every player with goals.</span></div>
+          <div class="step"><b>Candidate join</b><span><code>football_data_id</code> links an optional preseason candidate and pick value.</span></div>
+          <div class="step"><b>Localization</b><span>Candidate names and team translations override provider display names when present.</span></div>
+          <div class="step"><b>Standings UI</b><span>Ranks by goals, then assists; displays goals, assists and optional pick points.</span></div>
+        </div>
+        <div class="grid">
+          <article class="card"><h3>Complete table</h3><p>A player does not need to have been selectable at tournament start to appear. Players outside the candidate market show an em dash in the points column.</p></article>
+          <article class="card"><h3>Image fallback</h3><p>The row prefers the scorer’s stored profile image, then the curated candidate image. When neither exists, it renders the player’s team crest.</p></article>
+        </div>
+      </section>
+
       <section id="ai" data-search-section>
-        <div class="kicker">07 · AI prediction pipeline</div>
+        <div class="kicker">09 · AI prediction pipeline</div>
         <h2>Research once, cache once, meter every call</h2>
         <div class="flow">
           <div class="step"><b>Scope</b><span>Nearest match week or explicit fixture, bounded by the configured horizon.</span></div>
@@ -316,21 +346,21 @@ docs/                    Operations, schema and this guide</pre>
       </section>
 
       <section id="database" data-search-section>
-        <div class="kicker">08 · Database domains</div>
-        <h2>Twenty-one tables, grouped by ownership</h2>
+        <div class="kicker">10 · Database domains</div>
+        <h2>Twenty-three public tables, grouped by ownership</h2>
         <div class="grid three">
           <article class="card"><h3>Identity &amp; groups</h3><p><code>profiles</code>, <code>groups</code>, <code>group_members</code>, <code>group_join_requests</code></p></article>
-          <article class="card"><h3>Competition</h3><p><code>teams</code>, <code>fixtures</code>, <code>fixture_results</code>, <code>fixture_details</code>, <code>fixture_recent_form</code>, <code>team_squad_players</code></p></article>
+          <article class="card"><h3>Competition</h3><p><code>teams</code>, <code>fixtures</code>, <code>fixture_results</code>, <code>fixture_details</code>, <code>fixture_recent_form</code>, <code>team_squad_players</code>, <code>competition_scorers</code></p></article>
           <article class="card"><h3>Predictions</h3><p><code>predictions</code>, <code>prediction_scores</code>, <code>prediction_automation_config</code></p></article>
-          <article class="card"><h3>Season-long picks</h3><p><code>season_team_candidates</code>, <code>season_player_candidates</code>, <code>season_picks</code>, <code>season_outcomes</code></p></article>
+          <article class="card"><h3>Season-long picks</h3><p><code>season_team_candidates</code>, <code>season_player_candidates</code>, <code>season_picks</code>, <code>ai_season_picks</code>, <code>season_outcomes</code></p></article>
           <article class="card"><h3>AI</h3><p><code>ai_match_predictions</code>, <code>ai_prediction_usage</code></p></article>
           <article class="card"><h3>Operations</h3><p><code>game_settings</code>, <code>provider_poll_state</code></p></article>
         </div>
-        <p>See the repository schema documentation in <code>docs/database-schema.md</code> and <code>docs/database-schema.png</code>. The source of truth is <code>supabase/migrations/0001_init.sql</code>.</p>
+        <p>See the repository schema documentation in <code>docs/database-schema.md</code> and <code>docs/database-schema.png</code>. The source of truth is <code>supabase/migrations/0001_init.sql</code>; regenerate the visual with <code>npm run docs:schema</code>.</p>
       </section>
 
       <section id="security" data-search-section>
-        <div class="kicker">09 · Security model</div>
+        <div class="kicker">11 · Security model</div>
         <h2>Assume every browser request is hostile</h2>
         <table>
           <thead><tr><th>Boundary</th><th>Control</th><th>Why it exists</th></tr></thead>
@@ -347,7 +377,7 @@ docs/                    Operations, schema and this guide</pre>
       </section>
 
       <section id="routes" data-search-section>
-        <div class="kicker">10 · Route inventory</div>
+        <div class="kicker">12 · Route inventory</div>
         <h2>User surfaces and machine endpoints</h2>
         <div class="grid">
           <article class="card"><h3>Localized pages</h3><p><code>/[locale]</code>, <code>/groups</code>, <code>/leaderboard</code>, <code>/standings</code>, <code>/predictions</code>, <code>/profile</code>, <code>/matches/[fixtureId]</code>, <code>/onboarding</code>, <code>/admin</code>, authentication and legal pages.</p></article>
@@ -356,7 +386,7 @@ docs/                    Operations, schema and this guide</pre>
       </section>
 
       <section id="change-map" data-search-section>
-        <div class="kicker">11 · Change map</div>
+        <div class="kicker">13 · Change map</div>
         <h2>Start here for common engineering tasks</h2>
         <table>
           <thead><tr><th>Task</th><th>Primary files</th><th>Also verify</th></tr></thead>
@@ -366,6 +396,8 @@ docs/                    Operations, schema and this guide</pre>
             <tr><td>Add provider fields</td><td><code>lib/football-data/types.ts</code>, <code>mappers.ts</code></td><td>Schema, generated DB types, ingest tests</td></tr>
             <tr><td>Change live behavior</td><td><code>lib/ingest/live.ts</code>, <code>live-window.ts</code></td><td>Both live routes, global refresh component, provider quota</td></tr>
             <tr><td>Change leaderboard</td><td><code>lib/leaderboard/ranking.ts</code>, <code>queries.ts</code></td><td>AI projection, group membership, history visibility</td></tr>
+            <tr><td>Change group prizes</td><td><code>lib/groups/prizes.ts</code>, <code>actions.ts</code>, <code>components/groups/group-forms.tsx</code></td><td>100% DB constraint, entry fee, leaderboard card and rules copy</td></tr>
+            <tr><td>Change Golden Boot table</td><td><code>lib/standings/scorers.ts</code>, <code>app/[locale]/standings/page.tsx</code></td><td>Full-feed ingest, candidate point join, image fallback and mobile widths</td></tr>
             <tr><td>Add UI copy</td><td><code>messages/en.json</code> and <code>messages/he.json</code></td><td>RTL layout and long Hebrew strings</td></tr>
             <tr><td>Add a page</td><td><code>app/[locale]/…/page.tsx</code></td><td>Metadata, locale validation, nav and auth protection</td></tr>
             <tr><td>Change DB schema</td><td><code>supabase/migrations/0001_init.sql</code></td><td>DB types, RLS, grants, schema diagram and preflight</td></tr>
@@ -375,7 +407,7 @@ docs/                    Operations, schema and this guide</pre>
       </section>
 
       <section id="operations" data-search-section>
-        <div class="kicker">12 · Operations</div>
+        <div class="kicker">14 · Operations</div>
         <h2>Local and production runbook</h2>
         <div class="grid">
           <article class="card"><h3>Local verification</h3><pre>npm install
@@ -386,15 +418,17 @@ npm run build</pre></article>
           <article class="card"><h3>Database and data</h3><pre>npx supabase db push
 npm run db:preflight
 npm run ingest -- --dry
-npm run ingest</pre></article>
+npm run ingest
+npm run docs:schema</pre></article>
         </div>
         <details><summary>Scheduler expectations</summary><div>Vercel schedules daily ingestion only. A minute-capable external scheduler or suitable Vercel plan must call live polling and settlement with <code>Authorization: Bearer $CRON_SECRET</code>.</div></details>
         <details><summary>Observability currently available</summary><div>Cron routes return structured reports; admin exposes participant completeness, settlement and AI cost state; provider quota metadata flows through the client. There is no dedicated tracing vendor configured.</div></details>
         <details><summary>Historical replay mode</summary><div><code>REBASE_ENABLED=true</code> remaps historical kickoff times around a pivot. The untouched time remains in <code>original_kickoff_at</code>. Live provider polling disables itself during replay to avoid leaking known results.</div></details>
+        <details><summary>Back up before schema work</summary><div>Paid Supabase projects expose scheduled restore points under Database &rarr; Backups. For a downloadable copy, create logical role, schema and data dumps with <code>supabase db dump</code>. Database backups contain Storage metadata but not the stored image bytes, so export the <code>avatars</code> and <code>group-images</code> buckets separately. Never commit dumps containing Auth or user data.</div></details>
       </section>
 
       <section id="gotchas" data-search-section>
-        <div class="kicker">13 · Non-obvious rules</div>
+        <div class="kicker">15 · Non-obvious rules</div>
         <h2>Read these before the first refactor</h2>
         <div class="grid">
           <article class="card"><h3>Bootstrap is destructive</h3><p><code>0001_init.sql</code> drops <code>public</code>. It is complete for a fresh project, not an upgrade script for populated production.</p></article>
@@ -403,12 +437,14 @@ npm run ingest</pre></article>
           <article class="card"><h3>Cache components are enabled</h3><p>Clock- or request-dependent data must opt into request execution correctly. Follow the local Next.js 16 docs before changing cache behavior.</p></article>
           <article class="card"><h3>Database types must track SQL</h3><p><code>lib/supabase/database.types.ts</code> is the compile-time contract. Regenerate it after deploying schema changes.</p></article>
           <article class="card"><h3>Free provider data is limited</h3><p>Detailed lineups, events and scorer data may require Football-Data.org Deep Data. All detail fields therefore remain optional.</p></article>
+          <article class="card"><h3>Scorer feed is not the pick market</h3><p><code>competition_scorers</code> stores the complete ranked feed. Only a matching <code>season_player_candidates</code> row supplies a tournament-pick point value; otherwise the UI deliberately shows an em dash.</p></article>
+          <article class="card"><h3>Prize totals are a database invariant</h3><p>Paid groups require one to ten positive whole-number shares totaling exactly 100%. Free groups require an empty distribution. Keep UI validation aligned with the SQL check.</p></article>
         </div>
         <div class="callout danger"><strong>Never “fix” a permission problem by exposing the service-role key.</strong> Add the narrowest policy, grant or security-definer RPC that preserves the intended boundary.</div>
       </section>
 
       <section id="first-day" data-search-section>
-        <div class="kicker">14 · First-day plan</div>
+        <div class="kicker">16 · First-day plan</div>
         <h2>A practical onboarding sequence</h2>
         <ul class="checklist">
           <li><input type="checkbox"><span>Read <code>README.md</code>, <code>docs/setup.md</code> and the database diagram.</span></li>

@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="4800" height="4000" viewBox="0 0 4800 4000">
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#0f2744" flood-opacity=".16"/></filter>
+    <marker id="arrow-users" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="10" markerHeight="10" orient="auto"><path d="M 0 0 L 12 6 L 0 12 z" fill="#4f83f1"/></marker><marker id="arrow-season" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="10" markerHeight="10" orient="auto"><path d="M 0 0 L 12 6 L 0 12 z" fill="#27ae72"/></marker><marker id="arrow-scoring" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="10" markerHeight="10" orient="auto"><path d="M 0 0 L 12 6 L 0 12 z" fill="#f47a31"/></marker><marker id="arrow-system" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="10" markerHeight="10" orient="auto"><path d="M 0 0 L 12 6 L 0 12 z" fill="#8b5cf6"/></marker>
+    <style>
+      .title { font: 800 68px Inter, Arial, sans-serif; fill: #142033; letter-spacing: -1px; }
+      .subtitle { font: 32px Inter, Arial, sans-serif; fill: #71829a; }
+      .panel-title { font: 700 43px Inter, Arial, sans-serif; fill: #31445e; }
+      .table-title { font: 700 33px Consolas, "Courier New", monospace; fill: #1f2e43; }
+      .body { font: 27px Consolas, "Courier New", monospace; }
+      .legend { font: 26px Inter, Arial, sans-serif; fill: #52657d; }
+    </style>
+  </defs>
+  <rect width="4800" height="4000" fill="#f5f8fc"/>
+  <text x="100" y="112" class="title">ChampionsLeague — Database Class Diagram</text>
+  <text x="100" y="176" class="subtitle">PK = primary key · FK = foreign key · UK = unique key · arrows run from parent to dependent table</text>
+  <rect x="70" y="235" width="1114" height="3500" rx="34" fill="#ffffff" stroke="#cbd8e7" stroke-width="4"/><text x="120" y="320" class="panel-title">Users, groups &amp; prizes</text><rect x="1252" y="235" width="1114" height="3500" rx="34" fill="#ffffff" stroke="#cbd8e7" stroke-width="4"/><text x="1302" y="320" class="panel-title">Teams &amp; season markets</text><rect x="2434" y="235" width="1114" height="3500" rx="34" fill="#ffffff" stroke="#cbd8e7" stroke-width="4"/><text x="2484" y="320" class="panel-title">Fixtures, scoring &amp; Golden Boot</text><rect x="3616" y="235" width="1114" height="3500" rx="34" fill="#ffffff" stroke="#cbd8e7" stroke-width="4"/><text x="3666" y="320" class="panel-title">Provider, AI &amp; configuration</text>
+  <g><path d="M 130 485 C 98 485, 98 860, 130 860" fill="none" stroke="#4f83f1" stroke-width="5" opacity=".58" marker-end="url(#arrow-users)"/><path d="M 130 485 C 98 485, 98 1370, 130 1370" fill="none" stroke="#4f83f1" stroke-width="5" opacity=".58" marker-end="url(#arrow-users)"/><path d="M 130 1370 C 98 1370, 98 1820, 130 1820" fill="none" stroke="#4f83f1" stroke-width="5" opacity=".58" marker-end="url(#arrow-users)"/><path d="M 130 1370 C 98 1370, 98 2215, 130 2215" fill="none" stroke="#4f83f1" stroke-width="5" opacity=".58" marker-end="url(#arrow-users)"/><path d="M 1312 540 C 1280 540, 1280 940, 1312 940" fill="none" stroke="#27ae72" stroke-width="5" opacity=".58" marker-end="url(#arrow-season)"/><path d="M 1312 540 C 1280 540, 1280 1390, 1312 1390" fill="none" stroke="#27ae72" stroke-width="5" opacity=".58" marker-end="url(#arrow-season)"/><path d="M 1312 940 C 1280 940, 1280 1865, 1312 1865" fill="none" stroke="#27ae72" stroke-width="5" opacity=".58" marker-end="url(#arrow-season)"/><path d="M 1312 1390 C 1280 1390, 1280 1865, 1312 1865" fill="none" stroke="#27ae72" stroke-width="5" opacity=".58" marker-end="url(#arrow-season)"/><path d="M 1312 940 C 1280 940, 1280 2280, 1312 2280" fill="none" stroke="#27ae72" stroke-width="5" opacity=".58" marker-end="url(#arrow-season)"/><path d="M 1312 1390 C 1280 1390, 1280 2280, 1312 2280" fill="none" stroke="#27ae72" stroke-width="5" opacity=".58" marker-end="url(#arrow-season)"/><path d="M 1312 540 C 1280 540, 1280 2630, 1312 2630" fill="none" stroke="#27ae72" stroke-width="5" opacity=".58" marker-end="url(#arrow-season)"/><path d="M 1312 540 C 1280 540, 1280 3010, 1312 3010" fill="none" stroke="#27ae72" stroke-width="5" opacity=".58" marker-end="url(#arrow-season)"/><path d="M 2494 650 C 2462 650, 2462 1175, 2494 1175" fill="none" stroke="#f47a31" stroke-width="5" opacity=".58" marker-end="url(#arrow-scoring)"/><path d="M 2494 1175 C 2462 1175, 2462 1665, 2494 1665" fill="none" stroke="#f47a31" stroke-width="5" opacity=".58" marker-end="url(#arrow-scoring)"/><path d="M 2494 650 C 2462 650, 2462 2590, 2494 2590" fill="none" stroke="#f47a31" stroke-width="5" opacity=".58" marker-end="url(#arrow-scoring)"/><path d="M 3488 650 C 3582 650, 3582 585, 3676 585" fill="none" stroke="#8b5cf6" stroke-width="5" opacity=".58" marker-end="url(#arrow-system)"/><path d="M 3488 650 C 3582 650, 3582 1000, 3676 1000" fill="none" stroke="#8b5cf6" stroke-width="5" opacity=".58" marker-end="url(#arrow-system)"/><path d="M 3488 650 C 3582 650, 3582 1360, 3676 1360" fill="none" stroke="#8b5cf6" stroke-width="5" opacity=".58" marker-end="url(#arrow-system)"/><path d="M 3488 650 C 3582 650, 3582 1765, 3676 1765" fill="none" stroke="#8b5cf6" stroke-width="5" opacity=".58" marker-end="url(#arrow-system)"/></g>
+  <g><g filter="url(#shadow)">
+    <rect x="130" y="380" width="994" height="210" rx="24" fill="#ffffff" stroke="#91a4bb" stroke-width="4"/>
+    <path d="M 154 380 H 1100 Q 1124 380 1124 404 V 452 H 130 V 404 Q 130 380 154 380" fill="#dbeafe"/>
+    <text x="164" y="429" class="table-title">auth.users</text>
+    <text x="164" y="498" class="body" fill="#4f83f1">PK  id : uuid</text><text x="164" y="536" class="body" fill="#40516a">Supabase Auth identity</text>
+  </g><g filter="url(#shadow)">
+    <rect x="130" y="650" width="994" height="420" rx="24" fill="#ffffff" stroke="#91a4bb" stroke-width="4"/>
+    <path d="M 154 650 H 1100 Q 1124 650 1124 674 V 722 H 130 V 674 Q 130 650 154 650" fill="#dbeafe"/>
+    <text x="164" y="699" class="table-title">profiles</text>
+    <text x="164" y="768" class="body" fill="#4f83f1">PK/FK  id → auth.users.id</text><text x="164" y="806" class="body" fill="#4f83f1">UK  display_name</text><text x="164" y="844" class="body" fill="#4f83f1">FK  favorite_team_id → teams.id</text><text x="164" y="882" class="body" fill="#40516a">avatar_url, locale</text><text x="164" y="920" class="body" fill="#40516a">nickname_confirmed_at</text><text x="164" y="958" class="body" fill="#40516a">accepted_terms_at/version</text><text x="164" y="996" class="body" fill="#40516a">created_at, updated_at</text>
+  </g><g filter="url(#shadow)">
+    <rect x="130" y="1130" width="994" height="480" rx="24" fill="#ffffff" stroke="#91a4bb" stroke-width="4"/>
+    <path d="M 154 1130 H 1100 Q 1124 1130 1124 1154 V 1202 H 130 V 1154 Q 130 1130 154 1130" fill="#dbeafe"/>
+    <text x="164" y="1179" class="table-title">groups</text>
+    <text x="164" y="1248" class="body" fill="#4f83f1">PK  id : uuid</text><text x="164" y="1286" class="body" fill="#4f83f1">FK  created_by → auth.users.id</text><text x="164" y="1324" class="body" fill="#4f83f1">UK  invite_code</text><text x="164" y="1362" class="body" fill="#40516a">name, image_url</text><text x="164" y="1400" class="body" fill="#40516a">entry_fee_agorot</text><text x="164" y="1438" class="body" fill="#40516a">prize_distribution[] totals 100%</text><text x="164" y="1476" class="body" fill="#40516a">Bit/PayBox links, payment_note</text><text x="164" y="1514" class="body" fill="#40516a">created_at</text>
+  </g><g filter="url(#shadow)">
+    <rect x="130" y="1670" width="994" height="300" rx="24" fill="#ffffff" stroke="#91a4bb" stroke-width="4"/>
+    <path d="M 154 1670 H 1100 Q 1124 1670 1124 1694 V 1742 H 130 V 1694 Q 130 1670 154 1670" fill="#dbeafe"/>
+    <text x="164" y="1719" class="table-title">group_members</text>
+    <text x="164" y="1788" class="body" fill="#4f83f1">PK/FK  group_id → groups.id</text><text x="164" y="1826" class="body" fill="#4f83f1">PK/FK  user_id → auth.users.id</text><text x="164" y="1864" class="body" fill="#40516a">role, joined_at</text>
+  </g><g filter="url(#shadow)">
+    <rect x="130" y="2030" width="994" height="370" rx="24" fill="#ffffff" stroke="#91a4bb" stroke-width="4"/>
+    <path d="M 154 2030 H 1100 Q 1124 2030 1124 2054 V 2102 H 130 V 2054 Q 130 2030 154 2030" fill="#dbeafe"/>
+    <text x="164" y="2079" class="table-title">group_join_requests</text>
+    <text x="164" y="2148" class="body" fill="#4f83f1">PK  id : uuid</text><text x="164" y="2186" class="body" fill="#4f83f1">FK  group_id → groups.id</text><text x="164" y="2224" class="body" fill="#4f83f1">FK  user_id → auth.users.id</text><text x="164" y="2262" class="body" fill="#4f83f1">FK  reviewed_by → auth.users.id</text><text x="164" y="2300" class="body" fill="#4f83f1">UK  (group_id, user_id)</text><text x="164" y="2338" class="body" fill="#40516a">status, requested/reviewed_at</text>
+  </g><g filter="url(#shadow)">
+    <rect x="1312" y="380" width="994" height="320" rx="24" fill="#ffffff" stroke="#91a4bb" stroke-width="4"/>
+    <path d="M 1336 380 H 2282 Q 2306 380 2306 404 V 452 H 1312 V 404 Q 1312 380 1336 380" fill="#dcfce7"/>
+    <text x="1346" y="429" class="table-title">teams</text>
+    <text x="1346" y="498" class="body" fill="#27ae72">PK  id : uuid</text><text x="1346" y="536" class="body" fill="#27ae72">UK  provider IDs</text><text x="1346" y="574" class="body" fill="#40516a">name, code, country, logo</text><text x="1346" y="612" class="body" fill="#40516a">venue metadata, timestamps</text>
+  </g><g filter="url(#shadow)">
+    <rect x="1312" y="760" width="994" height="360" rx="24" fill="#ffffff" stroke="#91a4bb" stroke-width="4"/>
+    <path d="M 1336 760 H 2282 Q 2306 760 2306 784 V 832 H 1312 V 784 Q 1312 760 1336 760" fill="#dcfce7"/>
+    <text x="1346" y="809" class="table-title">season_team_candidates</text>
+    <text x="1346" y="878" class="body" fill="#27ae72">PK  (season, candidate_id)</text><text x="1346" y="916" class="body" fill="#27ae72">FK  team_id → teams.id</text><text x="1346" y="954" class="body" fill="#40516a">provider/name/rank keys</text><text x="1346" y="992" class="body" fill="#40516a">localized names, logo</text><text x="1346" y="1030" class="body" fill="#40516a">implied_probability</text><text x="1346" y="1068" class="body" fill="#40516a">pick_points, rank</text>
+  </g><g filter="url(#shadow)">
+    <rect x="1312" y="1180" width="994" height="420" rx="24" fill="#ffffff" stroke="#91a4bb" stroke-width="4"/>
+    <path d="M 1336 1180 H 2282 Q 2306 1180 2306 1204 V 1252 H 1312 V 1204 Q 1312 1180 1336 1180" fill="#dcfce7"/>
+    <text x="1346" y="1229" class="table-title">season_player_candidates</text>
+    <text x="1346" y="1298" class="body" fill="#27ae72">PK  (season, candidate_id)</text><text x="1346" y="1336" class="body" fill="#27ae72">FK  team_id → teams.id</text><text x="1346" y="1374" class="body" fill="#40516a">football_data_id</text><text x="1346" y="1412" class="body" fill="#40516a">localized player/team names</text><text x="1346" y="1450" class="body" fill="#40516a">photo, position, source stats</text><text x="1346" y="1488" class="body" fill="#40516a">implied_probability</text><text x="1346" y="1526" class="body" fill="#40516a">pick_points, rank</text>
+  </g><g filter="url(#shadow)">
+    <rect x="1312" y="1660" width="994" height="410" rx="24" fill="#ffffff" stroke="#91a4bb" stroke-width="4"/>
+    <path d="M 1336 1660 H 2282 Q 2306 1660 2306 1684 V 1732 H 1312 V 1684 Q 1312 1660 1336 1660" fill="#dcfce7"/>
+    <text x="1346" y="1709" class="table-title">season_picks</text>
+    <text x="1346" y="1778" class="body" fill="#27ae72">PK  id : uuid</text><text x="1346" y="1816" class="body" fill="#27ae72">FK  user_id → auth.users.id</text><text x="1346" y="1854" class="body" fill="#27ae72">FK  season/champion candidate</text><text x="1346" y="1892" class="body" fill="#27ae72">FK  season/scorer candidate</text><text x="1346" y="1930" class="body" fill="#27ae72">UK  (user_id, season)</text><text x="1346" y="1968" class="body" fill="#40516a">snapshotted pick/award points</text><text x="1346" y="2006" class="body" fill="#40516a">settled_at, created_at</text>
+  </g><g filter="url(#shadow)">
+    <rect x="1312" y="2130" width="994" height="300" rx="24" fill="#ffffff" stroke="#91a4bb" stroke-width="4"/>
+    <path d="M 1336 2130 H 2282 Q 2306 2130 2306 2154 V 2202 H 1312 V 2154 Q 1312 2130 1336 2130" fill="#dcfce7"/>
+    <text x="1346" y="2179" class="table-title">ai_season_picks</text>
+    <text x="1346" y="2248" class="body" fill="#27ae72">PK  season</text><text x="1346" y="2286" class="body" fill="#27ae72">FK  champion_candidate_id</text><text x="1346" y="2324" class="body" fill="#27ae72">FK  top_scorer_candidate_id</text><text x="1346" y="2362" class="body" fill="#40516a">snapshotted pick points</text>
+  </g><g filter="url(#shadow)">
+    <rect x="1312" y="2490" width="994" height="280" rx="24" fill="#ffffff" stroke="#91a4bb" stroke-width="4"/>
+    <path d="M 1336 2490 H 2282 Q 2306 2490 2306 2514 V 2562 H 1312 V 2514 Q 1312 2490 1336 2490" fill="#dcfce7"/>
+    <text x="1346" y="2539" class="table-title">season_outcomes</text>
+    <text x="1346" y="2608" class="body" fill="#27ae72">PK  season</text><text x="1346" y="2646" class="body" fill="#27ae72">FK  champion_team_id → teams.id</text><text x="1346" y="2684" class="body" fill="#40516a">top_scorer provider IDs</text><text x="1346" y="2722" class="body" fill="#40516a">released_at, timestamps</text>
+  </g><g filter="url(#shadow)">
+    <rect x="1312" y="2830" width="994" height="360" rx="24" fill="#ffffff" stroke="#91a4bb" stroke-width="4"/>
+    <path d="M 1336 2830 H 2282 Q 2306 2830 2306 2854 V 2902 H 1312 V 2854 Q 1312 2830 1336 2830" fill="#dcfce7"/>
+    <text x="1346" y="2879" class="table-title">team_squad_players</text>
+    <text x="1346" y="2948" class="body" fill="#27ae72">PK  season/team/source/player</text><text x="1346" y="2986" class="body" fill="#27ae72">FK  team_id → teams.id</text><text x="1346" y="3024" class="body" fill="#40516a">provider ID, name, position</text><text x="1346" y="3062" class="body" fill="#40516a">shirt, nationality, birth date</text><text x="1346" y="3100" class="body" fill="#40516a">photo, source, timestamps</text>
+  </g><g filter="url(#shadow)">
+    <rect x="2494" y="380" width="994" height="540" rx="24" fill="#ffffff" stroke="#91a4bb" stroke-width="4"/>
+    <path d="M 2518 380 H 3464 Q 3488 380 3488 404 V 452 H 2494 V 404 Q 2494 380 2518 380" fill="#ffedd5"/>
+    <text x="2528" y="429" class="table-title">fixtures</text>
+    <text x="2528" y="498" class="body" fill="#f47a31">PK  id : uuid</text><text x="2528" y="536" class="body" fill="#f47a31">UK  provider IDs</text><text x="2528" y="574" class="body" fill="#f47a31">FK  home_team_id → teams.id</text><text x="2528" y="612" class="body" fill="#f47a31">FK  away_team_id → teams.id</text><text x="2528" y="650" class="body" fill="#40516a">season, stage, round, matchday</text><text x="2528" y="688" class="body" fill="#40516a">kickoff/original kickoff, status</text><text x="2528" y="726" class="body" fill="#40516a">score, elapsed, venue/referee</text><text x="2528" y="764" class="body" fill="#40516a">odds/probabilities</text><text x="2528" y="802" class="body" fill="#40516a">outcome points, timestamps</text>
+  </g><g filter="url(#shadow)">
+    <rect x="2494" y="980" width="994" height="390" rx="24" fill="#ffffff" stroke="#91a4bb" stroke-width="4"/>
+    <path d="M 2518 980 H 3464 Q 3488 980 3488 1004 V 1052 H 2494 V 1004 Q 2494 980 2518 980" fill="#ffedd5"/>
+    <text x="2528" y="1029" class="table-title">predictions</text>
+    <text x="2528" y="1098" class="body" fill="#f47a31">PK  id : uuid</text><text x="2528" y="1136" class="body" fill="#f47a31">FK  user_id → auth.users.id</text><text x="2528" y="1174" class="body" fill="#f47a31">FK  fixture_id → fixtures.id</text><text x="2528" y="1212" class="body" fill="#f47a31">UK  (user_id, fixture_id)</text><text x="2528" y="1250" class="body" fill="#40516a">home/away goals, fixture_round</text><text x="2528" y="1288" class="body" fill="#40516a">is_joker, is_automatic, timestamps</text>
+  </g><g filter="url(#shadow)">
+    <rect x="2494" y="1430" width="994" height="470" rx="24" fill="#ffffff" stroke="#91a4bb" stroke-width="4"/>
+    <path d="M 2518 1430 H 3464 Q 3488 1430 3488 1454 V 1502 H 2494 V 1454 Q 2494 1430 2518 1430" fill="#ffedd5"/>
+    <text x="2528" y="1479" class="table-title">prediction_scores</text>
+    <text x="2528" y="1548" class="body" fill="#f47a31">PK/FK  prediction_id → predictions.id</text><text x="2528" y="1586" class="body" fill="#f47a31">FK  user_id → auth.users.id</text><text x="2528" y="1624" class="body" fill="#f47a31">FK  fixture_id → fixtures.id</text><text x="2528" y="1662" class="body" fill="#f47a31">UK  (user_id, fixture_id)</text><text x="2528" y="1700" class="body" fill="#40516a">base/total points</text><text x="2528" y="1738" class="body" fill="#40516a">correct outcome/difference/exact</text><text x="2528" y="1776" class="body" fill="#40516a">difficulty/stage/joker multipliers</text><text x="2528" y="1814" class="body" fill="#40516a">breakdown, settled_at</text>
+  </g><g filter="url(#shadow)">
+    <rect x="2494" y="1960" width="994" height="390" rx="24" fill="#ffffff" stroke="#91a4bb" stroke-width="4"/>
+    <path d="M 2518 1960 H 3464 Q 3488 1960 3488 1984 V 2032 H 2494 V 1984 Q 2494 1960 2518 1960" fill="#ffedd5"/>
+    <text x="2528" y="2009" class="table-title">competition_scorers</text>
+    <text x="2528" y="2078" class="body" fill="#f47a31">PK  (season, football_data_id)</text><text x="2528" y="2116" class="body" fill="#f47a31">FK  team_id → teams.id</text><text x="2528" y="2154" class="body" fill="#40516a">name, position</text><text x="2528" y="2192" class="body" fill="#40516a">goals, assists</text><text x="2528" y="2230" class="body" fill="#40516a">photo_url, timestamps</text><text x="2528" y="2268" class="body" fill="#40516a">complete feed; candidate is optional</text>
+  </g><g filter="url(#shadow)">
+    <rect x="2494" y="2410" width="994" height="360" rx="24" fill="#ffffff" stroke="#91a4bb" stroke-width="4"/>
+    <path d="M 2518 2410 H 3464 Q 3488 2410 3488 2434 V 2482 H 2494 V 2434 Q 2494 2410 2518 2410" fill="#ffedd5"/>
+    <text x="2528" y="2459" class="table-title">fixture_results</text>
+    <text x="2528" y="2528" class="body" fill="#f47a31">PK/FK  fixture_id → fixtures.id</text><text x="2528" y="2566" class="body" fill="#40516a">status, regulation score</text><text x="2528" y="2604" class="body" fill="#40516a">extra time, elapsed minutes</text><text x="2528" y="2642" class="body" fill="#40516a">released_at</text><text x="2528" y="2680" class="body" fill="#40516a">created_at, updated_at</text>
+  </g><g filter="url(#shadow)">
+    <rect x="3676" y="380" width="994" height="410" rx="24" fill="#ffffff" stroke="#91a4bb" stroke-width="4"/>
+    <path d="M 3700 380 H 4646 Q 4670 380 4670 404 V 452 H 3676 V 404 Q 3676 380 3700 380" fill="#f3e8ff"/>
+    <text x="3710" y="429" class="table-title">ai_match_predictions</text>
+    <text x="3710" y="498" class="body" fill="#8b5cf6">PK/FK  fixture_id → fixtures.id</text><text x="3710" y="536" class="body" fill="#40516a">predicted score + probabilities</text><text x="3710" y="574" class="body" fill="#40516a">confidence, bilingual summary/factors</text><text x="3710" y="612" class="body" fill="#40516a">sources, model, source_snapshot</text><text x="3710" y="650" class="body" fill="#40516a">generated_at</text>
+  </g><g filter="url(#shadow)">
+    <rect x="3676" y="850" width="994" height="300" rx="24" fill="#ffffff" stroke="#91a4bb" stroke-width="4"/>
+    <path d="M 3700 850 H 4646 Q 4670 850 4670 874 V 922 H 3676 V 874 Q 3676 850 3700 850" fill="#f3e8ff"/>
+    <text x="3710" y="899" class="table-title">fixture_recent_form</text>
+    <text x="3710" y="968" class="body" fill="#8b5cf6">PK/FK  fixture_id → fixtures.id</text><text x="3710" y="1006" class="body" fill="#40516a">home/away matches</text><text x="3710" y="1044" class="body" fill="#40516a">home/away lineup, fetched_at</text>
+  </g><g filter="url(#shadow)">
+    <rect x="3676" y="1210" width="994" height="300" rx="24" fill="#ffffff" stroke="#91a4bb" stroke-width="4"/>
+    <path d="M 3700 1210 H 4646 Q 4670 1210 4670 1234 V 1282 H 3676 V 1234 Q 3676 1210 3700 1210" fill="#f3e8ff"/>
+    <text x="3710" y="1259" class="table-title">fixture_details</text>
+    <text x="3710" y="1328" class="body" fill="#8b5cf6">PK/FK  fixture_id → fixtures.id</text><text x="3710" y="1366" class="body" fill="#40516a">provider_status, payload</text><text x="3710" y="1404" class="body" fill="#40516a">fetched_at</text>
+  </g><g filter="url(#shadow)">
+    <rect x="3676" y="1570" width="994" height="390" rx="24" fill="#ffffff" stroke="#91a4bb" stroke-width="4"/>
+    <path d="M 3700 1570 H 4646 Q 4670 1570 4670 1594 V 1642 H 3676 V 1594 Q 3676 1570 3700 1570" fill="#f3e8ff"/>
+    <text x="3710" y="1619" class="table-title">ai_prediction_usage</text>
+    <text x="3710" y="1688" class="body" fill="#8b5cf6">PK  id : uuid</text><text x="3710" y="1726" class="body" fill="#8b5cf6">FK  fixture_id → fixtures.id</text><text x="3710" y="1764" class="body" fill="#40516a">model, budget/estimated cost</text><text x="3710" y="1802" class="body" fill="#40516a">input/cache-write/output tokens</text><text x="3710" y="1840" class="body" fill="#40516a">web searches, status, timestamps</text>
+  </g><g filter="url(#shadow)">
+    <rect x="3676" y="2020" width="994" height="250" rx="24" fill="#ffffff" stroke="#91a4bb" stroke-width="4"/>
+    <path d="M 3700 2020 H 4646 Q 4670 2020 4670 2044 V 2092 H 3676 V 2044 Q 3676 2020 3700 2020" fill="#f3e8ff"/>
+    <text x="3710" y="2069" class="table-title">provider_poll_state</text>
+    <text x="3710" y="2138" class="body" fill="#8b5cf6">PK  job : text</text><text x="3710" y="2176" class="body" fill="#40516a">last_requested_at</text>
+  </g><g filter="url(#shadow)">
+    <rect x="3676" y="2330" width="994" height="270" rx="24" fill="#ffffff" stroke="#91a4bb" stroke-width="4"/>
+    <path d="M 3700 2330 H 4646 Q 4670 2330 4670 2354 V 2402 H 3676 V 2354 Q 3676 2330 3700 2330" fill="#f3e8ff"/>
+    <text x="3710" y="2379" class="table-title">prediction_automation_config</text>
+    <text x="3710" y="2448" class="body" fill="#8b5cf6">PK  id : smallint singleton</text><text x="3710" y="2486" class="body" fill="#40516a">enabled_at</text>
+  </g><g filter="url(#shadow)">
+    <rect x="3676" y="2660" width="994" height="360" rx="24" fill="#ffffff" stroke="#91a4bb" stroke-width="4"/>
+    <path d="M 3700 2660 H 4646 Q 4670 2660 4670 2684 V 2732 H 3676 V 2684 Q 3676 2660 3700 2660" fill="#f3e8ff"/>
+    <text x="3710" y="2709" class="table-title">game_settings</text>
+    <text x="3710" y="2778" class="body" fill="#8b5cf6">PK  id : smallint singleton</text><text x="3710" y="2816" class="body" fill="#8b5cf6">FK  updated_by → auth.users.id</text><text x="3710" y="2854" class="body" fill="#40516a">exact/outcome points</text><text x="3710" y="2892" class="body" fill="#40516a">bilingual rules notes</text><text x="3710" y="2930" class="body" fill="#40516a">AI player name/avatar, updated_at</text>
+  </g></g>
+  <line x1="130" y1="3810" x2="230" y2="3810" stroke="#4f83f1" stroke-width="6" marker-end="url(#arrow-users)"/><text x="262" y="3823" class="legend">Auth / group relation</text><line x1="870" y1="3810" x2="970" y2="3810" stroke="#27ae72" stroke-width="6" marker-end="url(#arrow-season)"/><text x="1002" y="3823" class="legend">Team / season relation</text><line x1="1610" y1="3810" x2="1710" y2="3810" stroke="#f47a31" stroke-width="6" marker-end="url(#arrow-scoring)"/><text x="1742" y="3823" class="legend">Fixture / scoring relation</text><line x1="2350" y1="3810" x2="2450" y2="3810" stroke="#8b5cf6" stroke-width="6" marker-end="url(#arrow-system)"/><text x="2482" y="3823" class="legend">Provider / AI relation</text>
+  <text x="3220" y="3823" class="legend">23 public tables · RLS enabled · source: supabase/migrations/0001_init.sql</text>
+</svg>

@@ -1,7 +1,7 @@
 # Database schema
 
-This is the effective schema created by `0001_init.sql` plus the subsequent
-non-destructive upgrade migrations. Apply migrations in filename order.
+This is the effective schema created by the single consolidated
+`supabase/migrations/0001_init.sql` bootstrap.
 
 ```mermaid
 classDiagram
@@ -282,6 +282,8 @@ auth_users "1" --> "0..*" game_settings : updates
 - `predictions` enforces one row per `(user_id, fixture_id)`. `fixture_round` is deliberately denormalized for the one-joker-per-user-per-round unique index.
 - `prediction_scores.prediction_id` makes settlement one-to-one with a prediction; its copied `user_id` and `fixture_id` support fast leaderboard aggregation.
 - `season_picks` and `ai_season_picks` reference both candidate tables with composite foreign keys `(season, candidate_id)`, preventing candidates from another season being selected. The AI row snapshots its published points and is exposed only after picks lock.
+- `competition_scorers` stores the complete provider Golden Boot feed independently of `season_player_candidates`. A scorer without a matching candidate remains visible but has no tournament-pick point value; player photos fall back to the candidate image and then the team crest.
+- `groups.prize_distribution` is empty when `entry_fee_agorot` is zero. Paid groups require one to ten positive whole-number shares whose sum is exactly 100.
 - `prediction_automation_config`, `game_settings`, and `provider_poll_state` are operational singleton/state tables and therefore have no parent relation.
 - `fixture_results`, `ai_prediction_usage`, `prediction_automation_config`, and `provider_poll_state` are service-only under RLS. Client-visible data is controlled by the policies in `0001_init.sql`.
 - Foreign keys to users generally cascade on user deletion; optional audit references such as `reviewed_by` and `updated_by` become `NULL`. Fixture-owned rows cascade when a fixture is deleted.

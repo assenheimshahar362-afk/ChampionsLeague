@@ -14,6 +14,7 @@
     "test": "node --test \"lib/**/*.test.ts\"",
     "typecheck": "tsc --noEmit",
     "check": "npm run typecheck && npm run lint && npm test",
+    "docs:schema": "node scripts/generate-schema-diagram.mjs",
     "db:preflight": "node --env-file=.env.local scripts/db-preflight.mjs",
     "ingest": "node scripts/ingest.mjs",
     "demo:locked-match": "node scripts/create-locked-demo-fixture.mjs",
