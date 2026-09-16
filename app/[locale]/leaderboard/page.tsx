@@ -314,25 +314,25 @@ async function GroupPrizeCard({
         </strong>
       </div>
 
-      <div className="border-t border-white/10 px-3.5 py-3">
-        <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold">
+      <div className="border-t border-white/10 px-2.5 py-2 sm:px-3.5 sm:py-3">
+        <div className="mb-1.5 flex items-center gap-1.5 text-[0.68rem] font-semibold sm:mb-2 sm:text-xs">
           <Gift className="text-primary size-3.5" aria-hidden="true" />
           {t("prizeDistributionTitle")}
         </div>
-        <ol className="grid gap-2 sm:grid-cols-3">
+        <ol className="grid grid-cols-3 gap-1.5 sm:gap-2">
           {group.prizeDistribution.map((percentage, index) => (
             <li
               key={index}
-              className="bg-background/30 flex items-center gap-2 rounded-lg border border-white/10 px-2.5 py-2"
+              className="bg-background/30 flex min-w-0 items-center justify-center rounded-lg border border-white/10 px-1 py-1.5 text-center sm:justify-start sm:gap-2 sm:px-2.5 sm:py-2 sm:text-start"
             >
-              <span className="bg-primary/12 text-primary flex size-6 shrink-0 items-center justify-center rounded-full text-[0.65rem] font-bold">
+              <span className="bg-primary/12 text-primary hidden size-6 shrink-0 items-center justify-center rounded-full text-[0.65rem] font-bold sm:flex">
                 {index + 1}
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block text-[0.7rem] font-medium">
+                <span className="block truncate text-[0.6rem] font-medium sm:text-[0.7rem]">
                   {t("prizePlace", { place: index + 1, percentage })}
                 </span>
-                <strong data-numeric className="mt-0.5 block truncate text-sm tabular-nums">
+                <strong data-numeric className="mt-0.5 block truncate text-xs tabular-nums sm:text-sm">
                   {formatAgorot(amounts[index] ?? 0, locale)}
                 </strong>
               </span>
