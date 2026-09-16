@@ -312,6 +312,7 @@ async function ScorersContent({ locale }: { locale: string }) {
               <Th className="hidden w-20 sm:table-cell">
                 {t("scorers.assists")}
               </Th>
+              <Th className="w-16">{t("scorers.points")}</Th>
               <Th className="w-20 pe-3">{t("scorers.goals")}</Th>
             </tr>
           </thead>
@@ -379,6 +380,15 @@ function ScorerRow({ player }: { player: TopScorerRow }) {
         </span>
       </td>
       <Td className="hidden sm:table-cell">{player.assists}</Td>
+      <Td>
+        {player.pickPoints === null ? (
+          <span className="text-muted-foreground">—</span>
+        ) : (
+          <span data-numeric className="font-semibold tabular-nums">
+            {player.pickPoints}
+          </span>
+        )}
+      </Td>
       <td data-numeric className="py-2.5 pe-3 text-center">
         <span className="text-primary text-base font-black tabular-nums">
           {player.goals}

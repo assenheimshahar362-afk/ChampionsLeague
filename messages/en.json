@@ -823,7 +823,8 @@
       "caption": "Champions League top-scorer ranking",
       "player": "Player",
       "goals": "Goals",
-      "assists": "Assists"
+      "assists": "Assists",
+      "points": "Points"
     },
     "empty": "No matches have been played yet. The table starts on matchday one.",
     "note": "Built from results already released in this game, so it never runs ahead of the fixtures you have predicted. Ordered on points, goal difference, then goals scored.",

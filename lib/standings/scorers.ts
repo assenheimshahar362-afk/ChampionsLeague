@@ -11,6 +11,7 @@ export type TopScorerRow = {
   teamName: string;
   goals: number;
   assists: number;
+  pickPoints: number | null;
   photoUrl: string | null;
   team: Team | null;
 };
@@ -53,7 +54,7 @@ export async function getTopScorers(
     db.from("teams").select("*"),
     db
       .from("season_player_candidates")
-      .select("football_data_id, name_en, name_he, photo_url")
+      .select("football_data_id, name_en, name_he, photo_url, pick_points")
       .eq("season", season),
     db
       .from("season_team_candidates")
@@ -134,6 +135,7 @@ export async function getTopScorers(
       teamName: localizedTeamName,
       goals: player.goals,
       assists: player.assists,
+      pickPoints: playerTranslation?.pick_points ?? null,
       photoUrl: player.photo_url ?? playerTranslation?.photo_url ?? null,
       team,
     };
