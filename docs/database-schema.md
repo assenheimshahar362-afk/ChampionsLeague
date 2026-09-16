@@ -36,6 +36,7 @@ class groups {
   uuid created_by FK
   text image_url
   integer entry_fee_agorot
+  smallint[] prize_distribution
   uuid invite_code UK
   text bit_payment_url
   text paybox_payment_url
@@ -55,6 +56,17 @@ class group_join_requests {
   uuid reviewed_by FK
   timestamptz requested_at
   timestamptz reviewed_at
+}
+class competition_scorers {
+  integer season PK
+  integer football_data_id PK
+  uuid team_id FK
+  text name
+  text position
+  smallint goals
+  smallint assists
+  text photo_url
+  timestamptz updated_at
 }
 class fixtures {
   uuid id PK
@@ -239,6 +251,7 @@ groups "1" --> "0..*" group_join_requests : receives
 teams "1" --> "0..*" profiles : favorite_of
 teams "1" --> "0..*" fixtures : home_team
 teams "1" --> "0..*" fixtures : away_team
+teams "1" --> "0..*" competition_scorers : scorer_club
 fixtures "1" *-- "0..1" fixture_results : private_result
 fixtures "1" *-- "0..1" fixture_details : provider_payload
 fixtures "1" *-- "0..1" fixture_recent_form : research_input

@@ -5,12 +5,14 @@ import {
   Camera,
   Check,
   CreditCard,
+  Gift,
   Loader2,
+  Minus,
   Pencil,
   Plus,
 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -20,12 +22,17 @@ import {
   createGroup,
   updateGroup,
   updateGroupPayment,
+  updateGroupPrizeDistribution,
   type GroupActionState,
 } from "@/lib/groups/actions";
 import {
   hasConfiguredGroupPayment,
   type GroupPaymentSettings,
 } from "@/lib/groups/payment";
+import {
+  DEFAULT_PRIZE_DISTRIBUTION,
+  MAX_PRIZE_PLACES,
+} from "@/lib/groups/prizes";
 
 const initialState: GroupActionState = { status: "idle" };
 
@@ -39,12 +46,16 @@ function Message({ state }: { state: GroupActionState }) {
   );
 }
 
-function SuccessMessage({ payment = false }: { payment?: boolean }) {
+function SuccessMessage({
+  code = "saved",
+}: {
+  code?: "saved" | "paymentSaved" | "prizesSaved";
+}) {
   const t = useTranslations("groups");
   return (
     <p role="status" className="text-success flex items-center gap-1 text-xs">
       <Check className="size-3.5" aria-hidden="true" />
-      {t(payment ? "paymentSaved" : "saved")}
+      {t(code)}
     </p>
   );
 }
@@ -305,7 +316,151 @@ export function GroupPaymentForm({
             {t("paymentClearHint")}
           </span>
         </div>
-        {state.status === "success" ? <SuccessMessage payment /> : null}
+        {state.status === "success" ? <SuccessMessage code="paymentSaved" /> : null}
+        <Message state={state} />
+      </form>
+    </details>
+  );
+}
+
+export function GroupPrizeDistributionForm({
+  groupId,
+  entryFeeAgorot,
+  prizeDistribution,
+}: {
+  groupId: string;
+  entryFeeAgorot: number;
+  prizeDistribution: number[];
+}) {
+  const t = useTranslations("groups");
+  const [state, action, pending] = useActionState(
+    updateGroupPrizeDistribution,
+    initialState
+  );
+  const [percentages, setPercentages] = useState<Array<number | "">>(
+    prizeDistribution.length > 0
+      ? prizeDistribution
+      : [...DEFAULT_PRIZE_DISTRIBUTION]
+  );
+  const hasEntryFee = entryFeeAgorot > 0;
+  const total = percentages.reduce<number>(
+    (sum, percentage) => sum + (percentage === "" ? 0 : percentage),
+    0
+  );
+  const validDistribution =
+    total === 100 &&
+    percentages.every(
+      (percentage) =>
+        percentage !== "" &&
+        Number.isInteger(percentage) &&
+        percentage >= 1 &&
+        percentage <= 100
+    );
+
+  function updatePercentage(index: number, value: string) {
+    const percentage = value === "" ? "" : Number(value);
+    setPercentages((current) =>
+      current.map((item, itemIndex) =>
+        itemIndex === index ? percentage : item
+      )
+    );
+  }
+
+  function removePlace(index: number) {
+    setPercentages((current) => current.filter((_, itemIndex) => itemIndex !== index));
+  }
+
+  return (
+    <details className="group/prizes border-foreground/10 mt-4 rounded-xl border bg-background/25">
+      <summary className="hover:bg-foreground/[0.035] flex cursor-pointer list-none items-center gap-2 rounded-xl px-3.5 py-3 text-sm font-medium transition-colors select-none">
+        <Gift className="text-primary size-4" aria-hidden="true" />
+        <span className="flex-1">{t("prizeManage")}</span>
+        <span className="text-muted-foreground text-xs group-open/prizes:hidden">
+          {hasEntryFee
+            ? prizeDistribution.map((percentage) => `${percentage}%`).join(" · ")
+            : t("prizeNotAvailable")}
+        </span>
+      </summary>
+
+      <form action={action} className="space-y-3 border-t border-foreground/10 p-3.5">
+        <input type="hidden" name="groupId" value={groupId} />
+        <p className={hasEntryFee ? "text-muted-foreground text-xs" : "text-warning text-xs"}>
+          {hasEntryFee ? t("prizeHint") : t("prizeRequiresFee")}
+        </p>
+
+        {hasEntryFee ? (
+          <div className="space-y-2">
+            {percentages.map((percentage, index) => (
+              <div key={index} className="flex items-center gap-2">
+                <Label
+                  htmlFor={`prize-${groupId}-${index}`}
+                  className="w-16 shrink-0 text-xs"
+                >
+                  {t("prizePlace", { place: index + 1 })}
+                </Label>
+                <div className="relative max-w-28 flex-1" dir="ltr">
+                  <Input
+                    id={`prize-${groupId}-${index}`}
+                    name="prizePercentage"
+                    type="number"
+                    inputMode="numeric"
+                    min="1"
+                    max="100"
+                    step="1"
+                    required
+                    value={percentage}
+                    onChange={(event) => updatePercentage(index, event.target.value)}
+                    aria-invalid={!validDistribution}
+                    className="pe-8 text-center tabular-nums [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                  />
+                  <span className="text-muted-foreground pointer-events-none absolute end-2.5 top-1/2 -translate-y-1/2 text-xs">
+                    %
+                  </span>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  disabled={percentages.length === 1}
+                  onClick={() => removePlace(index)}
+                  title={t("removePrizePlace")}
+                >
+                  <Minus />
+                  <span className="sr-only">{t("removePrizePlace")}</span>
+                </Button>
+              </div>
+            ))}
+          </div>
+        ) : null}
+
+        {hasEntryFee ? (
+          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-foreground/10 pt-3">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              disabled={percentages.length >= MAX_PRIZE_PLACES}
+              onClick={() => setPercentages((current) => [...current, 1])}
+            >
+              <Plus />
+              {t("addPrizePlace")}
+            </Button>
+            <span
+              role="status"
+              className={validDistribution ? "text-success text-xs font-medium" : "text-destructive text-xs font-medium"}
+            >
+              {t("prizeTotal", { total })}
+            </span>
+          </div>
+        ) : null}
+
+        <div className="flex flex-wrap items-center gap-3">
+          <Button type="submit" disabled={pending || !hasEntryFee || !validDistribution}>
+            {pending ? <Loader2 className="animate-spin" /> : <Check />}
+            {pending ? t("saving") : t("savePrizeDistribution")}
+          </Button>
+          {state.status === "success" ? <SuccessMessage code="prizesSaved" /> : null}
+        </div>
         <Message state={state} />
       </form>
     </details>

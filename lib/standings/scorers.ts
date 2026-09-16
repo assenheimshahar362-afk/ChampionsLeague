@@ -6,11 +6,12 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role";
 
 export type TopScorerRow = {
   rank: number;
-  candidateId: number;
+  playerId: number;
   name: string;
   teamName: string;
   goals: number;
   assists: number;
+  photoUrl: string | null;
   team: Team | null;
 };
 
@@ -39,24 +40,30 @@ export async function getTopScorers(
   const season = latest.data?.[0]?.season;
   if (season === undefined) return [];
 
-  const [playersResult, teamsResult] = await Promise.all([
+  const [playersResult, teamsResult, playerTranslationsResult, teamTranslationsResult] = await Promise.all([
     db
-      .from("season_player_candidates")
+      .from("competition_scorers")
       .select(
-        "candidate_id, name_en, name_he, team_id, team_name_en, team_name_he, source_goals, source_assists"
+        "football_data_id, name, team_id, goals, assists, photo_url"
       )
       .eq("season", season)
-      .gt("source_goals", 0)
-      .order("source_goals", { ascending: false })
-      .order("source_assists", { ascending: false })
-      .order("name_en", { ascending: true })
-      .limit(50),
+      .order("goals", { ascending: false })
+      .order("assists", { ascending: false })
+      .order("name", { ascending: true }),
     db.from("teams").select("*"),
+    db
+      .from("season_player_candidates")
+      .select("football_data_id, name_en, name_he, photo_url")
+      .eq("season", season),
+    db
+      .from("season_team_candidates")
+      .select("team_id, name_en, name_he")
+      .eq("season", season),
   ]);
 
   if (playersResult.error) {
     if (isMissingTable(playersResult.error)) {
-      throw new SchemaNotReadyError("season_player_candidates");
+      throw new SchemaNotReadyError("competition_scorers");
     }
     throw new Error(`Loading top scorers failed: ${playersResult.error.message}`);
   }
@@ -64,18 +71,47 @@ export async function getTopScorers(
     if (isMissingTable(teamsResult.error)) throw new SchemaNotReadyError("teams");
     throw new Error(`Loading scorer teams failed: ${teamsResult.error.message}`);
   }
+  if (playerTranslationsResult.error) {
+    if (isMissingTable(playerTranslationsResult.error)) {
+      throw new SchemaNotReadyError("season_player_candidates");
+    }
+    throw new Error(`Loading scorer translations failed: ${playerTranslationsResult.error.message}`);
+  }
+  if (teamTranslationsResult.error) {
+    if (isMissingTable(teamTranslationsResult.error)) {
+      throw new SchemaNotReadyError("season_team_candidates");
+    }
+    throw new Error(`Loading scorer team translations failed: ${teamTranslationsResult.error.message}`);
+  }
 
   const teams = new Map((teamsResult.data ?? []).map((team) => [team.id, team]));
+  const playerTranslations = new Map(
+    (playerTranslationsResult.data ?? []).flatMap((player) =>
+      player.football_data_id === null
+        ? []
+        : [[player.football_data_id, player] as const]
+    )
+  );
+  const teamTranslations = new Map(
+    (teamTranslationsResult.data ?? []).flatMap((team) =>
+      team.team_id === null ? [] : [[team.team_id, team] as const]
+    )
+  );
   let displayedRank = 0;
   let previousGoals: number | null = null;
 
   return (playersResult.data ?? []).map((player, index) => {
-    if (player.source_goals !== previousGoals) displayedRank = index + 1;
-    previousGoals = player.source_goals;
+    if (player.goals !== previousGoals) displayedRank = index + 1;
+    previousGoals = player.goals;
 
-    const localizedTeamName =
-      locale === "he" ? player.team_name_he : player.team_name_en;
-    const storedTeam = player.team_id ? teams.get(player.team_id) : undefined;
+    const playerTranslation = playerTranslations.get(player.football_data_id);
+    const teamTranslation = teamTranslations.get(player.team_id);
+    const storedTeam = teams.get(player.team_id);
+    const localizedTeamName = teamTranslation
+      ? locale === "he"
+        ? teamTranslation.name_he
+        : teamTranslation.name_en
+      : storedTeam?.short_name ?? storedTeam?.name ?? "";
     const team: Team | null = storedTeam
       ? {
           id: storedTeam.id,
@@ -89,11 +125,16 @@ export async function getTopScorers(
 
     return {
       rank: displayedRank,
-      candidateId: player.candidate_id,
-      name: locale === "he" ? player.name_he : player.name_en,
+      playerId: player.football_data_id,
+      name: playerTranslation
+        ? locale === "he"
+          ? playerTranslation.name_he
+          : playerTranslation.name_en
+        : player.name,
       teamName: localizedTeamName,
-      goals: player.source_goals,
-      assists: player.source_assists,
+      goals: player.goals,
+      assists: player.assists,
+      photoUrl: player.photo_url ?? playerTranslation?.photo_url ?? null,
       team,
     };
   });

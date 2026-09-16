@@ -6,13 +6,18 @@ import { z } from "zod";
 import { isAdminEmail } from "@/lib/admin/auth";
 import { parseEntryFeeAgorot } from "@/lib/groups/fees";
 import { parseGroupPaymentForm } from "@/lib/groups/payment";
+import {
+  DEFAULT_PRIZE_DISTRIBUTION,
+  parsePrizeDistribution,
+  prizeDistributionFromRow,
+} from "@/lib/groups/prizes";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
 import { hasMatchingImageSignature } from "@/lib/uploads/image";
 
 export type GroupActionState =
   | { status: "idle" }
-  | { status: "success"; code?: "paymentSaved" }
+  | { status: "success"; code?: "paymentSaved" | "prizesSaved" }
   | {
       status: "error";
       code:
@@ -20,6 +25,8 @@ export type GroupActionState =
         | "invalidImage"
         | "imageTooLarge"
         | "invalidPayment"
+        | "invalidPrizeDistribution"
+        | "prizeRequiresFee"
         | "notFound"
         | "notAllowed"
         | "alreadyMember"
@@ -98,6 +105,7 @@ export async function createGroup(
       id: groupId,
       name: parsed.data,
       entry_fee_agorot: fee,
+      prize_distribution: fee > 0 ? [...DEFAULT_PRIZE_DISTRIBUTION] : [],
       created_by: user.id,
     });
   if (error) {
@@ -140,6 +148,21 @@ export async function updateGroup(
   }
 
   const service = createServiceRoleClient();
+  const { data: currentGroup, error: currentGroupError } = await service
+    .from("groups")
+    .select("prize_distribution")
+    .eq("id", groupId.data)
+    .maybeSingle();
+  if (currentGroupError || !currentGroup) {
+    if (currentGroupError) {
+      console.error("Loading group prize distribution failed", currentGroupError.message);
+    }
+    return { status: "error", code: "generic" };
+  }
+  const currentPrizeDistribution = prizeDistributionFromRow(
+    currentGroup.prize_distribution
+  );
+
   let imageUrl: string | null | undefined;
   if (imageResult.image) {
     imageUrl = await uploadGroupImage(groupId.data, imageResult.image);
@@ -155,6 +178,12 @@ export async function updateGroup(
   const update = {
     name: name.data,
     entry_fee_agorot: fee,
+    prize_distribution:
+      fee === 0
+        ? []
+        : currentPrizeDistribution.length > 0
+          ? currentPrizeDistribution
+          : [...DEFAULT_PRIZE_DISTRIBUTION],
     ...(imageUrl !== undefined ? { image_url: imageUrl } : {}),
     ...(fee === 0
       ? { bit_payment_url: null, paybox_payment_url: null, payment_note: null }
@@ -167,6 +196,48 @@ export async function updateGroup(
   }
   revalidatePath("/", "layout");
   return { status: "success" };
+}
+
+export async function updateGroupPrizeDistribution(
+  _previous: GroupActionState,
+  formData: FormData
+): Promise<GroupActionState> {
+  const groupId = uuid.safeParse(formData.get("groupId"));
+  const distribution = parsePrizeDistribution(formData.getAll("prizePercentage"));
+  if (!groupId.success || !distribution) {
+    return { status: "error", code: "invalidPrizeDistribution" };
+  }
+
+  const { db, user } = await context();
+  if (!user || !(await canManage(db, user, groupId.data))) {
+    return { status: "error", code: "notAllowed" };
+  }
+
+  const service = createServiceRoleClient();
+  const { data: group, error: groupError } = await service
+    .from("groups")
+    .select("entry_fee_agorot")
+    .eq("id", groupId.data)
+    .maybeSingle();
+  if (groupError || !group) {
+    if (groupError) console.error("Loading group entry fee failed", groupError.message);
+    return { status: "error", code: "generic" };
+  }
+  if (group.entry_fee_agorot <= 0) {
+    return { status: "error", code: "prizeRequiresFee" };
+  }
+
+  const { error } = await service
+    .from("groups")
+    .update({ prize_distribution: distribution })
+    .eq("id", groupId.data);
+  if (error) {
+    console.error("Updating group prize distribution failed", error.message);
+    return { status: "error", code: "generic" };
+  }
+
+  revalidatePath("/", "layout");
+  return { status: "success", code: "prizesSaved" };
 }
 
 /**

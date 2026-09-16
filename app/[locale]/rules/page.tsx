@@ -1,4 +1,4 @@
-import { EyeOff, Lock, Medal, Target, Trophy } from "lucide-react";
+import { EyeOff, Gift, Lock, Medal, Target, Trophy } from "lucide-react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { connection } from "next/server";
 import { Suspense } from "react";
@@ -96,6 +96,7 @@ async function RulesContent({
               <Rule Icon={Lock} title={t("lock.title")} body={t("lock.body")} />
               <Rule Icon={EyeOff} title={t("blind.title")} body={t("blind.body")} />
               <Rule Icon={Trophy} title={t("table.title")} body={t("table.body")} />
+              <Rule Icon={Gift} title={t("prizes.title")} body={t("prizes.body")} />
             </ul>
           </section>
 

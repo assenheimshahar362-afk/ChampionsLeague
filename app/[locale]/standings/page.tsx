@@ -1,5 +1,6 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Goal, ListOrdered } from "lucide-react";
+import Image from "next/image";
 import { Suspense } from "react";
 
 import { TeamCrest } from "@/components/match/team-crest";
@@ -316,7 +317,7 @@ async function ScorersContent({ locale }: { locale: string }) {
           </thead>
           <tbody className="divide-y divide-white/10">
             {scorers.map((player) => (
-              <ScorerRow key={player.candidateId} player={player} />
+              <ScorerRow key={player.playerId} player={player} />
             ))}
           </tbody>
         </table>
@@ -345,12 +346,23 @@ function ScorerRow({ player }: { player: TopScorerRow }) {
       </td>
       <td className="py-2.5">
         <span className="flex min-w-0 items-center gap-2.5">
-          {player.team ? (
-            <TeamCrest team={player.team} className="size-7 shrink-0" />
+          {player.photoUrl ? (
+            <span className="bg-muted relative size-9 shrink-0 overflow-hidden rounded-full border border-white/15 shadow-[0_4px_12px_rgb(0_0_0/0.2)]">
+              <Image
+                src={player.photoUrl}
+                alt=""
+                fill
+                sizes="36px"
+                className="object-cover object-top"
+                unoptimized
+              />
+            </span>
+          ) : player.team ? (
+            <TeamCrest team={player.team} className="size-9 shrink-0" />
           ) : (
             <span
               aria-hidden="true"
-              className="bg-muted size-7 shrink-0 rounded-full"
+              className="bg-muted size-9 shrink-0 rounded-full"
             />
           )}
           <span className="min-w-0">

@@ -100,7 +100,7 @@ export async function ingestSeason(
   try {
     const response = await footballDataGet<WireScorersResponse>(
       `/competitions/${COMPETITION}/scorers`,
-      { season, limit: 50 }
+      { season, limit: 500 }
     );
     scorers = response.data.scorers;
     latestQuota = response.quota;
@@ -404,6 +404,14 @@ export async function ingestSeason(
         storedPhotoByPlayer.get(`${teamId}:${player.id}`) ??
         null,
     }));
+    for (const player of squadRows) {
+      if (player.photo_url && player.football_data_id !== null) {
+        storedPhotoByPlayer.set(
+          `${teamId}:${player.football_data_id}`,
+          player.photo_url
+        );
+      }
+    }
     const { error: squadUpsertError } = await db
       .from("team_squad_players")
       .upsert(squadRows, {
@@ -449,6 +457,33 @@ export async function ingestSeason(
   }
   if (squadRefreshFailures > 0) {
     warnings.push(`${squadRefreshFailures} team squad refresh request(s) failed.`);
+  }
+
+  const scorerRows = scorers.flatMap((scorer) => {
+    const teamId = teamUuidByProviderId.get(scorer.team.id);
+    if (!teamId || scorer.goals <= 0) return [];
+    return [{
+      season,
+      football_data_id: scorer.player.id,
+      team_id: teamId,
+      name: scorer.player.name,
+      position: scorer.player.position ?? null,
+      goals: scorer.goals,
+      assists: scorer.assists ?? 0,
+      photo_url:
+        candidatePhotoById.get(scorer.player.id) ??
+        candidatePhotoByName.get(normalizePersonName(scorer.player.name)) ??
+        storedPhotoByPlayer.get(`${teamId}:${scorer.player.id}`) ??
+        null,
+    }];
+  });
+  if (scorerRows.length > 0) {
+    const { error: scorerUpsertError } = await db
+      .from("competition_scorers")
+      .upsert(scorerRows, { onConflict: "season,football_data_id" });
+    if (scorerUpsertError) {
+      throw new Error(`Saving the complete scorer table failed: ${scorerUpsertError.message}`);
+    }
   }
 
   const outcomeChampionTeamId =

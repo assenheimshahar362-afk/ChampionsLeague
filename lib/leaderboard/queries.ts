@@ -13,6 +13,7 @@ import {
 } from "@/lib/leaderboard/ranking";
 import { createClient } from "@/lib/supabase/server";
 import { getGameSettings } from "@/lib/scoring/settings";
+import { prizeDistributionFromRow } from "@/lib/groups/prizes";
 
 export type {
   LeaderboardRow,
@@ -25,6 +26,7 @@ export type LeaderboardGroup = {
   entryFeeAgorot: number;
   memberCount: number;
   potAgorot: number;
+  prizeDistribution: number[];
 };
 
 export type LeaderboardView = {
@@ -116,7 +118,7 @@ export async function getLeaderboard(
     const [groupsResult, membershipsResult] = await Promise.all([
       supabase
         .from("groups")
-        .select("id, name, entry_fee_agorot")
+        .select("id, name, entry_fee_agorot, prize_distribution")
         .in("id", myGroupIds)
         .order("name"),
       supabase
@@ -146,6 +148,7 @@ export async function getLeaderboard(
         entryFeeAgorot: group.entry_fee_agorot,
         memberCount,
         potAgorot: memberCount * group.entry_fee_agorot,
+        prizeDistribution: prizeDistributionFromRow(group.prize_distribution),
       };
     });
   }

@@ -18,6 +18,7 @@ const anon = createClient(url, anonKey, {
 const tables = [
   "ai_match_predictions",
   "ai_prediction_usage",
+  "competition_scorers",
   "fixture_details",
   "fixture_recent_form",
   "fixture_results",

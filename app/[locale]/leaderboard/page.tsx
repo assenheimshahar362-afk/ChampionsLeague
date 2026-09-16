@@ -1,4 +1,4 @@
-import { Banknote, LockKeyhole, Trophy, UserRound, Users } from "lucide-react";
+import { Banknote, Gift, LockKeyhole, Trophy, UserRound, Users } from "lucide-react";
 import Image from "next/image";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
@@ -9,6 +9,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Link } from "@/i18n/navigation";
 import { isLocale } from "@/i18n/routing";
 import { SchemaNotReadyError } from "@/lib/fixtures/queries";
+import { calculatePrizeAmounts } from "@/lib/groups/prizes";
 import {
   getLeaderboard,
   type LeaderboardGroup,
@@ -84,33 +85,21 @@ export default async function LeaderboardPage({
           ) : null}
 
           {leaderboard.selectedGroup ? (
-            <div className="bg-card/55 mt-2.5 flex items-center gap-3 rounded-xl border border-white/15 px-3.5 py-3 backdrop-blur-xl">
-              <span className="bg-warning/10 text-warning flex size-9 shrink-0 items-center justify-center rounded-lg border border-warning/15">
-                <Banknote className="size-4.5" aria-hidden="true" />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-semibold">
-                  {t("groupPotTitle", {
-                    group: leaderboard.selectedGroup.name,
-                  })}
+            leaderboard.selectedGroup.entryFeeAgorot > 0 ? (
+              <GroupPrizeCard group={leaderboard.selectedGroup} locale={locale} />
+            ) : (
+              <div className="bg-card/55 mt-2.5 flex items-center gap-3 rounded-xl border border-white/15 px-3.5 py-3 backdrop-blur-xl">
+                <span className="bg-primary/10 text-primary flex size-9 shrink-0 items-center justify-center rounded-lg border border-primary/15">
+                  <Gift className="size-4.5" aria-hidden="true" />
                 </span>
-                <span className="text-muted-foreground mt-0.5 block text-xs">
-                  {t("groupPotCalculation", {
-                    members: leaderboard.selectedGroup.memberCount,
-                    entryFee: formatAgorot(
-                      leaderboard.selectedGroup.entryFeeAgorot,
-                      locale
-                    ),
-                  })}
+                <span className="min-w-0">
+                  <span className="block text-sm font-semibold">{t("freeGroupTitle")}</span>
+                  <span className="text-muted-foreground mt-0.5 block text-xs text-pretty">
+                    {t("freeGroupBody")}
+                  </span>
                 </span>
-              </span>
-              <strong
-                data-numeric
-                className="text-warning shrink-0 text-lg font-bold tabular-nums"
-              >
-                {formatAgorot(leaderboard.selectedGroup.potAgorot, locale)}
-              </strong>
-            </div>
+              </div>
+            )
           ) : null}
 
           <p className="text-muted-foreground mt-4 text-xs">
@@ -290,6 +279,68 @@ function LeaderboardTableRow({
         ) : null}
       </td>
     </tr>
+  );
+}
+
+async function GroupPrizeCard({
+  group,
+  locale,
+}: {
+  group: LeaderboardGroup;
+  locale: string;
+}) {
+  const t = await getTranslations("leaderboard");
+  const amounts = calculatePrizeAmounts(group.potAgorot, group.prizeDistribution);
+
+  return (
+    <section className="bg-card/55 mt-2.5 overflow-hidden rounded-xl border border-white/15 backdrop-blur-xl">
+      <div className="flex items-center gap-3 px-3.5 py-3">
+        <span className="bg-warning/10 text-warning flex size-9 shrink-0 items-center justify-center rounded-lg border border-warning/15">
+          <Banknote className="size-4.5" aria-hidden="true" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-sm font-semibold">
+            {t("groupPotTitle", { group: group.name })}
+          </span>
+          <span className="text-muted-foreground mt-0.5 block text-xs">
+            {t("groupPotCalculation", {
+              members: group.memberCount,
+              entryFee: formatAgorot(group.entryFeeAgorot, locale),
+            })}
+          </span>
+        </span>
+        <strong data-numeric className="text-warning shrink-0 text-lg font-bold tabular-nums">
+          {formatAgorot(group.potAgorot, locale)}
+        </strong>
+      </div>
+
+      <div className="border-t border-white/10 px-3.5 py-3">
+        <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold">
+          <Gift className="text-primary size-3.5" aria-hidden="true" />
+          {t("prizeDistributionTitle")}
+        </div>
+        <ol className="grid gap-2 sm:grid-cols-3">
+          {group.prizeDistribution.map((percentage, index) => (
+            <li
+              key={index}
+              className="bg-background/30 flex items-center gap-2 rounded-lg border border-white/10 px-2.5 py-2"
+            >
+              <span className="bg-primary/12 text-primary flex size-6 shrink-0 items-center justify-center rounded-full text-[0.65rem] font-bold">
+                {index + 1}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-[0.7rem] font-medium">
+                  {t("prizePlace", { place: index + 1, percentage })}
+                </span>
+                <strong data-numeric className="mt-0.5 block truncate text-sm tabular-nums">
+                  {formatAgorot(amounts[index] ?? 0, locale)}
+                </strong>
+              </span>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
   );
 }
 

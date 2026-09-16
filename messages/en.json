@@ -269,6 +269,16 @@
     "savePayment": "Save payment options",
     "paymentClearHint": "To disable payments, clear both links and the note, then save.",
     "paymentSaved": "Payment options were saved.",
+    "prizeManage": "Set prize distribution",
+    "prizeHint": "Choose the share for each winning place. The total must equal 100% of the group pot.",
+    "prizeNotAvailable": "No entry fee",
+    "prizeRequiresFee": "Set a positive entry fee before configuring prize distribution.",
+    "prizePlace": "Place {place}",
+    "addPrizePlace": "Add winning place",
+    "removePrizePlace": "Remove winning place",
+    "prizeTotal": "Total: {total}%",
+    "savePrizeDistribution": "Save distribution",
+    "prizesSaved": "Prize distribution was saved.",
     "payWithBit": "Pay with bit",
     "payWithPaybox": "Pay with PayBox",
     "externalPaymentNotice": "Payment is completed in an external app using a link configured by the group manager. Verify the recipient before approving; this site does not process or verify the transfer.",
@@ -278,6 +288,8 @@
       "invalidImage": "Choose a JPG, PNG or WebP image.",
       "imageTooLarge": "The image is too large. The maximum size is 2MB.",
       "invalidPayment": "Enter at least one valid HTTPS link for bit or PayBox. A positive group entry fee is required.",
+      "invalidPrizeDistribution": "Prize shares must be whole positive percentages totaling exactly 100%.",
+      "prizeRequiresFee": "Prize distribution is available only for groups with an entry fee.",
       "notFound": "No registered participant was found with that email.",
       "notAllowed": "Only a group manager can do that.",
       "alreadyMember": "That participant is already in this group.",
@@ -762,6 +774,10 @@
     "globalTable": "All players",
     "groupPotTitle": "{group} pot",
     "groupPotCalculation": "{members} members × {entryFee}",
+    "prizeDistributionTitle": "Prize distribution",
+    "prizePlace": "Place {place} · {percentage}%",
+    "freeGroupTitle": "Free friends group",
+    "freeGroupBody": "This group has no entry fee, prize pot or prize distribution.",
     "participant": "Player",
     "championPick": "Champion",
     "scorerPick": "Top scorer",
@@ -870,6 +886,10 @@
     "table": {
       "title": "Points make the table",
       "body": "Every settled match and season-pick award add to your total. The global table includes every player in the system, and you can also select a specific friends group."
+    },
+    "prizes": {
+      "title": "Each group chooses its prize split",
+      "body": "A group manager can set how 100% of the group pot is divided between the winning places. Groups without an entry fee have no prize pot or prize distribution."
     },
     "regulationTime": "In the league phase, scoring uses the result after 90 minutes plus stoppage time. In the knockout rounds, scoring also includes extra time, but never the penalty shootout."
   },

@@ -129,6 +129,7 @@ export type Database = {
           name: string;
           image_url: string | null;
           entry_fee_agorot: number;
+          prize_distribution: number[];
           invite_code: string;
           created_by: string;
           bit_payment_url: string | null;
@@ -142,6 +143,7 @@ export type Database = {
           name: string;
           image_url?: string | null;
           entry_fee_agorot?: number;
+          prize_distribution?: number[];
           invite_code?: string;
           created_by: string;
           bit_payment_url?: string | null;
@@ -155,6 +157,7 @@ export type Database = {
           name?: string;
           image_url?: string | null;
           entry_fee_agorot?: number;
+          prize_distribution?: number[];
           invite_code?: string;
           created_by?: string;
           bit_payment_url?: string | null;
@@ -313,6 +316,46 @@ export type Database = {
           shirt_number?: number | null;
           nationality?: string | null;
           date_of_birth?: string | null;
+          photo_url?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+
+      competition_scorers: {
+        Row: {
+          season: number;
+          football_data_id: number;
+          team_id: string;
+          name: string;
+          position: string | null;
+          goals: number;
+          assists: number;
+          photo_url: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          season: number;
+          football_data_id: number;
+          team_id: string;
+          name: string;
+          position?: string | null;
+          goals: number;
+          assists?: number;
+          photo_url?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          season?: number;
+          football_data_id?: number;
+          team_id?: string;
+          name?: string;
+          position?: string | null;
+          goals?: number;
+          assists?: number;
           photo_url?: string | null;
           created_at?: string;
           updated_at?: string;

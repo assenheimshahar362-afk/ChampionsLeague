@@ -17,6 +17,7 @@ import {
   CreateGroupForm,
   EditGroupForm,
   GroupPaymentForm,
+  GroupPrizeDistributionForm,
 } from "@/components/groups/group-forms";
 import { GroupImage } from "@/components/groups/group-image";
 import { WhatsAppInviteButton } from "@/components/groups/whatsapp-invite-button";
@@ -144,6 +145,12 @@ export async function ProfileGroupsSection({
                         groupId={group.id}
                         entryFeeAgorot={group.entryFeeAgorot}
                         payment={group.payment}
+                      />
+                      <GroupPrizeDistributionForm
+                        key={`${group.id}-${group.entryFeeAgorot}-${group.prizeDistribution.join("-")}`}
+                        groupId={group.id}
+                        entryFeeAgorot={group.entryFeeAgorot}
+                        prizeDistribution={group.prizeDistribution}
                       />
                     </>
                   ) : null}

@@ -1503,6 +1503,42 @@ create policy "team squad players: readable by everyone"
 grant select on public.team_squad_players to anon, authenticated;
 grant all on public.team_squad_players to service_role;
 
+-- The complete provider scorer feed is stored independently from the curated
+-- season-pick market. A player can therefore appear in the Golden Boot table
+-- without becoming an eligible season-pick candidate.
+create table public.competition_scorers (
+  season            integer     not null,
+  football_data_id  integer     not null,
+  team_id           uuid        not null
+                              references public.teams (id) on delete cascade,
+  name               text        not null check (char_length(trim(name)) between 1 and 100),
+  position           text,
+  goals              smallint    not null check (goals > 0),
+  assists            smallint    not null default 0 check (assists >= 0),
+  photo_url          text,
+  created_at         timestamptz not null default now(),
+  updated_at         timestamptz not null default now(),
+
+  primary key (season, football_data_id)
+);
+
+create index competition_scorers_season_goals_idx
+  on public.competition_scorers (season, goals desc, assists desc);
+
+create trigger competition_scorers_set_updated_at
+  before update on public.competition_scorers
+  for each row
+  execute function public.set_updated_at();
+
+alter table public.competition_scorers enable row level security;
+revoke all on public.competition_scorers from public, anon, authenticated;
+grant all on public.competition_scorers to service_role;
+
+comment on table public.competition_scorers is
+  'Complete competition scorer feed; separate from the curated season-pick candidate market.';
+comment on column public.competition_scorers.photo_url is
+  'Optional project-owned player image; callers fall back to the team crest when absent.';
+
 -- ==================================================== provider poll state ==
 
 -- Coordinates overlapping cron invocations across application instances.
@@ -2080,11 +2116,42 @@ notify pgrst, 'reload schema';
 -- ============================================================================
 -- Group identity, shareable invitations and manager-confirmed entry fees.
 
+create or replace function public.is_valid_prize_distribution(distribution smallint[])
+returns boolean
+language sql
+immutable
+strict
+set search_path = pg_catalog
+as $$
+  select
+    cardinality(distribution) between 1 and 10
+    and array_position(distribution, null) is null
+    and 0 < all(distribution)
+    and 100 >= all(distribution)
+    and (
+      select sum(percentage) = 100
+      from unnest(distribution) as shares(percentage)
+    );
+$$;
+
 alter table public.groups
   add column image_url text,
   add column entry_fee_agorot integer not null default 0
     check (entry_fee_agorot between 0 and 100000000),
+  add column prize_distribution smallint[] not null default '{}'::smallint[],
   add column invite_code uuid not null default gen_random_uuid() unique;
+
+alter table public.groups
+  add constraint groups_prize_distribution_matches_fee check (
+    (
+      entry_fee_agorot = 0
+      and cardinality(prize_distribution) = 0
+    )
+    or (
+      entry_fee_agorot > 0
+      and public.is_valid_prize_distribution(prize_distribution)
+    )
+  );
 
 create type public.group_join_request_status as enum (
   'pending_payment',
@@ -2142,6 +2209,8 @@ create policy "group images: public read"
 
 comment on column public.groups.entry_fee_agorot is
   'Entry fee in Israeli agorot. Payment is confirmed manually by a group manager.';
+comment on column public.groups.prize_distribution is
+  'Ordered winner shares in whole percentages. Paid groups total 100; free groups use an empty array.';
 comment on column public.groups.invite_code is
   'Stable unguessable token used by the WhatsApp invitation URL.';
 
@@ -2543,6 +2612,393 @@ begin
     and f.away_goals is not null;
 end;
 $$;
+
+-- ============================================================================
+-- AI SEASON PICKS
+-- ============================================================================
+
+-- Give the virtual AI leaderboard player the same long-range season picks and
+-- scoring semantics as human players, without requiring a synthetic auth user.
+create table public.ai_season_picks (
+  season                    integer     primary key,
+  champion_candidate_id      integer     not null,
+  top_scorer_candidate_id     integer     not null,
+  champion_pick_points        smallint    not null check (champion_pick_points between 1 and 2000),
+  scorer_pick_points          smallint    not null check (scorer_pick_points between 1 and 500),
+  created_at                  timestamptz not null default now(),
+
+  foreign key (season, champion_candidate_id)
+    references public.season_team_candidates (season, candidate_id),
+  foreign key (season, top_scorer_candidate_id)
+    references public.season_player_candidates (season, candidate_id)
+);
+
+alter table public.ai_season_picks enable row level security;
+
+-- The points are snapshotted when the pick is made, just like season_picks.
+insert into public.ai_season_picks (
+  season,
+  champion_candidate_id,
+  top_scorer_candidate_id,
+  champion_pick_points,
+  scorer_pick_points
+)
+select
+  champion.season,
+  champion.candidate_id,
+  scorer.candidate_id,
+  champion.pick_points,
+  scorer.pick_points
+from public.season_team_candidates champion
+join public.season_player_candidates scorer
+  on scorer.season = champion.season
+where champion.season = 2026
+  and champion.name_en = 'Arsenal'
+  and scorer.name_en = 'Kylian Mbappe';
+
+do $$
+begin
+  if not exists (
+    select 1
+    from public.ai_season_picks
+    where season = 2026
+  ) then
+    raise exception 'Could not configure the 2026 AI season pick';
+  end if;
+end;
+$$;
+
+-- Expose only the public-facing pick. The hidden season outcome remains
+-- service-role-only and cannot leak before settlement releases it.
+create or replace function public.get_visible_ai_season_picks()
+returns table (
+  season integer,
+  champion_awarded_points smallint,
+  scorer_awarded_points smallint,
+  settled_at timestamptz,
+  champion_name_en text,
+  champion_name_he text,
+  champion_logo_url text,
+  scorer_name_en text,
+  scorer_name_he text,
+  scorer_photo_url text
+)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select
+    picks.season,
+    case
+      when outcome.released_at is not null
+       and champion.team_id = outcome.champion_team_id
+        then picks.champion_pick_points
+      else 0
+    end::smallint,
+    case
+      when outcome.released_at is not null
+       and scorer.football_data_id = any(outcome.top_scorer_football_data_ids)
+        then picks.scorer_pick_points
+      else 0
+    end::smallint,
+    outcome.released_at,
+    champion.name_en,
+    champion.name_he,
+    champion.logo_url,
+    scorer.name_en,
+    scorer.name_he,
+    scorer.photo_url
+  from public.ai_season_picks picks
+  join public.season_team_candidates champion
+    on champion.season = picks.season
+   and champion.candidate_id = picks.champion_candidate_id
+  join public.season_player_candidates scorer
+    on scorer.season = picks.season
+   and scorer.candidate_id = picks.top_scorer_candidate_id
+  left join public.season_outcomes outcome
+    on outcome.season = picks.season
+  where not public.season_picks_are_open(picks.season)
+  order by picks.season desc;
+$$;
+
+revoke all on table public.ai_season_picks from public, anon, authenticated;
+grant all on table public.ai_season_picks to service_role;
+
+revoke all on function public.get_visible_ai_season_picks()
+  from public, anon;
+grant execute on function public.get_visible_ai_season_picks()
+  to authenticated, service_role;
+
+-- ============================================================================
+-- SEASON PICK POINT SYNCHRONIZATION
+-- ============================================================================
+
+-- Keep every unresolved season pick aligned with the points currently assigned
+-- to its candidate. Candidate prices may be edited directly in the database as
+-- well as through the admin RPCs, so enforcing this at the table boundary keeps
+-- the profile display and the eventual settlement award on the same value.
+
+create or replace function public.sync_team_candidate_pick_points()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  update public.season_picks
+  set champion_pick_points = new.pick_points
+  where season = new.season
+    and champion_candidate_id = new.candidate_id
+    and settled_at is null;
+
+  update public.ai_season_picks picks
+  set champion_pick_points = new.pick_points
+  where picks.season = new.season
+    and picks.champion_candidate_id = new.candidate_id
+    and not exists (
+      select 1
+      from public.season_outcomes outcome
+      where outcome.season = picks.season
+        and outcome.released_at is not null
+    );
+
+  return new;
+end;
+$$;
+
+create or replace function public.sync_player_candidate_pick_points()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  update public.season_picks
+  set scorer_pick_points = new.pick_points
+  where season = new.season
+    and top_scorer_candidate_id = new.candidate_id
+    and settled_at is null;
+
+  update public.ai_season_picks picks
+  set scorer_pick_points = new.pick_points
+  where picks.season = new.season
+    and picks.top_scorer_candidate_id = new.candidate_id
+    and not exists (
+      select 1
+      from public.season_outcomes outcome
+      where outcome.season = picks.season
+        and outcome.released_at is not null
+    );
+
+  return new;
+end;
+$$;
+
+create trigger season_team_candidates_sync_pick_points
+  after update of pick_points on public.season_team_candidates
+  for each row
+  when (old.pick_points is distinct from new.pick_points)
+  execute function public.sync_team_candidate_pick_points();
+
+create trigger season_player_candidates_sync_pick_points
+  after update of pick_points on public.season_player_candidates
+  for each row
+  when (old.pick_points is distinct from new.pick_points)
+  execute function public.sync_player_candidate_pick_points();
+
+-- Repair drift that predates the triggers. Settled picks remain immutable
+-- because their awarded points already belong to a completed competition.
+update public.season_picks picks
+set champion_pick_points = candidate.pick_points
+from public.season_team_candidates candidate
+where picks.season = candidate.season
+  and picks.champion_candidate_id = candidate.candidate_id
+  and picks.settled_at is null
+  and picks.champion_pick_points is distinct from candidate.pick_points;
+
+update public.season_picks picks
+set scorer_pick_points = candidate.pick_points
+from public.season_player_candidates candidate
+where picks.season = candidate.season
+  and picks.top_scorer_candidate_id = candidate.candidate_id
+  and picks.settled_at is null
+  and picks.scorer_pick_points is distinct from candidate.pick_points;
+
+update public.ai_season_picks picks
+set champion_pick_points = candidate.pick_points
+from public.season_team_candidates candidate
+where picks.season = candidate.season
+  and picks.champion_candidate_id = candidate.candidate_id
+  and picks.champion_pick_points is distinct from candidate.pick_points
+  and not exists (
+    select 1
+    from public.season_outcomes outcome
+    where outcome.season = picks.season
+      and outcome.released_at is not null
+  );
+
+update public.ai_season_picks picks
+set scorer_pick_points = candidate.pick_points
+from public.season_player_candidates candidate
+where picks.season = candidate.season
+  and picks.top_scorer_candidate_id = candidate.candidate_id
+  and picks.scorer_pick_points is distinct from candidate.pick_points
+  and not exists (
+    select 1
+    from public.season_outcomes outcome
+    where outcome.season = picks.season
+      and outcome.released_at is not null
+  );
+
+revoke all on function public.sync_team_candidate_pick_points()
+  from public, anon, authenticated;
+revoke all on function public.sync_player_candidate_pick_points()
+  from public, anon, authenticated;
+
+-- ============================================================================
+-- PROFILE PERFORMANCE RPCS
+-- ============================================================================
+
+-- Collapse the profile header, counters and latest season pick into one
+-- database round trip. The function runs with the caller's RLS identity and
+-- can therefore only return the authenticated user's own rows.
+create or replace function public.get_my_profile_overview(
+  request_now timestamptz default now()
+)
+returns table (
+  display_name text,
+  avatar_url text,
+  nickname_confirmed_at timestamptz,
+  profile_created_at timestamptz,
+  prediction_count bigint,
+  match_points bigint,
+  group_count bigint,
+  pick_season integer,
+  pick_locked boolean,
+  champion_candidate_id integer,
+  champion_name_en text,
+  champion_name_he text,
+  champion_logo_url text,
+  scorer_candidate_id integer,
+  scorer_name_en text,
+  scorer_name_he text,
+  scorer_photo_url text,
+  scorer_team_name_en text,
+  scorer_team_name_he text,
+  champion_pick_points smallint,
+  scorer_pick_points smallint,
+  champion_awarded_points smallint,
+  scorer_awarded_points smallint,
+  pick_settled_at timestamptz
+)
+language sql
+stable
+security invoker
+set search_path = public
+as $$
+  select
+    profile.display_name,
+    profile.avatar_url,
+    profile.nickname_confirmed_at,
+    profile.created_at,
+    (select count(*) from public.predictions where user_id = auth.uid()),
+    coalesce((
+      select sum(score.total_points)
+      from public.prediction_scores score
+      where score.user_id = auth.uid()
+    ), 0),
+    (select count(*) from public.group_members where user_id = auth.uid()),
+    pick.season,
+    case
+      when pick.season is null then false
+      else coalesce(first_fixture.kickoff_at <= request_now, false)
+    end,
+    champion.candidate_id,
+    champion.name_en,
+    champion.name_he,
+    champion.logo_url,
+    scorer.candidate_id,
+    scorer.name_en,
+    scorer.name_he,
+    scorer.photo_url,
+    scorer.team_name_en,
+    scorer.team_name_he,
+    pick.champion_pick_points,
+    pick.scorer_pick_points,
+    pick.champion_awarded_points,
+    pick.scorer_awarded_points,
+    pick.settled_at
+  from public.profiles profile
+  left join lateral (
+    select latest.*
+    from public.season_picks latest
+    where latest.user_id = auth.uid()
+    order by latest.season desc
+    limit 1
+  ) pick on true
+  left join public.season_team_candidates champion
+    on champion.season = pick.season
+   and champion.candidate_id = pick.champion_candidate_id
+  left join public.season_player_candidates scorer
+    on scorer.season = pick.season
+   and scorer.candidate_id = pick.top_scorer_candidate_id
+  left join lateral (
+    select fixture.kickoff_at
+    from public.fixtures fixture
+    where fixture.season = pick.season
+    order by fixture.kickoff_at
+    limit 1
+  ) first_fixture on true
+  where profile.id = auth.uid();
+$$;
+
+revoke all on function public.get_my_profile_overview(timestamptz)
+  from public, anon;
+grant execute on function public.get_my_profile_overview(timestamptz)
+  to authenticated;
+
+-- Managers need member email addresses for payment administration. Resolve
+-- them in one verified database call instead of one Auth Admin HTTP request
+-- per member. A row is returned only for groups managed by the caller.
+create or replace function public.get_my_group_member_emails(
+  target_group_ids uuid[]
+)
+returns table (
+  group_id uuid,
+  user_id uuid,
+  email text
+)
+language sql
+stable
+security definer
+set search_path = public, auth
+as $$
+  with managed_groups as (
+    select membership.group_id
+    from public.group_members membership
+    where membership.user_id = auth.uid()
+      and membership.role = 'manager'
+      and membership.group_id = any(target_group_ids)
+  ), visible_users as (
+    select member.group_id, member.user_id
+    from public.group_members member
+    join managed_groups managed on managed.group_id = member.group_id
+    union
+    select request.group_id, request.user_id
+    from public.group_join_requests request
+    join managed_groups managed on managed.group_id = request.group_id
+    where request.status = 'pending_payment'
+  )
+  select visible.group_id, visible.user_id, account.email::text
+  from visible_users visible
+  join auth.users account on account.id = visible.user_id;
+$$;
+
+revoke all on function public.get_my_group_member_emails(uuid[])
+  from public, anon;
+grant execute on function public.get_my_group_member_emails(uuid[])
+  to authenticated;
 
 notify pgrst, 'reload schema';
 commit;

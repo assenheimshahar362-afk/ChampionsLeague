@@ -8,6 +8,7 @@ import {
   groupPaymentSettingsFromRow,
   type GroupPaymentSettings,
 } from "@/lib/groups/payment";
+import { prizeDistributionFromRow } from "@/lib/groups/prizes";
 import type { GroupMemberRoleEnum } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
@@ -32,6 +33,7 @@ export type GroupView = {
   name: string;
   imageUrl: string | null;
   entryFeeAgorot: number;
+  prizeDistribution: number[];
   inviteCode: string;
   myRole: GroupMemberRoleEnum;
   payment: GroupPaymentSettings;
@@ -79,7 +81,7 @@ export async function getMyGroups(
       db
         .from("groups")
         .select(
-          "id, name, image_url, entry_fee_agorot, invite_code, bit_payment_url, paybox_payment_url, payment_note"
+          "id, name, image_url, entry_fee_agorot, prize_distribution, invite_code, bit_payment_url, paybox_payment_url, payment_note"
         )
         .in("id", groupIds)
         .order("name"),
@@ -176,6 +178,7 @@ export async function getMyGroups(
       name: group.name,
       imageUrl: group.image_url,
       entryFeeAgorot: group.entry_fee_agorot,
+      prizeDistribution: prizeDistributionFromRow(group.prize_distribution),
       inviteCode: group.invite_code,
       myRole,
       payment: groupPaymentSettingsFromRow(group),
