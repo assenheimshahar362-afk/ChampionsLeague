@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 import type { FixtureStatus } from "@/lib/fixtures/types";
 import { isLivePollCandidate } from "@/lib/ingest/live-window";
@@ -28,6 +28,7 @@ export function LiveMatchRefresh({
   fixtures: LiveRefreshFixture[];
 }) {
   const router = useRouter();
+  const lastPollAt = useRef<number | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -38,6 +39,11 @@ export function LiveMatchRefresh({
         refreshing ||
         !fixtures.some((fixture) => isLivePollCandidate(fixture))
       ) return;
+      const now = Date.now();
+      // New fixture props restart this effect after router.refresh(). Keep that
+      // restart from immediately polling again and creating a refresh loop.
+      if (lastPollAt.current !== null && now - lastPollAt.current < REFRESH_INTERVAL_MS) return;
+      lastPollAt.current = now;
       refreshing = true;
       try {
         const response = await fetch("/api/matches/live", {

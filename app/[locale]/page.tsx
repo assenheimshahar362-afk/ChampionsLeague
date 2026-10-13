@@ -92,7 +92,7 @@ async function MatchdayContent({ locale }: { locale: string }) {
   return (
     <div id="matches" className="scroll-mt-20">
       <MatchList
-        key={nowIso}
+        key={user?.id ?? "guest"}
         fixtures={fixtures}
         initialPredictions={predictions}
         aiPredictions={aiPredictions}

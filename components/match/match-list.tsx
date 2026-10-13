@@ -207,7 +207,32 @@ export function MatchList({
   const roundScrollTarget = useRef<HTMLElement | null>(null);
   const didScroll = useRef(false);
   const [additionalRoundCount, setAdditionalRoundCount] = useState(0);
+  const [previousFixtures, setPreviousFixtures] = useState(fixtures);
   const nowTime = new Date(nowIso).getTime();
+
+  // Refresh server data without remounting the list or losing loaded rounds.
+  // Adjust during rendering so the committed cards and refresh timers use the
+  // new statuses immediately, while the one-time scroll ref stays intact.
+  if (previousFixtures !== fixtures) {
+    const incomingIds = new Set(fixtures.map((fixture) => fixture.id));
+    const extraFixtures = loadedFixtures.filter(
+      (fixture) => !incomingIds.has(fixture.id)
+    );
+    const incomingRounds = new Set(
+      fixtures.map((fixture) => `${fixture.season}:${fixture.round}`)
+    );
+    const extraRounds = new Set(
+      extraFixtures
+        .map((fixture) => `${fixture.season}:${fixture.round}`)
+        .filter((round) => !incomingRounds.has(round))
+    );
+    setPreviousFixtures(fixtures);
+    setLoadedFixtures([...fixtures, ...extraFixtures].sort((left, right) =>
+      left.kickoffAt.localeCompare(right.kickoffAt)
+    ));
+    setLoadedAiPredictions((current) => ({ ...current, ...aiPredictions }));
+    setRemainingRoundCount(Math.max(0, initialRemainingRoundCount - extraRounds.size));
+  }
 
   // Only the newest response may update the shared save indicator. Next.js
   // dispatches Server Actions sequentially, but rapid score edits can still
